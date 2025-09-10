@@ -44,6 +44,7 @@ type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
 const PREDEFINED_PROMPTS = [
   '얼굴에 아이언맨 가면을 씌워줘',
+  '과학자 안경을 만들어줘',
   // Add more prompts here
 ];
 
