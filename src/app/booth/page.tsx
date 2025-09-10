@@ -3,24 +3,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, Check, Loader2, RefreshCw } from 'lucide-react';
+import { Camera, Check, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { removeBackground } from '@/ai/flows/remove-background';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-
-const LOCAL_STORAGE_KEY_API_KEY = 'magic-markup-api-key';
 
 export default function BoothPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { startNewSession, apiKey, setIsApiKeyDialogOpen } = useMagicMarkup();
+  const { startNewSession } = useMagicMarkup();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -65,32 +61,8 @@ export default function BoothPage() {
   const confirmPhoto = async () => {
     if (!photoData) return;
     
-    if (!apiKey) {
-      setIsApiKeyDialogOpen(true);
-      toast({
-        title: 'API Key Required',
-        description: 'Please enter your Google AI API key to proceed.',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { imageWithBgRemoved } = await removeBackground(apiKey, { baseImage: photoData });
-      if (imageWithBgRemoved) {
-        startNewSession(imageWithBgRemoved);
-        router.push('/editor');
-      } else {
-        throw new Error('Background removal failed.');
-      }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error removing background',
-        description: error.message || 'Could not process the image. Please try again.',
-      });
-      setIsLoading(false);
-    }
+    startNewSession(photoData);
+    router.push('/editor');
   };
 
   return (
@@ -122,15 +94,11 @@ export default function BoothPage() {
         <div className="mt-6 flex justify-center gap-4">
           {photoData ? (
             <>
-              <Button size="lg" variant="outline" onClick={resetPhoto} disabled={isLoading}>
+              <Button size="lg" variant="outline" onClick={resetPhoto}>
                 <RefreshCw className="mr-2" /> 다시 찍기
               </Button>
-              <Button size="lg" onClick={confirmPhoto} disabled={isLoading}>
-                {isLoading ? (
-                  <Loader2 className="mr-2 animate-spin" />
-                ) : (
-                  <Check className="mr-2" />
-                )}
+              <Button size="lg" onClick={confirmPhoto}>
+                <Check className="mr-2" />
                 사진 사용
               </Button>
             </>
