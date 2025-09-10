@@ -28,21 +28,6 @@ export default function ScienceFourCutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 my-8">
-          <div className="p-4 bg-gray-800/50 rounded-lg flex items-center justify-center aspect-square">
-            <Beaker className="w-10 h-10 text-purple-400" />
-          </div>
-          <div className="p-4 bg-gray-800/50 rounded-lg flex items-center justify-center aspect-square">
-            <FlaskConical className="w-10 h-10 text-pink-400" />
-          </div>
-          <div className="p-4 bg-gray-800/50 rounded-lg flex items-center justify-center aspect-square">
-            <TestTube className="w-10 h-10 text-purple-400" />
-          </div>
-          <div className="p-4 bg-gray-800/50 rounded-lg flex items-center justify-center aspect-square">
-            <Atom className="w-10 h-10 text-pink-400" />
-          </div>
-        </div>
-
         <p className="mb-8 text-gray-400">
           AI의 놀라운 능력으로 여러분의 사진을 특별한 과학 컨셉의 네컷 사진으로 만들어 보세요.
         </p>
