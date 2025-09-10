@@ -38,8 +38,15 @@ import { ColorPicker } from './color-picker';
 import { IconButton } from './icon-button';
 import { BrushSize, Tool } from '@/lib/types';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
+import { cn } from '@/lib/utils';
 
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
+
+const PREDEFINED_PROMPTS = [
+  '얼굴에 아이언맨 가면을 씌워줘',
+  // Add more prompts here
+];
+
 
 export function Toolbar({
   tool,
@@ -157,16 +164,25 @@ export function Toolbar({
         <CardHeader>
           <CardTitle className="text-lg">Prompt</CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col">
-          <Label htmlFor="custom-prompt">Add custom instructions</Label>
-          <Textarea
-            id="custom-prompt"
-            className="mt-2 flex-1 font-code"
-            placeholder="e.g., 'make the sky dramatic and moody'"
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
-            onKeyDown={handlePromptKeyDown}
-          />
+        <CardContent className="flex-1 flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Choose a prompt to apply:</p>
+            {PREDEFINED_PROMPTS.map(prompt => (
+                <Button
+                    key={prompt}
+                    variant={customPrompt === prompt ? 'secondary' : 'outline'}
+                    onClick={() => setCustomPrompt(prompt)}
+                    className="justify-start"
+                >
+                    {customPrompt === prompt && <Check className="mr-2 size-4" />}
+                    {prompt}
+                </Button>
+            ))}
+            {customPrompt && (
+              <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')} className="text-muted-foreground">
+                <X className="mr-2" />
+                Clear Selection
+              </Button>
+            )}
         </CardContent>
       </Card>
 
