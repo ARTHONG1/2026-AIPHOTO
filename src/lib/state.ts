@@ -1,0 +1,218 @@
+
+import { SessionHistoryItem, CanvasObject, Annotation, Highlight, Tool, BrushSize } from './types';
+
+export interface AppState {
+  isMounted: boolean;
+  sessionHistory: SessionHistoryItem[];
+  activeHistoryId: string | null;
+  apiKey: string | null;
+  baseImage: string | null;
+  baseImagePrompt: string;
+  elementImages: (File | null)[];
+  elementImageUrls: (string | null)[];
+  elementNames: string[];
+  canvasObjects: CanvasObject[];
+  tool: Tool;
+  color: string;
+  brushSize: BrushSize;
+  customPrompt: string;
+  isLoading: boolean;
+  isElementUploadOpen: boolean;
+  editingAnnotation: Annotation | null;
+  confirmingNewImage: string | null;
+  isCameraRollOpen: boolean;
+  isApiKeyDialogOpen: boolean;
+}
+
+export const initialState: AppState = {
+  isMounted: false,
+  sessionHistory: [],
+  activeHistoryId: null,
+  apiKey: null,
+  baseImage: null,
+  baseImagePrompt: '',
+  elementImages: [null, null, null],
+  elementImageUrls: [null, null, null],
+  elementNames: ['', '', ''],
+  canvasObjects: [],
+  tool: 'highlight',
+  color: '#D35898',
+  brushSize: 'medium',
+  customPrompt: '',
+  isLoading: false,
+  isElementUploadOpen: false,
+  editingAnnotation: null,
+  confirmingNewImage: null,
+  isCameraRollOpen: true,
+  isApiKeyDialogOpen: false,
+};
+
+
+export type ActionPayloads = {
+    SET_IS_MOUNTED: boolean;
+    SET_SESSION_HISTORY: SessionHistoryItem[];
+    LOAD_STATE_FROM_HISTORY: SessionHistoryItem | null;
+    START_NEW_SESSION: SessionHistoryItem;
+    DELETE_HISTORY_ITEM: string;
+    SET_API_KEY: string | null;
+    SET_BASE_IMAGE: string | null;
+    SET_BASE_IMAGE_PROMPT: string;
+    SET_ELEMENT_IMAGES: (File | null)[];
+    SET_ELEMENT_IMAGE_URLS: (string | null)[];
+    SET_ELEMENT_NAMES: string[];
+    SET_CANVAS_OBJECTS: CanvasObject[];
+    ADD_CANVAS_OBJECT: CanvasObject;
+    UPDATE_LAST_HIGHLIGHT_POINT: { x: number; y: number };
+    SAVE_ANNOTATION: { id: string; text: string; position?: { x: number; y: number }; color: string };
+    SET_TOOL: Tool;
+    SET_COLOR: string;
+    SET_BRUSH_SIZE: BrushSize;
+    SET_CUSTOM_PROMPT: string;
+    SET_IS_LOADING: boolean;
+    SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
+    SET_EDITING_ANNOTATION: Annotation | null;
+    SET_CONFIRMING_NEW_IMAGE: string | null;
+    SET_IS_CAMERA_ROLL_OPEN: boolean;
+    SET_IS_API_KEY_DIALOG_OPEN: boolean;
+};
+
+export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
+
+export function reducer(state: AppState, action: Action): AppState {
+  switch (action.type) {
+    case 'SET_IS_MOUNTED':
+      return { ...state, isMounted: action.payload };
+    case 'SET_SESSION_HISTORY':
+      return { ...state, sessionHistory: action.payload };
+    case 'LOAD_STATE_FROM_HISTORY':
+        if (action.payload === null) {
+            return {
+                ...initialState,
+                isMounted: true,
+                sessionHistory: state.sessionHistory,
+                apiKey: state.apiKey,
+                isCameraRollOpen: state.isCameraRollOpen,
+            }
+        }
+        return {
+            ...state,
+            activeHistoryId: action.payload.id,
+            baseImage: action.payload.baseImage,
+            canvasObjects: action.payload.annotations,
+            elementImageUrls: action.payload.elementImageUrls,
+            elementNames: action.payload.elementNames,
+            customPrompt: action.payload.prompt,
+            baseImagePrompt: '',
+        };
+    case 'START_NEW_SESSION':
+        return {
+            ...state,
+            baseImage: action.payload.baseImage,
+            canvasObjects: [],
+            customPrompt: '',
+            baseImagePrompt: '',
+            activeHistoryId: action.payload.id,
+            sessionHistory: [...state.sessionHistory, action.payload]
+        };
+    case 'DELETE_HISTORY_ITEM': {
+        const newHistory = state.sessionHistory.filter(item => item.id !== action.payload);
+        const newActiveId = state.activeHistoryId === action.payload ? newHistory[newHistory.length - 1]?.id ?? null : state.activeHistoryId;
+        const activeItem = newHistory.find(item => item.id === newActiveId);
+
+        if (!activeItem) {
+            return {
+                ...initialState,
+                 isMounted: true,
+                apiKey: state.apiKey,
+                sessionHistory: newHistory,
+            }
+        }
+
+        return {
+            ...state,
+            sessionHistory: newHistory,
+            activeHistoryId: newActiveId,
+            baseImage: activeItem.baseImage,
+            canvasObjects: activeItem.annotations,
+            elementImageUrls: activeItem.elementImageUrls,
+            elementNames: activeItem.elementNames,
+            customPrompt: activeItem.prompt,
+        };
+    }
+    case 'SET_API_KEY':
+      return { ...state, apiKey: action.payload };
+    case 'SET_BASE_IMAGE':
+      return { ...state, baseImage: action.payload };
+    case 'SET_BASE_IMAGE_PROMPT':
+      return { ...state, baseImagePrompt: action.payload };
+    case 'SET_ELEMENT_IMAGES':
+      return { ...state, elementImages: action.payload };
+    case 'SET_ELEMENT_IMAGE_URLS':
+      return { ...state, elementImageUrls: action.payload };
+    case 'SET_ELEMENT_NAMES':
+      return { ...state, elementNames: action.payload };
+    case 'SET_CANVAS_OBJECTS':
+      return { ...state, canvasObjects: action.payload };
+    case 'ADD_CANVAS_OBJECT':
+      return { ...state, canvasObjects: [...state.canvasObjects, action.payload] };
+    case 'UPDATE_LAST_HIGHLIGHT_POINT': {
+      const lastObject = state.canvasObjects[state.canvasObjects.length - 1];
+      if (lastObject && lastObject.type === 'highlight') {
+        const updatedHighlight = {
+          ...lastObject,
+          points: [...(lastObject as Highlight).points, action.payload],
+        };
+        return {
+          ...state,
+          canvasObjects: [...state.canvasObjects.slice(0, -1), updatedHighlight],
+        };
+      }
+      return state;
+    }
+    case 'SAVE_ANNOTATION': {
+        const { id, text, position, color } = action.payload;
+        const existing = state.canvasObjects.find(obj => obj.id === id);
+        if (existing) {
+            return {
+                ...state,
+                canvasObjects: state.canvasObjects.map(obj => 
+                    obj.id === id ? { ...obj, text, position: position || (obj as Annotation).position } : obj
+                )
+            }
+        } else {
+            const newAnnotation: Annotation = {
+                id,
+                type: 'annotation',
+                text,
+                position: position!,
+                color,
+                fontSize: 40 // Consider making this dynamic
+            };
+            return { ...state, canvasObjects: [...state.canvasObjects, newAnnotation] };
+        }
+    }
+    case 'SET_TOOL':
+      return { ...state, tool: action.payload };
+    case 'SET_COLOR':
+      return { ...state, color: action.payload };
+    case 'SET_BRUSH_SIZE':
+      return { ...state, brushSize: action.payload };
+    case 'SET_CUSTOM_PROMPT':
+      return { ...state, customPrompt: action.payload };
+    case 'SET_IS_LOADING':
+      return { ...state, isLoading: action.payload };
+    case 'SET_IS_ELEMENT_UPLOAD_OPEN':
+      return { ...state, isElementUploadOpen: action.payload };
+    case 'SET_EDITING_ANNOTATION':
+      return { ...state, editingAnnotation: action.payload };
+    case 'SET_CONFIRMING_NEW_IMAGE':
+      return { ...state, confirmingNewImage: action.payload };
+    case 'SET_IS_CAMERA_ROLL_OPEN':
+      return { ...state, isCameraRollOpen: action.payload };
+    case 'SET_IS_API_KEY_DIALOG_OPEN':
+      return { ...state, isApiKeyDialogOpen: action.payload };
+    default:
+      return state;
+  }
+}
+
