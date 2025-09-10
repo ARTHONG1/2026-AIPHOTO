@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight } from '@/lib/types';
 import { resizeImage, dataUrlToBlob } from '@/lib/canvas-utils';
 import { generateImageEdit } from '@/ai/flows/generate-image-edit';
-import { generateBaseImage } from '@/ai/flows/generate-base-image';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
 
 
@@ -41,7 +40,6 @@ export function useMagicMarkup() {
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
-    confirmingNewImage,
     isApiKeyDialogOpen,
   } = state;
 
@@ -59,7 +57,6 @@ export function useMagicMarkup() {
   const history = useRef<any[]>([]);
   const historyPointer = useRef(-1);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   
   // -- ACTION DISPATCHERS --
@@ -73,7 +70,6 @@ export function useMagicMarkup() {
   const setCustomPrompt = (prompt: string) => dispatchAction('SET_CUSTOM_PROMPT', prompt);
   const setIsElementUploadOpen = (isOpen: boolean) => dispatchAction('SET_IS_ELEMENT_UPLOAD_OPEN', isOpen);
   const setEditingAnnotation = (annotation: Annotation | null) => dispatchAction('SET_EDITING_ANNOTATION', annotation);
-  const setConfirmingNewImage = (image: string | null) => dispatchAction('SET_CONFIRMING_NEW_IMAGE', image);
   const setIsApiKeyDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_API_KEY_DIALOG_OPEN', isOpen);
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
@@ -85,13 +81,6 @@ export function useMagicMarkup() {
     dispatchAction('START_NEW_SESSION', { baseImage: newBaseImage });
   }, []);
   
-  const handleConfirmNewImage = (confirmed: boolean) => {
-    if (confirmed && confirmingNewImage) {
-      startNewSession(confirmingNewImage);
-    }
-    setConfirmingNewImage(null);
-  }
-
   const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -99,27 +88,6 @@ export function useMagicMarkup() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-  };
-
-  const handleBaseImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const url = await readFileAsDataURL(file);
-      const resizedUrl = await resizeImage(url, MAX_DIMENSION, MAX_DIMENSION);
-      if (baseImage) {
-        setConfirmingNewImage(resizedUrl);
-      } else {
-        startNewSession(resizedUrl);
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error reading file',
-        description: 'Could not read the selected image file.',
-      });
-    }
   };
 
   const handleElementImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -540,27 +508,10 @@ export function useMagicMarkup() {
 
       if (isElementUploadOpen) {
         await addElementImage(file);
-      } else {
-        try {
-          const url = await readFileAsDataURL(file);
-          const resizedUrl = await resizeImage(url, MAX_DIMENSION, MAX_DIMENSION);
-          if (!baseImage) {
-            startNewSession(resizedUrl);
-            toast({ title: 'Base image pasted!' });
-          } else {
-            setConfirmingNewImage(resizedUrl);
-          }
-        } catch (error) {
-          toast({
-            variant: 'destructive',
-            title: 'Error reading pasted image',
-            description: 'Could not read the image from the clipboard.',
-          });
-        }
       }
       break;
     }
-  }, [baseImage, toast, isElementUploadOpen, addElementImage, startNewSession]);
+  }, [isElementUploadOpen, addElementImage]);
   
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || editingAnnotation) {
@@ -669,14 +620,12 @@ export function useMagicMarkup() {
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
-    confirmingNewImage,
     isApiKeyDialogOpen,
     elementImages,
     elementNames,
 
     // Refs
     canvasRef,
-    fileInputRef,
     elementFileInputRef,
 
     // State Setters (dispatchers)
@@ -686,15 +635,13 @@ export function useMagicMarkup() {
     setCustomPrompt,
     setIsElementUploadOpen,
     setEditingAnnotation,
-    setConfirmingNewImage,
     setIsApiKeyDialogOpen,
     setElementImages,
     setElementImageUrls,
     setElementNames,
 
     // Functions
-    handleConfirmNewImage,
-    handleBaseImageUpload,
+    startNewSession,
     handleElementImageUpload,
     undo,
     redo,

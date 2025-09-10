@@ -16,7 +16,6 @@ export interface AppState {
   isLoading: boolean;
   isElementUploadOpen: boolean;
   editingAnnotation: Annotation | null;
-  confirmingNewImage: string | null;
   isApiKeyDialogOpen: boolean;
 }
 
@@ -35,7 +34,6 @@ export const initialState: AppState = {
   isLoading: false,
   isElementUploadOpen: false,
   editingAnnotation: null,
-  confirmingNewImage: null,
   isApiKeyDialogOpen: false,
 };
 
@@ -60,7 +58,6 @@ export type ActionPayloads = {
     SET_IS_LOADING: boolean;
     SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
     SET_EDITING_ANNOTATION: Annotation | null;
-    SET_CONFIRMING_NEW_IMAGE: string | null;
     SET_IS_API_KEY_DIALOG_OPEN: boolean;
 };
 
@@ -153,8 +150,6 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, isElementUploadOpen: action.payload };
     case 'SET_EDITING_ANNOTATION':
       return { ...state, editingAnnotation: action.payload };
-    case 'SET_CONFIRMING_NEW_IMAGE':
-      return { ...state, confirmingNewImage: action.payload };
     case 'SET_IS_API_KEY_DIALOG_OPEN':
       return { ...state, isApiKeyDialogOpen: action.payload };
     default:
