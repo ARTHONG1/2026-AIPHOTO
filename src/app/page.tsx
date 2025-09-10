@@ -21,7 +21,7 @@ export default function ScienceFourCutPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
       <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
-          <Image src="/icon.png" alt="과학네컷 로고" width={64} height={64} className="rounded-xl" />
+          <Image src="/icon.png" alt="과학네컷 로고" width={64} height={64} className="rounded-xl" style={{ height: 'auto', width: 'auto' }}/>
           <div>
             <h1 className="text-4xl font-bold">과학네컷</h1>
             <p className="text-purple-300">AI와 함께 만드는 나만의 과학 사진</p>

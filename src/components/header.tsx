@@ -1,6 +1,5 @@
 import { KeyRound, ClipboardCopy } from 'lucide-react';
 import { IconButton } from './icon-button';
-import icon from "@/icon.jpg";
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -15,7 +14,7 @@ export function Header({ onApiKeyClick, onCopyClick, isCopyDisabled }: HeaderPro
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div className="flex items-center gap-2 w-1/3">
-        <Image src={icon} alt="Magic Markup Icon" width="32" height="32" className="rounded-xl"/>
+        <Image src="/icon.png" alt="Magic Markup Icon" width="32" height="32" className="rounded-xl" style={{ height: 'auto', width: 'auto' }}/>
         <h1 className="font-headline text-xl font-semibold tracking-tight text-foreground">
           Magic Markup
         </h1>
