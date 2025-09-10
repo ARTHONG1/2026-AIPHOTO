@@ -1,9 +1,9 @@
-import TimerApp from "@/components/timer-app";
+import { MagicMarkupEditor } from '@/components/magic-markup-editor';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <TimerApp />
+    <main className="min-h-screen bg-background">
+      <MagicMarkupEditor />
     </main>
   );
 }
