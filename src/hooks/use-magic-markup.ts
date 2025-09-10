@@ -426,7 +426,8 @@ export function useMagicMarkup() {
             ctx.fillText(a.text, a.position.x, a.position.y);
         });
         
-        annotatedImage = annotatedCanvas.toDataURL('image/png');
+        const fullSizeAnnotatedImage = annotatedCanvas.toDataURL('image/png');
+        annotatedImage = await resizeImage(fullSizeAnnotatedImage, MAX_DIMENSION, MAX_DIMENSION);
       }
 
       const elementImageUrlsPayload = elementImageUrls
@@ -660,3 +661,5 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
+
+    
