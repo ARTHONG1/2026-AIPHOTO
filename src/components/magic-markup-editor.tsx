@@ -1,7 +1,7 @@
 
 'use client';
 
-import { UploadCloud, Sparkles, Loader2 } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Button } from '@/components/ui/button';
 import { Header } from './header';
@@ -9,8 +9,6 @@ import { EditorCanvas } from './editor-canvas';
 import { Toolbar } from './toolbar';
 import { ConfirmNewImageDialog } from './confirm-new-image-dialog';
 import { ApiKeyDialog } from './api-key-dialog';
-import { Input } from './ui/input';
-import { Separator } from './ui/separator';
 
 export function MagicMarkupEditor() {
   const hook = useMagicMarkup();
@@ -21,8 +19,8 @@ export function MagicMarkupEditor() {
 
   return (
     <div className="flex h-screen flex-col">
-      <Header 
-        onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)} 
+      <Header
+        onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
         onCopyClick={hook.handleCopyBaseImage}
         isCopyDisabled={!hook.baseImage}
       />

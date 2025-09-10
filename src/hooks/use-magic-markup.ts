@@ -3,7 +3,7 @@
 
 import { useRef, useCallback, ChangeEvent, useEffect, useReducer } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight, type SessionHistoryItem } from '@/lib/types';
+import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight } from '@/lib/types';
 import { resizeImage, dataUrlToBlob } from '@/lib/canvas-utils';
 import { generateImageEdit } from '@/ai/flows/generate-image-edit';
 import { generateBaseImage } from '@/ai/flows/generate-base-image';
@@ -28,11 +28,8 @@ export function useMagicMarkup() {
 
   const {
     isMounted,
-    sessionHistory,
-    activeHistoryId,
     apiKey,
     baseImage,
-    baseImagePrompt,
     elementImages,
     elementImageUrls,
     elementNames,
@@ -45,7 +42,6 @@ export function useMagicMarkup() {
     isElementUploadOpen,
     editingAnnotation,
     confirmingNewImage,
-    isCameraRollOpen,
     isApiKeyDialogOpen,
   } = state;
 
@@ -75,11 +71,9 @@ export function useMagicMarkup() {
   const setColor = (color: string) => dispatchAction('SET_COLOR', color);
   const setBrushSize = (brushSize: BrushSize) => dispatchAction('SET_BRUSH_SIZE', brushSize);
   const setCustomPrompt = (prompt: string) => dispatchAction('SET_CUSTOM_PROMPT', prompt);
-  const setBaseImagePrompt = (prompt: string) => dispatchAction('SET_BASE_IMAGE_PROMPT', prompt);
   const setIsElementUploadOpen = (isOpen: boolean) => dispatchAction('SET_IS_ELEMENT_UPLOAD_OPEN', isOpen);
   const setEditingAnnotation = (annotation: Annotation | null) => dispatchAction('SET_EDITING_ANNOTATION', annotation);
   const setConfirmingNewImage = (image: string | null) => dispatchAction('SET_CONFIRMING_NEW_IMAGE', image);
-  const setIsCameraRollOpen = (isOpen: boolean) => dispatchAction('SET_IS_CAMERA_ROLL_OPEN', isOpen);
   const setIsApiKeyDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_API_KEY_DIALOG_OPEN', isOpen);
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
@@ -87,27 +81,9 @@ export function useMagicMarkup() {
 
   // -- SESSION & HISTORY MANAGEMENT --
   
-  const createNewHistoryItem = useCallback((newBaseImage: string, prompt?: string) => {
-    const newItem: SessionHistoryItem = {
-      id: `session-${Date.now()}`,
-      baseImage: newBaseImage,
-      annotations: [],
-      elementImageUrls: [null, null, null],
-      elementNames: ['', '', ''],
-      prompt: prompt || '',
-      createdAt: new Date().toISOString()
-    };
-    return newItem;
-  }, []);
-  
-  const loadStateFromHistoryItem = (item: SessionHistoryItem | null) => {
-    dispatchAction('LOAD_STATE_FROM_HISTORY', item);
-  }
-
   const startNewSession = useCallback((newBaseImage: string) => {
-    const newItem = createNewHistoryItem(newBaseImage);
-    dispatchAction('START_NEW_SESSION', newItem);
-  }, [createNewHistoryItem]);
+    dispatchAction('START_NEW_SESSION', { baseImage: newBaseImage });
+  }, []);
   
   const handleConfirmNewImage = (confirmed: boolean) => {
     if (confirmed && confirmingNewImage) {
@@ -413,30 +389,6 @@ export function useMagicMarkup() {
     interactionState.current.isDragging = false;
   };
 
-  const handleGenerateBaseImage = async () => {
-    if (!apiKey) {
-      setIsApiKeyDialogOpen(true);
-      return;
-    }
-    if (!baseImagePrompt) return;
-
-    dispatchAction('SET_IS_LOADING', true);
-    try {
-      const result = await generateBaseImage(apiKey, { prompt: baseImagePrompt });
-      const resizedUrl = await resizeImage(result.generatedImage, MAX_DIMENSION, MAX_DIMENSION);
-      startNewSession(resizedUrl);
-    } catch (error: any) {
-      console.error('AI Generation Error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Generation Failed',
-        description: error.message || 'The AI could not generate the image. Please try again.',
-      });
-    } finally {
-      dispatchAction('SET_IS_LOADING', false);
-    }
-  }
-
   const handleGenerate = async () => {
     if (!apiKey) {
       setIsApiKeyDialogOpen(true);
@@ -521,7 +473,8 @@ export function useMagicMarkup() {
       });
 
       if (result.editedImage) {
-        startNewSession(result.editedImage);
+        const resizedUrl = await resizeImage(result.editedImage, MAX_DIMENSION, MAX_DIMENSION);
+        startNewSession(resizedUrl);
       } else {
         throw new Error('The AI model did not return an image.');
       }
@@ -553,13 +506,6 @@ export function useMagicMarkup() {
     if (!baseImage) return;
     copyImageToClipboard(baseImage);
   }
-
-  const handleCopyHistoryItem = (id: string) => {
-    const item = sessionHistory.find(item => item.id === id);
-    if (item) {
-        copyImageToClipboard(item.baseImage);
-    }
-  };
   
   const handleRemoveElementImage = (index: number) => {
     const newImages = [...elementImages];
@@ -578,14 +524,6 @@ export function useMagicMarkup() {
     setElementNames(newNames);
   };
 
-  const handleDeleteHistoryItem = (idToDelete: string) => {
-    dispatchAction('DELETE_HISTORY_ITEM', idToDelete);
-  };
-
-  const handleNewSession = () => {
-    loadStateFromHistoryItem(null);
-  }
-  
   const handlePaste = useCallback(async (event: ClipboardEvent) => {
     const items = event.clipboardData?.items;
     if (!items) return;
@@ -661,12 +599,8 @@ export function useMagicMarkup() {
 
       const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY_SESSION);
       if (savedSession) {
-        const { history, activeId } = JSON.parse(savedSession);
-        if (history && Array.isArray(history) && history.length > 0) {
-          dispatchAction('SET_SESSION_HISTORY', history);
-          const activeItem = history.find((item: SessionHistoryItem) => item.id === activeId) || history[history.length -1];
-          loadStateFromHistoryItem(activeItem);
-        }
+        const sessionData = JSON.parse(savedSession);
+        dispatchAction('LOAD_STATE_FROM_HISTORY', sessionData);
       }
     } catch (e) {
       console.error("Failed to load session from local storage", e);
@@ -675,30 +609,20 @@ export function useMagicMarkup() {
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !baseImage) return;
     try {
-      const activeItem = sessionHistory.find(item => item.id === activeHistoryId);
-      if (activeItem) {
-        const updatedActiveItem: SessionHistoryItem = {
-          ...activeItem,
-          annotations: canvasObjects,
-          elementImageUrls: elementImageUrls,
-          elementNames: elementNames,
-          prompt: customPrompt
-        };
-
-        const newHistory = sessionHistory.map(item => item.id === activeHistoryId ? updatedActiveItem : item);
-        
-        const dataToSave = JSON.stringify({ history: newHistory, activeId: activeHistoryId });
-        localStorage.setItem(LOCAL_STORAGE_KEY_SESSION, dataToSave);
-      } else if (sessionHistory.length === 0 && !baseImage) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
-      }
-
+      const dataToSave = JSON.stringify({
+        baseImage,
+        annotations: canvasObjects,
+        elementImageUrls,
+        elementNames,
+        prompt: customPrompt,
+      });
+      localStorage.setItem(LOCAL_STORAGE_KEY_SESSION, dataToSave);
     } catch(e) {
       console.error("Failed to save session to local storage", e);
     }
-  }, [isMounted, canvasObjects, elementImageUrls, elementNames, customPrompt, sessionHistory, activeHistoryId, baseImage]);
+  }, [isMounted, baseImage, canvasObjects, elementImageUrls, elementNames, customPrompt]);
 
 
   useEffect(() => {
@@ -734,11 +658,8 @@ export function useMagicMarkup() {
   return {
     // State
     isMounted,
-    sessionHistory,
-    activeHistoryId,
     apiKey,
     baseImage,
-    baseImagePrompt,
     elementImageUrls,
     canvasObjects,
     tool,
@@ -749,7 +670,6 @@ export function useMagicMarkup() {
     isElementUploadOpen,
     editingAnnotation,
     confirmingNewImage,
-    isCameraRollOpen,
     isApiKeyDialogOpen,
     elementImages,
     elementNames,
@@ -764,18 +684,15 @@ export function useMagicMarkup() {
     setColor,
     setBrushSize,
     setCustomPrompt,
-    setBaseImagePrompt,
     setIsElementUploadOpen,
     setEditingAnnotation,
     setConfirmingNewImage,
-    setIsCameraRollOpen,
     setIsApiKeyDialogOpen,
     setElementImages,
     setElementImageUrls,
     setElementNames,
 
     // Functions
-    loadStateFromHistoryItem,
     handleConfirmNewImage,
     handleBaseImageUpload,
     handleElementImageUpload,
@@ -787,12 +704,8 @@ export function useMagicMarkup() {
     handleCanvasMouseUp,
     handleSaveAnnotation,
     handleGenerate,
-    handleGenerateBaseImage,
     handleCopyBaseImage,
-    handleCopyHistoryItem,
     handleRemoveElementImage,
-    handleDeleteHistoryItem,
-    handleNewSession,
     handlePromptKeyDown,
     handleSaveApiKey,
 

@@ -1,13 +1,10 @@
 
-import { SessionHistoryItem, CanvasObject, Annotation, Highlight, Tool, BrushSize } from './types';
+import { CanvasObject, Annotation, Highlight, Tool, BrushSize } from './types';
 
 export interface AppState {
   isMounted: boolean;
-  sessionHistory: SessionHistoryItem[];
-  activeHistoryId: string | null;
   apiKey: string | null;
   baseImage: string | null;
-  baseImagePrompt: string;
   elementImages: (File | null)[];
   elementImageUrls: (string | null)[];
   elementNames: string[];
@@ -20,17 +17,13 @@ export interface AppState {
   isElementUploadOpen: boolean;
   editingAnnotation: Annotation | null;
   confirmingNewImage: string | null;
-  isCameraRollOpen: boolean;
   isApiKeyDialogOpen: boolean;
 }
 
 export const initialState: AppState = {
   isMounted: false,
-  sessionHistory: [],
-  activeHistoryId: null,
   apiKey: null,
   baseImage: null,
-  baseImagePrompt: '',
   elementImages: [null, null, null],
   elementImageUrls: [null, null, null],
   elementNames: ['', '', ''],
@@ -43,20 +36,16 @@ export const initialState: AppState = {
   isElementUploadOpen: false,
   editingAnnotation: null,
   confirmingNewImage: null,
-  isCameraRollOpen: true,
   isApiKeyDialogOpen: false,
 };
 
 
 export type ActionPayloads = {
     SET_IS_MOUNTED: boolean;
-    SET_SESSION_HISTORY: SessionHistoryItem[];
-    LOAD_STATE_FROM_HISTORY: SessionHistoryItem | null;
-    START_NEW_SESSION: SessionHistoryItem;
-    DELETE_HISTORY_ITEM: string;
+    LOAD_STATE_FROM_HISTORY: Partial<AppState> | null;
+    START_NEW_SESSION: { baseImage: string };
     SET_API_KEY: string | null;
     SET_BASE_IMAGE: string | null;
-    SET_BASE_IMAGE_PROMPT: string;
     SET_ELEMENT_IMAGES: (File | null)[];
     SET_ELEMENT_IMAGE_URLS: (string | null)[];
     SET_ELEMENT_NAMES: string[];
@@ -72,7 +61,6 @@ export type ActionPayloads = {
     SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
     SET_EDITING_ANNOTATION: Annotation | null;
     SET_CONFIRMING_NEW_IMAGE: string | null;
-    SET_IS_CAMERA_ROLL_OPEN: boolean;
     SET_IS_API_KEY_DIALOG_OPEN: boolean;
 };
 
@@ -82,27 +70,17 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_IS_MOUNTED':
       return { ...state, isMounted: action.payload };
-    case 'SET_SESSION_HISTORY':
-      return { ...state, sessionHistory: action.payload };
     case 'LOAD_STATE_FROM_HISTORY':
         if (action.payload === null) {
             return {
                 ...initialState,
                 isMounted: true,
-                sessionHistory: state.sessionHistory,
                 apiKey: state.apiKey,
-                isCameraRollOpen: state.isCameraRollOpen,
             }
         }
         return {
             ...state,
-            activeHistoryId: action.payload.id,
-            baseImage: action.payload.baseImage,
-            canvasObjects: action.payload.annotations,
-            elementImageUrls: action.payload.elementImageUrls,
-            elementNames: action.payload.elementNames,
-            customPrompt: action.payload.prompt,
-            baseImagePrompt: '',
+            ...action.payload,
         };
     case 'START_NEW_SESSION':
         return {
@@ -110,41 +88,11 @@ export function reducer(state: AppState, action: Action): AppState {
             baseImage: action.payload.baseImage,
             canvasObjects: [],
             customPrompt: '',
-            baseImagePrompt: '',
-            activeHistoryId: action.payload.id,
-            sessionHistory: [...state.sessionHistory, action.payload]
         };
-    case 'DELETE_HISTORY_ITEM': {
-        const newHistory = state.sessionHistory.filter(item => item.id !== action.payload);
-        const newActiveId = state.activeHistoryId === action.payload ? newHistory[newHistory.length - 1]?.id ?? null : state.activeHistoryId;
-        const activeItem = newHistory.find(item => item.id === newActiveId);
-
-        if (!activeItem) {
-            return {
-                ...initialState,
-                 isMounted: true,
-                apiKey: state.apiKey,
-                sessionHistory: newHistory,
-            }
-        }
-
-        return {
-            ...state,
-            sessionHistory: newHistory,
-            activeHistoryId: newActiveId,
-            baseImage: activeItem.baseImage,
-            canvasObjects: activeItem.annotations,
-            elementImageUrls: activeItem.elementImageUrls,
-            elementNames: activeItem.elementNames,
-            customPrompt: activeItem.prompt,
-        };
-    }
     case 'SET_API_KEY':
       return { ...state, apiKey: action.payload };
     case 'SET_BASE_IMAGE':
       return { ...state, baseImage: action.payload };
-    case 'SET_BASE_IMAGE_PROMPT':
-      return { ...state, baseImagePrompt: action.payload };
     case 'SET_ELEMENT_IMAGES':
       return { ...state, elementImages: action.payload };
     case 'SET_ELEMENT_IMAGE_URLS':
@@ -207,12 +155,9 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, editingAnnotation: action.payload };
     case 'SET_CONFIRMING_NEW_IMAGE':
       return { ...state, confirmingNewImage: action.payload };
-    case 'SET_IS_CAMERA_ROLL_OPEN':
-      return { ...state, isCameraRollOpen: action.payload };
     case 'SET_IS_API_KEY_DIALOG_OPEN':
       return { ...state, isApiKeyDialogOpen: action.payload };
     default:
       return state;
   }
 }
-

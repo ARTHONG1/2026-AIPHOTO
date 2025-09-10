@@ -24,13 +24,3 @@ export interface Annotation extends CanvasObject {
   width?: number;
   height?: number;
 }
-
-export interface SessionHistoryItem {
-    id: string;
-    baseImage: string;
-    annotations: CanvasObject[];
-    elementImageUrls: (string | null)[];
-    elementNames: string[];
-    prompt: string;
-    createdAt: string;
-}
