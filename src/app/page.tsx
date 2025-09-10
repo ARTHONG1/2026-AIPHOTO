@@ -1,10 +1,22 @@
 
-import Link from 'next/link';
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Beaker, FlaskConical, TestTube, Atom } from 'lucide-react';
 import Image from 'next/image';
 
+const LOCAL_STORAGE_KEY_SESSION = 'magic-markup-session';
+
 export default function ScienceFourCutPage() {
+  const router = useRouter();
+
+  const handleStart = () => {
+    // Clear the previous session from local storage
+    localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
+    router.push('/editor');
+  };
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
       <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center">
@@ -35,11 +47,10 @@ export default function ScienceFourCutPage() {
           AI의 놀라운 능력으로 여러분의 사진을 특별한 과학 컨셉의 네컷 사진으로 만들어 보세요.
         </p>
 
-        <Link href="/editor">
-          <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
+        <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
             시작하기
-          </Button>
-        </Link>
+        </Button>
+
       </div>
     </div>
   );

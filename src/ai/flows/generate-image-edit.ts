@@ -5,12 +5,19 @@
  * @fileOverview AI flow for editing images based on a base image, an annotated image, and element images.
  *
  * - `generateImageEdit` - The main function to trigger the image editing flow.
- * - `GenerateImageEditInput` - Input type for the `generateImageEdit` function.
+ * - `GenerateImageEditInput` - Input type for the `generateImageEdit` function (currently unused but defined for clarity).
  * - `GenerateImageEditOutput` - Output type for the `generateImageEdit` function.
  */
 
-import {ai} from '@/ai/genkit';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
+
+export const ai = genkit({
+  plugins: [googleAI({apiKey: false})],
+  model: 'googleai/gemini-2.5-flash',
+});
+
 
 // Define schemas for the input and output data
 const GenerateImageEditInputSchema = z.object({

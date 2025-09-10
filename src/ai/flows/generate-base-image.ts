@@ -9,8 +9,15 @@
  * - `GenerateBaseImageOutput` - Output type for the `generateBaseImage` function.
  */
 
-import {ai} from '@/ai/genkit';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
+
+export const ai = genkit({
+  plugins: [googleAI({apiKey: false})],
+  model: 'googleai/gemini-2.5-flash',
+});
+
 
 // Define schemas for the input and output data
 const GenerateBaseImageInputSchema = z.object({
