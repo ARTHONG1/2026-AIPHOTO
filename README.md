@@ -65,3 +65,4 @@ Here's how it works:
 4.  **`ai.defineFlow`**: This function wraps the prompt and the core logic into a `flow`. It takes the client's input, calls the `imageEditPrompt`, and processes the response. It's responsible for handling the API key and ensuring all required inputs are present before calling the model.
 
 By encapsulating the AI logic in a Genkit flow, we cleanly separate the server-side AI processing from the client-side UI, making the application more organized, scalable, and maintainable.
+# science-photo
