@@ -586,12 +586,16 @@ export function useMagicMarkup() {
     try {
         const savedKeysRaw = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
         if (savedKeysRaw) {
-            const savedKeys = JSON.parse(savedKeysRaw);
-            if(Array.isArray(savedKeys)) {
-                setApiKeys(savedKeys);
-            } else if (typeof savedKeys === 'string') {
-                // Handle legacy single key
-                setApiKeys([savedKeys]);
+            try {
+                const savedKeys = JSON.parse(savedKeysRaw);
+                if (Array.isArray(savedKeys)) {
+                    setApiKeys(savedKeys);
+                }
+            } catch (e) {
+                // If parsing fails, it's likely a raw string key from a previous version
+                if (typeof savedKeysRaw === 'string') {
+                    setApiKeys([savedKeysRaw]);
+                }
             }
         }
 
@@ -708,3 +712,5 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
+
+    
