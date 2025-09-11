@@ -502,10 +502,16 @@ export function useMagicMarkup() {
   };
 
   const uploadToCloudinary = async (imageDataUrl: string): Promise<string | null> => {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    const cloudName = "dckjyturf";
+    const uploadPreset = "science-photo";
 
     if (!cloudName || !uploadPreset) {
+      console.error("Cloudinary configuration is missing in the client-side code.");
+      toast({
+        variant: 'destructive',
+        title: 'Configuration Error',
+        description: 'Cloudinary configuration is missing.'
+      });
       throw new Error("Cloudinary configuration is missing.");
     }
     
@@ -768,5 +774,7 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
+
+    
 
     
