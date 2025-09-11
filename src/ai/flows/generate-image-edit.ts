@@ -71,8 +71,8 @@ Base Image: {{media url=baseImage}}
 === Action Prompt
 {{{actionPrompt}}}
 
-Based on the action prompt, you will modify the pose of the subject in the base image. Ignore all other annotations and prompts.
-{{else}}
+Based on the action prompt, you will modify the pose of the subject in the base image.
+{{/if}}
 
 {{#if annotatedImage}}
 === Annotations
@@ -104,7 +104,7 @@ Incorporate the element images into the base image in a creative and seamless wa
 {{/if}}
 {{/if}}
 
-{{/if}}
+Please combine all of the above instructions (Action, Annotations, Elements, and Custom Prompt) into a single, cohesive, final image.
 `,
 });
 
