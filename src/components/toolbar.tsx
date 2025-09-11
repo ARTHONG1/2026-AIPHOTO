@@ -44,8 +44,8 @@ import { cn } from '@/lib/utils';
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
 const PREDEFINED_PROMPTS = [
-  '얼굴에 아이언맨 가면을 씌워줘',
-  '과학자 안경을 만들어줘',
+  { name: '얼굴에 아이언맨 가면을 씌워줘', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EC%95%84%EC%9D%B4%EC%96%B8%EB%A7%A8_%EA%B0%80%EB%A9%B4-removebg-preview.png?alt=media&token=ea998c1b-e447-4807-baa8-5570bfe0d8c1' },
+  { name: '과학자 안경을 만들어줘', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EA%B3%BC%ED%95%99%EC%9E%90%EC%95%88%EA%B2%BD-removebg-preview.png?alt=media&token=864459f1-3244-430c-8547-2b36e8abce67' },
   // Add more prompts here
 ];
 
@@ -171,7 +171,7 @@ export function Toolbar({
                             selectedAction === action.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            <Image src={action.imageUrl} alt={action.name} layout="fill" objectFit="cover" />
+                            <Image src={action.imageUrl} alt={action.name} layout="fill" objectFit="contain" className="p-4" />
                         </button>
                     </DialogClose>
                 ))}
@@ -206,17 +206,17 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>프롬프트 선택</DialogTitle>
               </DialogHeader>
-               <div className="flex flex-col gap-2 py-4">
+               <div className="grid grid-cols-2 gap-4 py-4">
                 {PREDEFINED_PROMPTS.map(prompt => (
-                    <DialogClose asChild key={prompt}>
-                        <Button
-                            variant={customPrompt === prompt ? 'secondary' : 'outline'}
-                            onClick={() => setCustomPrompt(prompt)}
-                            className="justify-start w-full"
+                    <DialogClose asChild key={prompt.name}>
+                        <button
+                            onClick={() => setCustomPrompt(prompt.name)}
+                            className={cn("relative aspect-square w-full overflow-hidden rounded-lg border-2",
+                            customPrompt === prompt.name ? "border-primary" : "border-transparent"
+                            )}
                         >
-                            {customPrompt === prompt && <Check className="mr-2 size-4" />}
-                            {prompt}
-                        </Button>
+                            <Image src={prompt.imageUrl} alt={prompt.name} layout="fill" objectFit="contain" className="p-4" />
+                        </button>
                     </DialogClose>
                 ))}
               </div>
