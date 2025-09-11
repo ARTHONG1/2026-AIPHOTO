@@ -496,22 +496,17 @@ export function useMagicMarkup() {
     }
   };
   
-  const copyImageToClipboard = async (imageUrl: string) => {
-    try {
-      const blob = await dataUrlToBlob(imageUrl);
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob })
-      ]);
-      toast({ title: 'Image copied to clipboard!' });
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Copy failed', description: 'Could not copy image to clipboard.' });
-    }
-  };
-
-  const handleCopyBaseImage = () => {
+  const handleDownloadImage = () => {
     if (!baseImage) return;
-    copyImageToClipboard(baseImage);
-  }
+    
+    const link = document.createElement('a');
+    link.href = baseImage;
+    link.download = `science-photo-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: 'Image downloaded!' });
+  };
   
   const handleRemoveElementImage = (index: number) => {
     const newImages = [...elementImages];
@@ -715,7 +710,7 @@ export function useMagicMarkup() {
     handleCanvasMouseUp,
     handleSaveAnnotation,
     handleGenerate,
-    handleCopyBaseImage,
+    handleDownloadImage,
     handleRemoveElementImage,
     handlePromptKeyDown,
     handleSaveApiKey,

@@ -22,8 +22,8 @@ export function MagicMarkupEditor() {
     <div className="flex h-screen flex-col">
       <Header
         onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
-        onCopyClick={hook.handleCopyBaseImage}
-        isCopyDisabled={!hook.baseImage}
+        onDownloadClick={hook.handleDownloadImage}
+        isDownloadDisabled={!hook.baseImage}
       />
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[1fr_350px]">
         <main className="flex flex-col items-center justify-center bg-background/50 p-4">
