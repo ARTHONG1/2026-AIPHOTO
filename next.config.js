@@ -28,6 +28,12 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('handlebars');
+    }
+    return config;
+  }
 };
 
 module.exports = nextConfig;
