@@ -21,6 +21,7 @@ export interface AppState {
   isQrCodeDialogOpen: boolean;
   qrCodeDataUrl: string | null;
   isActionDialogOpen: boolean;
+  isPromptDialogOpen: boolean;
 }
 
 export const initialState: AppState = {
@@ -43,6 +44,7 @@ export const initialState: AppState = {
   isQrCodeDialogOpen: false,
   qrCodeDataUrl: null,
   isActionDialogOpen: false,
+  isPromptDialogOpen: false,
 };
 
 
@@ -71,6 +73,7 @@ export type ActionPayloads = {
     SET_IS_QR_CODE_DIALOG_OPEN: boolean;
     SET_QR_CODE_DATA_URL: string | null;
     SET_IS_ACTION_DIALOG_OPEN: boolean;
+    SET_IS_PROMPT_DIALOG_OPEN: boolean;
 };
 
 export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
@@ -173,6 +176,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, qrCodeDataUrl: action.payload };
     case 'SET_IS_ACTION_DIALOG_OPEN':
         return { ...state, isActionDialogOpen: action.payload };
+    case 'SET_IS_PROMPT_DIALOG_OPEN':
+        return { ...state, isPromptDialogOpen: action.payload };
     default:
       return state;
   }

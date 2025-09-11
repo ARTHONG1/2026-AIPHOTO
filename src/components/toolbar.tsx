@@ -80,6 +80,8 @@ export function Toolbar({
   baseImage,
   isActionDialogOpen,
   setIsActionDialogOpen,
+  isPromptDialogOpen,
+  setIsPromptDialogOpen,
   EDITOR_COLORS,
 }: ToolbarProps) {
   return (
@@ -183,25 +185,43 @@ export function Toolbar({
         <CardHeader>
           <CardTitle className="text-lg">프롬프트</CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col gap-2">
-          <p className="text-sm text-muted-foreground">적용할 프롬프트를 선택하세요:</p>
-            {PREDEFINED_PROMPTS.map(prompt => (
-                <Button
-                    key={prompt}
-                    variant={customPrompt === prompt ? 'secondary' : 'outline'}
-                    onClick={() => setCustomPrompt(prompt)}
-                    className="justify-start"
-                >
-                    {customPrompt === prompt && <Check className="mr-2 size-4" />}
-                    {prompt}
-                </Button>
-            ))}
-            {customPrompt && (
-              <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')} className="text-muted-foreground">
-                <X className="mr-2" />
+        <CardContent className="flex flex-col gap-2">
+           {customPrompt ? (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">{customPrompt}</span>
+               <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')}>
+                <X className="mr-2 size-4" />
                 선택 해제
               </Button>
-            )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">선택된 프롬프트 없음</p>
+          )}
+
+          <Dialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">프롬프트 선택</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>프롬프트 선택</DialogTitle>
+              </DialogHeader>
+               <div className="flex flex-col gap-2 py-4">
+                {PREDEFINED_PROMPTS.map(prompt => (
+                    <DialogClose asChild key={prompt}>
+                        <Button
+                            variant={customPrompt === prompt ? 'secondary' : 'outline'}
+                            onClick={() => setCustomPrompt(prompt)}
+                            className="justify-start w-full"
+                        >
+                            {customPrompt === prompt && <Check className="mr-2 size-4" />}
+                            {prompt}
+                        </Button>
+                    </DialogClose>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
 
