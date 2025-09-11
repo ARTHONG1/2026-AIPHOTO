@@ -50,8 +50,8 @@ const PREDEFINED_PROMPTS = [
 ];
 
 const ACTIONS = [
-    '만세',
-    '하트',
+    { name: '만세', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%A7%8C%EC%84%B8%20%EB%AA%A8%EC%85%98.png?alt=media&token=c89734ff-5db9-4392-ac9c-8770064d7eb4' },
+    { name: '하트', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%ED%95%98%ED%8A%B8%20%EB%AA%A8%EC%85%98.png?alt=media&token=9635f1be-22b6-4908-9635-430c8003f954' },
 ]
 
 export function Toolbar({
@@ -162,14 +162,18 @@ export function Toolbar({
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 py-4">
                 {ACTIONS.map((action) => (
-                    <DialogClose asChild key={action}>
-                        <Button
-                        variant={selectedAction === action ? 'default' : 'secondary'}
-                        className="h-24 text-lg"
-                        onClick={() => setSelectedAction(action)}
+                    <DialogClose asChild key={action.name}>
+                        <button
+                          onClick={() => setSelectedAction(action.name)}
+                          className={cn("relative aspect-square w-full overflow-hidden rounded-lg border-2",
+                            selectedAction === action.name ? "border-primary" : "border-transparent"
+                          )}
                         >
-                        {action}
-                        </Button>
+                            <Image src={action.imageUrl} alt={action.name} layout="fill" objectFit="cover" />
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                <span className="text-white font-bold text-lg">{action.name}</span>
+                            </div>
+                        </button>
                     </DialogClose>
                 ))}
               </div>
