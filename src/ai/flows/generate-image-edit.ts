@@ -67,6 +67,13 @@ const imageEditPrompt = ai.definePrompt({
   Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
 Base Image: {{media url=baseImage}}
+{{#if actionPrompt}}
+=== Action Prompt
+{{{actionPrompt}}}
+
+Based on the action prompt, you will modify the pose of the subject in the base image. Ignore all other annotations and prompts.
+{{else}}
+
 {{#if annotatedImage}}
 === Annotations
 
@@ -84,11 +91,6 @@ The user has provided additional "element" images that might be referenced in th
 {{/each}}
 {{/if}}
 
-{{#if actionPrompt}}
-=== Action Prompt
-{{{actionPrompt}}}
-{{/if}}
-
 {{#if customPrompt}}
 === Custom Prompt
 
@@ -100,6 +102,8 @@ The user has provided an additional custom prompt to guide the image edit:
 === Task
 Incorporate the element images into the base image in a creative and seamless way.
 {{/if}}
+{{/if}}
+
 {{/if}}
 `,
 });
