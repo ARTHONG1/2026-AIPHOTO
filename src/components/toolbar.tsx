@@ -48,6 +48,9 @@ const PREDEFINED_PROMPTS = [
   // Add more prompts here
 ];
 
+const ACTIONS = [
+    '만세',
+]
 
 export function Toolbar({
   tool,
@@ -67,6 +70,8 @@ export function Toolbar({
   handleRemoveElementImage,
   customPrompt,
   setCustomPrompt,
+  selectedAction,
+  setSelectedAction,
   handlePromptKeyDown,
   handleGenerate,
   isLoading,
@@ -165,8 +170,25 @@ export function Toolbar({
         <CardHeader>
           <CardTitle className="text-lg">동작</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">아직 추가된 동작이 없습니다.</p>
+        <CardContent className="flex flex-col gap-2">
+            {ACTIONS.map(action => (
+                <Button
+                    key={action}
+                    variant={selectedAction === action ? 'secondary' : 'outline'}
+                    onClick={() => setSelectedAction(selectedAction === action ? null : action)}
+                    className="justify-start"
+                >
+                    {selectedAction === action && <Check className="mr-2 size-4" />}
+                    {action}
+                </Button>
+            ))}
+             {selectedAction && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)} className="text-muted-foreground">
+                <X className="mr-2" />
+                선택 해제
+              </Button>
+            )}
+             {ACTIONS.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">아직 추가된 동작이 없습니다.</p>}
         </CardContent>
       </Card>
 

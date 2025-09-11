@@ -37,6 +37,7 @@ export function useMagicMarkup() {
     color,
     brushSize,
     customPrompt,
+    selectedAction,
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
@@ -68,6 +69,7 @@ export function useMagicMarkup() {
   const setColor = (color: string) => dispatchAction('SET_COLOR', color);
   const setBrushSize = (brushSize: BrushSize) => dispatchAction('SET_BRUSH_SIZE', brushSize);
   const setCustomPrompt = (prompt: string) => dispatchAction('SET_CUSTOM_PROMPT', prompt);
+  const setSelectedAction = (action: string | null) => dispatchAction('SET_SELECTED_ACTION', action);
   const setIsElementUploadOpen = (isOpen: boolean) => dispatchAction('SET_IS_ELEMENT_UPLOAD_OPEN', isOpen);
   const setEditingAnnotation = (annotation: Annotation | null) => dispatchAction('SET_EDITING_ANNOTATION', annotation);
   const setIsApiKeyDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_API_KEY_DIALOG_OPEN', isOpen);
@@ -381,11 +383,11 @@ export function useMagicMarkup() {
     const annotations = canvasObjects.filter(o => o.type === 'annotation') as Annotation[];
     const hasElements = elementImageUrls.some(url => url !== null);
     
-    if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements) {
+    if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements && !selectedAction) {
       toast({
         variant: 'destructive',
         title: 'Nothing to Generate',
-        description: 'Please add highlights, annotations, a prompt, or an element image.',
+        description: 'Please add highlights, annotations, a prompt, an element image, or select an action.',
       });
       return;
     }
@@ -440,6 +442,8 @@ export function useMagicMarkup() {
         .map((url, i) => ({ url, name: elementNames[i] || `element${i+1}` }))
         .filter(el => el.url) as { name: string; url: string }[];
       
+      const actionPrompt = selectedAction ? `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.` : undefined;
+
       let result;
       let success = false;
       for (let i = 0; i < apiKeys.length; i++) {
@@ -451,6 +455,7 @@ export function useMagicMarkup() {
                 annotatedImage,
                 elementImages: elementImageUrlsPayload,
                 customPrompt,
+                actionPrompt,
               });
             
             if (result.editedImage) {
@@ -573,7 +578,7 @@ export function useMagicMarkup() {
         toast({ variant: 'destructive', title: "Key already exists"});
         return;
     }
-    const newKeys = [...apiKeys, key];
+    const newKeys = [key, ...apiKeys];
     setApiKeys(newKeys);
     toast({ title: "API Key saved!"});
   }
@@ -588,20 +593,20 @@ export function useMagicMarkup() {
   useEffect(() => {
     dispatchAction('SET_IS_MOUNTED', true);
     try {
-        const savedKeysRaw = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
-        if (savedKeysRaw) {
-            try {
-                const savedKeys = JSON.parse(savedKeysRaw);
-                if (Array.isArray(savedKeys)) {
-                    dispatchAction('SET_API_KEYS', savedKeys);
-                }
-            } catch (e) {
-                // If parsing fails, it's likely a raw string key from a previous version
-                if (typeof savedKeysRaw === 'string') {
-                    dispatchAction('SET_API_KEYS', [savedKeysRaw]);
-                }
+      const savedKeysRaw = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
+      if (savedKeysRaw) {
+        try {
+            const savedKeys = JSON.parse(savedKeysRaw);
+            if(Array.isArray(savedKeys)) {
+                dispatchAction('SET_API_KEYS', savedKeys);
+            }
+        } catch (e) {
+            // If parsing fails, it's likely a raw string key from a previous version
+            if (typeof savedKeysRaw === 'string') {
+                dispatchAction('SET_API_KEYS', [savedKeysRaw]);
             }
         }
+      }
 
       const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY_SESSION);
       if (savedSession) {
@@ -624,12 +629,13 @@ export function useMagicMarkup() {
         elementImageUrls,
         elementNames,
         prompt: customPrompt,
+        selectedAction,
       });
       localStorage.setItem(LOCAL_STORAGE_KEY_SESSION, dataToSave);
     } catch(e) {
       console.error("Failed to save session to local storage", e);
     }
-  }, [isMounted, baseImage, canvasObjects, elementImageUrls, elementNames, customPrompt]);
+  }, [isMounted, baseImage, canvasObjects, elementImageUrls, elementNames, customPrompt, selectedAction]);
 
 
   useEffect(() => {
@@ -673,6 +679,7 @@ export function useMagicMarkup() {
     color,
     brushSize,
     customPrompt,
+    selectedAction,
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
@@ -689,6 +696,7 @@ export function useMagicMarkup() {
     setColor,
     setBrushSize,
     setCustomPrompt,
+    setSelectedAction,
     setIsElementUploadOpen,
     setEditingAnnotation,
     setIsApiKeyDialogOpen,
@@ -717,5 +725,3 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
-
-    

@@ -1,3 +1,4 @@
+
 // The directive tells the Next.js runtime that this code should only be executed on the server side.
 'use server';
 
@@ -40,6 +41,7 @@ const GenerateImageEditInputSchema = z.object({
       "up to three 'element' images that might be incorporated into the edit"
     ),
   customPrompt: z.string().optional().describe('Optional custom prompt to influence the image editing process.'),
+  actionPrompt: z.string().optional().describe('An optional prompt to change the pose of the subject in the image.'),
 });
 
 const GenerateImageEditOutputSchema = z.object({
@@ -82,6 +84,11 @@ The user has provided additional "element" images that might be referenced in th
 {{/each}}
 {{/if}}
 
+{{#if actionPrompt}}
+=== Action Prompt
+{{{actionPrompt}}}
+{{/if}}
+
 {{#if customPrompt}}
 === Custom Prompt
 
@@ -107,8 +114,8 @@ const generateImageEditFlow = ai.defineFlow(
   async (input, {context}) => {
     if (!context?.apiKey) throw new Error("Must supply an API key.");
 
-    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0)) {
-      throw new Error('Please provide an annotated image, a custom prompt, or at least one element image.');
+    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0) && !input.actionPrompt) {
+      throw new Error('Please provide an annotated image, a custom prompt, an action prompt, or at least one element image.');
     }
     
     const {media} = await imageEditPrompt(input, {config: {apiKey: context.apiKey}});

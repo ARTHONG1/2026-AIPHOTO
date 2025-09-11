@@ -13,6 +13,7 @@ export interface AppState {
   color: string;
   brushSize: BrushSize;
   customPrompt: string;
+  selectedAction: string | null;
   isLoading: boolean;
   isElementUploadOpen: boolean;
   editingAnnotation: Annotation | null;
@@ -31,6 +32,7 @@ export const initialState: AppState = {
   color: '#D35898',
   brushSize: 'medium',
   customPrompt: '',
+  selectedAction: null,
   isLoading: false,
   isElementUploadOpen: false,
   editingAnnotation: null,
@@ -55,6 +57,7 @@ export type ActionPayloads = {
     SET_COLOR: string;
     SET_BRUSH_SIZE: BrushSize;
     SET_CUSTOM_PROMPT: string;
+    SET_SELECTED_ACTION: string | null;
     SET_IS_LOADING: boolean;
     SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
     SET_EDITING_ANNOTATION: Annotation | null;
@@ -85,6 +88,7 @@ export function reducer(state: AppState, action: Action): AppState {
             baseImage: action.payload.baseImage,
             canvasObjects: [],
             customPrompt: '',
+            selectedAction: null,
         };
     case 'SET_API_KEYS':
       return { ...state, apiKeys: action.payload };
@@ -144,6 +148,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, brushSize: action.payload };
     case 'SET_CUSTOM_PROMPT':
       return { ...state, customPrompt: action.payload };
+    case 'SET_SELECTED_ACTION':
+      return { ...state, selectedAction: action.payload };
     case 'SET_IS_LOADING':
       return { ...state, isLoading: action.payload };
     case 'SET_IS_ELEMENT_UPLOAD_OPEN':
