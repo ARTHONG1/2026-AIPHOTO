@@ -379,12 +379,13 @@ export function useMagicMarkup() {
     
     const highlights = canvasObjects.filter(o => o.type === 'highlight') as Highlight[];
     const annotations = canvasObjects.filter(o => o.type === 'annotation') as Annotation[];
+    const hasElements = elementImageUrls.some(url => url !== null);
     
-    if (highlights.length === 0 && annotations.length === 0 && !customPrompt) {
+    if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements) {
       toast({
         variant: 'destructive',
         title: 'Nothing to Generate',
-        description: 'Please add highlights, annotations, or a prompt.',
+        description: 'Please add highlights, annotations, a prompt, or an element image.',
       });
       return;
     }

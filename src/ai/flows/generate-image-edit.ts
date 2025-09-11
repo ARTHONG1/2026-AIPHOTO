@@ -88,6 +88,11 @@ The user has provided additional "element" images that might be referenced in th
 The user has provided an additional custom prompt to guide the image edit:
 
 {{{customPrompt}}}
+{{else}}
+{{#if elementImages.length}}
+=== Task
+Incorporate the element images into the base image in a creative and seamless way.
+{{/if}}
 {{/if}}
 `,
 });
@@ -102,8 +107,8 @@ const generateImageEditFlow = ai.defineFlow(
   async (input, {context}) => {
     if (!context?.apiKey) throw new Error("Must supply an API key.");
 
-    if (!input.annotatedImage && !input.customPrompt) {
-      throw new Error('Please provide either an annotated image or a custom prompt.');
+    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0)) {
+      throw new Error('Please provide an annotated image, a custom prompt, or at least one element image.');
     }
     
     const {media} = await imageEditPrompt(input, {config: {apiKey: context.apiKey}});
