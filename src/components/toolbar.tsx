@@ -160,11 +160,11 @@ export function Toolbar({
             <DialogTrigger asChild>
               <Button variant="outline">동작 선택</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-4xl">
               <DialogHeader>
                 <DialogTitle>동작 선택</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 {ACTIONS.map((action) => (
                     <DialogClose asChild key={action.name}>
                         <button
@@ -210,11 +210,11 @@ export function Toolbar({
             <DialogTrigger asChild>
               <Button variant="outline">프롬프트 선택</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-4xl">
               <DialogHeader>
                 <DialogTitle>프롬프트 선택</DialogTitle>
               </DialogHeader>
-               <div className="grid grid-cols-2 gap-4 py-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 {PREDEFINED_PROMPTS.map(prompt => (
                     <DialogClose asChild key={prompt.name}>
                         <button
@@ -240,5 +240,3 @@ export function Toolbar({
     </aside>
   );
 }
-
-    
