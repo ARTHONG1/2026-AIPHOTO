@@ -2,11 +2,10 @@
 'use client';
 
 import { useRef, useCallback, ChangeEvent, useEffect, useReducer } from 'react';
-import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight } from '@/lib/types';
-import { resizeImage, dataUrlToBlob } from '@/lib/canvas-utils';
-import { generateImageAction } from '@/app/actions';
+import { resizeImage } from '@/lib/canvas-utils';
+import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
 
 
@@ -500,40 +499,6 @@ export function useMagicMarkup() {
       dispatchAction('SET_IS_LOADING', false);
     }
   };
-
-  const uploadToCloudinary = async (imageBlob: Blob): Promise<string | null> => {
-    const cloudName = "dckjyturf";
-    const uploadPreset = "science-photo";
-
-    if (!cloudName || !uploadPreset) {
-      console.error("Cloudinary configuration is missing.");
-      toast({
-        variant: 'destructive',
-        title: 'Configuration Error',
-        description: 'Cloudinary configuration is missing.'
-      });
-      throw new Error("Cloudinary configuration is missing.");
-    }
-    
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-    
-    const data = new FormData();
-    data.append('file', imageBlob);
-    data.append('upload_preset', uploadPreset);
-
-    try {
-        const response = await axios.post(url, data);
-        return response.data.secure_url;
-    } catch (error) {
-        console.error("Cloudinary upload failed:", error);
-        toast({
-          variant: 'destructive',
-          title: 'Image Upload Failed',
-          description: 'Could not upload the image to generate a QR code.'
-        });
-        return null;
-    }
-  };
   
   const handleExportWithQrCode = async () => {
     if (!baseImage) return;
@@ -542,28 +507,12 @@ export function useMagicMarkup() {
     setQrCodeDataUrl(null);
 
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-
-      const img = new Image();
-      img.src = baseImage;
-      img.onload = () => {
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            throw new Error('Failed to create blob from canvas');
-          }
-          const cloudinaryUrl = await uploadToCloudinary(blob);
-          if (cloudinaryUrl) {
-            setQrCodeDataUrl(cloudinaryUrl);
-          } else {
-            setIsQrCodeDialogOpen(false);
-          }
-        }, 'image/jpeg', 0.9);
-      };
+      const cloudinaryUrl = await uploadImageToCloudinaryAction(baseImage);
+      if (cloudinaryUrl) {
+        setQrCodeDataUrl(cloudinaryUrl);
+      } else {
+        throw new Error("Failed to get URL from Cloudinary.");
+      }
     } catch (error) {
       console.error("Failed to process image for QR Code", error);
       toast({
@@ -790,11 +739,3 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
-
-    
-
-    
-
-    
-
-    
