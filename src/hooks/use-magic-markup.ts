@@ -16,6 +16,7 @@ const BRUSH_SIZES: Record<BrushSize, number> = {
   large: 20,
 };
 const MAX_DIMENSION = 1000;
+const QR_CODE_MAX_DIMENSION = 400;
 const SELECTION_PADDING = 10;
 const LOCAL_STORAGE_KEY_SESSION = 'magic-markup-session';
 const LOCAL_STORAGE_KEY_API_KEY = 'magic-markup-api-key';
@@ -42,6 +43,8 @@ export function useMagicMarkup() {
     isElementUploadOpen,
     editingAnnotation,
     isApiKeyDialogOpen,
+    isQrCodeDialogOpen,
+    qrCodeDataUrl,
   } = state;
 
 
@@ -76,6 +79,8 @@ export function useMagicMarkup() {
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
+  const setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
+  const setQrCodeDataUrl = (url: string | null) => dispatchAction('SET_QR_CODE_DATA_URL', url);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -496,16 +501,21 @@ export function useMagicMarkup() {
     }
   };
   
-  const handleDownloadImage = () => {
+  const handleExportWithQrCode = async () => {
     if (!baseImage) return;
-    
-    const link = document.createElement('a');
-    link.href = baseImage;
-    link.download = `science-photo-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: 'Image downloaded!' });
+
+    try {
+      const compressedDataUrl = await resizeImage(baseImage, QR_CODE_MAX_DIMENSION, QR_CODE_MAX_DIMENSION);
+      setQrCodeDataUrl(compressedDataUrl);
+      setIsQrCodeDialogOpen(true);
+    } catch (error) {
+      console.error("Failed to process image for QR Code", error);
+      toast({
+        variant: 'destructive',
+        title: 'QR Code Error',
+        description: 'Could not generate QR code for the image.',
+      });
+    }
   };
   
   const handleRemoveElementImage = (index: number) => {
@@ -681,6 +691,8 @@ export function useMagicMarkup() {
     isApiKeyDialogOpen,
     elementImages,
     elementNames,
+    isQrCodeDialogOpen,
+    qrCodeDataUrl,
 
     // Refs
     canvasRef,
@@ -698,6 +710,7 @@ export function useMagicMarkup() {
     setElementImages,
     setElementImageUrls,
     setElementNames,
+    setIsQrCodeDialogOpen,
 
     // Functions
     startNewSession,
@@ -710,7 +723,7 @@ export function useMagicMarkup() {
     handleCanvasMouseUp,
     handleSaveAnnotation,
     handleGenerate,
-    handleDownloadImage,
+    handleExportWithQrCode,
     handleRemoveElementImage,
     handlePromptKeyDown,
     handleSaveApiKey,

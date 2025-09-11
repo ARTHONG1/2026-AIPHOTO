@@ -18,6 +18,8 @@ export interface AppState {
   isElementUploadOpen: boolean;
   editingAnnotation: Annotation | null;
   isApiKeyDialogOpen: boolean;
+  isQrCodeDialogOpen: boolean;
+  qrCodeDataUrl: string | null;
 }
 
 export const initialState: AppState = {
@@ -37,6 +39,8 @@ export const initialState: AppState = {
   isElementUploadOpen: false,
   editingAnnotation: null,
   isApiKeyDialogOpen: false,
+  isQrCodeDialogOpen: false,
+  qrCodeDataUrl: null,
 };
 
 
@@ -62,6 +66,8 @@ export type ActionPayloads = {
     SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
     SET_EDITING_ANNOTATION: Annotation | null;
     SET_IS_API_KEY_DIALOG_OPEN: boolean;
+    SET_IS_QR_CODE_DIALOG_OPEN: boolean;
+    SET_QR_CODE_DATA_URL: string | null;
 };
 
 export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
@@ -158,6 +164,10 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, editingAnnotation: action.payload };
     case 'SET_IS_API_KEY_DIALOG_OPEN':
       return { ...state, isApiKeyDialogOpen: action.payload };
+    case 'SET_IS_QR_CODE_DIALOG_OPEN':
+      return { ...state, isQrCodeDialogOpen: action.payload };
+    case 'SET_QR_CODE_DATA_URL':
+      return { ...state, qrCodeDataUrl: action.payload };
     default:
       return state;
   }

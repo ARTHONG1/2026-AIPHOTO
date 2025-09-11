@@ -8,6 +8,7 @@ import { Header } from './header';
 import { EditorCanvas } from './editor-canvas';
 import { Toolbar } from './toolbar';
 import { ApiKeyDialog } from './api-key-dialog';
+import { QrCodeDialog } from './qr-code-dialog';
 import { useRouter } from 'next/navigation';
 
 export function MagicMarkupEditor() {
@@ -22,8 +23,8 @@ export function MagicMarkupEditor() {
     <div className="flex h-screen flex-col">
       <Header
         onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
-        onDownloadClick={hook.handleDownloadImage}
-        isDownloadDisabled={!hook.baseImage}
+        onExportWithQrCodeClick={hook.handleExportWithQrCode}
+        isExportDisabled={!hook.baseImage}
       />
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[1fr_350px]">
         <main className="flex flex-col items-center justify-center bg-background/50 p-4">
@@ -63,6 +64,11 @@ export function MagicMarkupEditor() {
           existingApiKeys={hook.apiKeys}
         />
 
+        <QrCodeDialog
+          isOpen={hook.isQrCodeDialogOpen}
+          onOpenChange={hook.setIsQrCodeDialogOpen}
+          dataUrl={hook.qrCodeDataUrl}
+        />
       </div>
     </div>
   );

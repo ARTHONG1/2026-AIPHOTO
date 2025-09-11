@@ -1,5 +1,5 @@
 
-import { KeyRound, Download } from 'lucide-react';
+import { KeyRound, QrCode } from 'lucide-react';
 import { IconButton } from './icon-button';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -7,11 +7,11 @@ import { Button } from './ui/button';
 
 interface HeaderProps {
   onApiKeyClick: () => void;
-  onDownloadClick: () => void;
-  isDownloadDisabled: boolean;
+  onExportWithQrCodeClick: () => void;
+  isExportDisabled: boolean;
 }
 
-export function Header({ onApiKeyClick, onDownloadClick, isDownloadDisabled }: HeaderProps) {
+export function Header({ onApiKeyClick, onExportWithQrCodeClick, isExportDisabled }: HeaderProps) {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div className="flex items-center gap-2 w-1/3">
@@ -24,9 +24,9 @@ export function Header({ onApiKeyClick, onDownloadClick, isDownloadDisabled }: H
         <Link href="https://github.com/mbleigh/magic-markup" target="_blank" className="underline hover:text-foreground">open source</Link> by <Link href="https://mbleigh.dev/" target="_blank" className="underline hover:text-foreground">Michael Bleigh</Link> with <Link href="https://genkit.dev" target="_blank" className="underline hover:text-foreground">Genkit</Link> and Gemini 2.5 Flash
       </div>
       <div className="flex justify-end w-1/3 gap-2">
-        <Button variant="outline" size="sm" onClick={onDownloadClick} disabled={isDownloadDisabled}>
-            <Download className="mr-2"/>
-            이미지 다운로드
+        <Button variant="outline" size="sm" onClick={onExportWithQrCodeClick} disabled={isExportDisabled}>
+            <QrCode className="mr-2"/>
+            QR코드로 내보내기
         </Button>
         <IconButton icon={KeyRound} tooltip="API 키 변경" onClick={onApiKeyClick} />
       </div>
