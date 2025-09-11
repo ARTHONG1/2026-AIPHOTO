@@ -77,19 +77,19 @@ export function Toolbar({
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Tools</CardTitle>
+          <CardTitle className="text-lg">도구</CardTitle>
           <div className="flex items-center gap-1">
-            <IconButton icon={Undo2} tooltip="Undo" onClick={undo} />
-            <IconButton icon={Redo2} tooltip="Redo" onClick={redo} />
-            <IconButton icon={Trash2} tooltip="Clear All" onClick={handleClear} />
+            <IconButton icon={Undo2} tooltip="실행 취소" onClick={undo} />
+            <IconButton icon={Redo2} tooltip="다시 실행" onClick={redo} />
+            <IconButton icon={Trash2} tooltip="모두 지우기" onClick={handleClear} />
           </div>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="flex items-center gap-1">
-            <IconButton icon={MousePointer2} tooltip="Select" isActive={tool === 'select'} onClick={() => setTool('select')} />
-            <IconButton icon={Brush} tooltip="Highlight" isActive={tool === 'highlight'} onClick={() => setTool('highlight')} />
-            <IconButton icon={Type} tooltip="Annotate" isActive={tool === 'annotate'} onClick={() => setTool('annotate')} />
-            <IconButton icon={Eraser} tooltip="Erase" isActive={tool === 'erase'} onClick={() => setTool('erase')} />
+            <IconButton icon={MousePointer2} tooltip="선택" isActive={tool === 'select'} onClick={() => setTool('select')} />
+            <IconButton icon={Brush} tooltip="강조" isActive={tool === 'highlight'} onClick={() => setTool('highlight')} />
+            <IconButton icon={Type} tooltip="텍스트" isActive={tool === 'annotate'} onClick={() => setTool('annotate')} />
+            <IconButton icon={Eraser} tooltip="지우기" isActive={tool === 'erase'} onClick={() => setTool('erase')} />
           </div>
           <Separator />
           <div className="grid gap-2">
@@ -117,7 +117,7 @@ export function Toolbar({
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Elements</CardTitle>
+          <CardTitle className="text-lg">요소</CardTitle>
           <Dialog open={isElementUploadOpen} onOpenChange={setIsElementUploadOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" disabled={elementImageUrls.every(url => url !== null)}>
@@ -126,14 +126,14 @@ export function Toolbar({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Element Image</DialogTitle>
+                <DialogTitle>요소 이미지 추가</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col items-center justify-center gap-4 py-8">
                 <Button onClick={() => elementFileInputRef.current?.click()} className="w-full">
                   <UploadCloud className="mr-2" />
-                  Upload from computer
+                  컴퓨터에서 업로드
                 </Button>
-                <p className="text-sm text-muted-foreground">or paste image (Cmd+V)</p>
+                <p className="text-sm text-muted-foreground">또는 이미지 붙여넣기 (Cmd+V)</p>
                 <input type="file" accept="image/*" className="hidden" ref={elementFileInputRef} onChange={handleElementImageUpload} />
               </div>
             </DialogContent>
@@ -156,17 +156,17 @@ export function Toolbar({
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No elements added yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">아직 추가된 요소가 없습니다.</p>
           )}
         </CardContent>
       </Card>
 
       <Card className="flex-1 flex flex-col">
         <CardHeader>
-          <CardTitle className="text-lg">Prompt</CardTitle>
+          <CardTitle className="text-lg">프롬프트</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-2">
-          <p className="text-sm text-muted-foreground">Choose a prompt to apply:</p>
+          <p className="text-sm text-muted-foreground">적용할 프롬프트를 선택하세요:</p>
             {PREDEFINED_PROMPTS.map(prompt => (
                 <Button
                     key={prompt}
@@ -181,7 +181,7 @@ export function Toolbar({
             {customPrompt && (
               <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')} className="text-muted-foreground">
                 <X className="mr-2" />
-                Clear Selection
+                선택 해제
               </Button>
             )}
         </CardContent>
@@ -189,7 +189,7 @@ export function Toolbar({
 
       <Button size="lg" onClick={handleGenerate} disabled={isLoading || !baseImage}>
         {isLoading ? <Loader2 className="mr-2 size-5 animate-spin" /> : <Sparkles className="mr-2 size-5" />}
-        Generate Image
+        이미지 생성
       </Button>
     </aside>
   );

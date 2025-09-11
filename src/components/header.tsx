@@ -1,3 +1,4 @@
+
 import { KeyRound, ClipboardCopy } from 'lucide-react';
 import { IconButton } from './icon-button';
 import Image from 'next/image';
@@ -25,9 +26,9 @@ export function Header({ onApiKeyClick, onCopyClick, isCopyDisabled }: HeaderPro
       <div className="flex justify-end w-1/3 gap-2">
         <Button variant="outline" size="sm" onClick={onCopyClick} disabled={isCopyDisabled}>
             <ClipboardCopy className="mr-2"/>
-            Copy Image
+            이미지 복사
         </Button>
-        <IconButton icon={KeyRound} tooltip="Change API Key" onClick={onApiKeyClick} />
+        <IconButton icon={KeyRound} tooltip="API 키 변경" onClick={onApiKeyClick} />
       </div>
     </header>
   );

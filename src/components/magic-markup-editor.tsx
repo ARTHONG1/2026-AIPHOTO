@@ -43,10 +43,10 @@ export function MagicMarkupEditor() {
             <div className="flex w-full h-full max-w-2xl max-h-[70vh] items-center justify-center rounded-2xl border-2 border-dashed border-border">
               <div className="text-center p-8 w-full max-w-lg">
                 <Camera className="mx-auto size-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">No Image</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Start by taking a photo in the photo booth.</p>
+                <h3 className="mt-4 text-lg font-medium">이미지 없음</h3>
+                <p className="mt-1 text-sm text-muted-foreground">포토부스에서 사진을 찍어 시작하세요.</p>
                 <Button className="mt-4" onClick={() => router.push('/booth')}>
-                  Go to Photo Booth
+                  포토부스로 이동
                 </Button>
               </div>
             </div>
