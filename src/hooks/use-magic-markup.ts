@@ -27,7 +27,7 @@ export function useMagicMarkup() {
 
   const {
     isMounted,
-    apiKey,
+    apiKeys,
     baseImage,
     elementImages,
     elementImageUrls,
@@ -74,6 +74,7 @@ export function useMagicMarkup() {
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
+  const setApiKeys = (keys: string[]) => dispatchAction('SET_API_KEYS', keys);
 
   // -- SESSION & HISTORY MANAGEMENT --
   
@@ -358,7 +359,7 @@ export function useMagicMarkup() {
   };
 
   const handleGenerate = async () => {
-    if (!apiKey) {
+    if (!apiKeys || apiKeys.length === 0) {
       setIsApiKeyDialogOpen(true);
       return;
     }
@@ -433,20 +434,45 @@ export function useMagicMarkup() {
       const elementImageUrlsPayload = elementImageUrls
         .map((url, i) => ({ url, name: elementNames[i] || `element${i+1}` }))
         .filter(el => el.url) as { name: string; url: string }[];
-
-      const result = await generateImageEdit(apiKey, {
-        baseImage,
-        annotatedImage,
-        elementImages: elementImageUrlsPayload,
-        customPrompt,
-      });
-
-      if (result.editedImage) {
-        const resizedUrl = await resizeImage(result.editedImage, MAX_DIMENSION, MAX_DIMENSION);
-        startNewSession(resizedUrl);
-      } else {
-        throw new Error('The AI model did not return an image.');
+      
+      let result;
+      let success = false;
+      for (let i = 0; i < apiKeys.length; i++) {
+        const currentKey = apiKeys[i];
+        try {
+            result = await generateImageEdit(currentKey, {
+                baseImage,
+                annotatedImage,
+                elementImages: elementImageUrlsPayload,
+                customPrompt,
+              });
+            
+            if (result.editedImage) {
+                const resizedUrl = await resizeImage(result.editedImage, MAX_DIMENSION, MAX_DIMENSION);
+                
+                // On success, move the successful key to the front of the list
+                const newApiKeys = [...apiKeys];
+                const successfulKey = newApiKeys.splice(i, 1)[0];
+                newApiKeys.unshift(successfulKey);
+                setApiKeys(newApiKeys);
+                
+                startNewSession(resizedUrl);
+                success = true;
+                break;
+            }
+        } catch (error: any) {
+            console.warn(`API key ${i+1} failed:`, error.message);
+            if (i === apiKeys.length - 1) {
+                // Last key failed
+                throw error;
+            }
+        }
       }
+
+      if (!success) {
+        throw new Error('All API keys failed or the AI model did not return an image.');
+      }
+
     } catch (error: any) {
       console.error('AI Generation Error:', error);
       toast({
@@ -537,17 +563,37 @@ export function useMagicMarkup() {
   };
 
   const handleSaveApiKey = (key: string) => {
-    dispatchAction('SET_API_KEY', key);
-    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, key);
-    setIsApiKeyDialogOpen(false);
+    if(apiKeys.includes(key)) {
+        toast({ variant: 'destructive', title: "Key already exists"});
+        return;
+    }
+    const newKeys = [...apiKeys, key];
+    setApiKeys(newKeys);
+    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, JSON.stringify(newKeys));
     toast({ title: "API Key saved!"});
+  }
+
+  const handleDeleteApiKey = (index: number) => {
+    const newKeys = [...apiKeys];
+    newKeys.splice(index, 1);
+    setApiKeys(newKeys);
+    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, JSON.stringify(newKeys));
+    toast({ title: "API Key deleted!"});
   }
 
   useEffect(() => {
     dispatchAction('SET_IS_MOUNTED', true);
     try {
-      const savedKey = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
-      if(savedKey) dispatchAction('SET_API_KEY', savedKey);
+        const savedKeysRaw = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
+        if (savedKeysRaw) {
+            const savedKeys = JSON.parse(savedKeysRaw);
+            if(Array.isArray(savedKeys)) {
+                setApiKeys(savedKeys);
+            } else if (typeof savedKeys === 'string') {
+                // Handle legacy single key
+                setApiKeys([savedKeys]);
+            }
+        }
 
       const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY_SESSION);
       if (savedSession) {
@@ -610,7 +656,7 @@ export function useMagicMarkup() {
   return {
     // State
     isMounted,
-    apiKey,
+    apiKeys,
     baseImage,
     elementImageUrls,
     canvasObjects,
@@ -656,10 +702,9 @@ export function useMagicMarkup() {
     handleRemoveElementImage,
     handlePromptKeyDown,
     handleSaveApiKey,
+    handleDeleteApiKey,
 
     // Constants
     EDITOR_COLORS,
   };
 }
-
-    

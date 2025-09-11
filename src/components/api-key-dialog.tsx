@@ -15,16 +15,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Trash2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface ApiKeyDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (apiKey: string) => void;
-  existingApiKey: string | null;
+  onDelete: (index: number) => void;
+  existingApiKeys: string[];
 }
 
-export function ApiKeyDialog({ isOpen, onOpenChange, onSave, existingApiKey }: ApiKeyDialogProps) {
+export function ApiKeyDialog({ isOpen, onOpenChange, onSave, onDelete, existingApiKeys }: ApiKeyDialogProps) {
   const [newApiKey, setNewApiKey] = useState('');
 
   useEffect(() => {
@@ -36,13 +38,18 @@ export function ApiKeyDialog({ isOpen, onOpenChange, onSave, existingApiKey }: A
   const handleSave = () => {
     if (newApiKey.trim()) {
       onSave(newApiKey.trim());
+      setNewApiKey('');
     }
   };
 
-  const getMaskedKey = () => {
-    if (!existingApiKey) return '없음';
-    return `••••••••••••${existingApiKey.slice(-4)}`;
+  const getMaskedKey = (key: string | null) => {
+    if (!key) return '없음';
+    if (key.length <= 4) return '••••••••••••';
+    return `••••••••••••${key.slice(-4)}`;
   }
+  
+  const currentKey = existingApiKeys?.[0] || null;
+  const fallbackKeys = existingApiKeys?.slice(1) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -61,20 +68,41 @@ export function ApiKeyDialog({ isOpen, onOpenChange, onSave, existingApiKey }: A
         </DialogHeader>
         <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="existing-api-key" className="text-right">
+                <Label htmlFor="current-api-key" className="text-right">
                     현재 키
                 </Label>
                 <Input
-                    id="existing-api-key"
-                    value={getMaskedKey()}
+                    id="current-api-key"
+                    value={getMaskedKey(currentKey)}
                     className="col-span-3 font-code"
                     disabled
                 />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="api-key" className="text-right">
-                    새 키
-                </Label>
+
+            {fallbackKeys.length > 0 && (
+                 <div className="col-span-4">
+                    <Label>예비 키</Label>
+                    <div className="grid gap-2 mt-2">
+                        {fallbackKeys.map((key, index) => (
+                            <div key={index} className="flex items-center justify-between gap-2">
+                            <Input
+                                value={getMaskedKey(key)}
+                                className="font-code"
+                                disabled
+                            />
+                            <Button variant="ghost" size="icon" onClick={() => onDelete(index + 1)}>
+                                <Trash2 className="size-4" />
+                            </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
+            <Separator />
+            
+            <Label htmlFor="api-key">새 키 추가</Label>
+            <div className="flex items-center gap-2">
                 <Input
                     id="api-key"
                     type="text"
@@ -83,17 +111,17 @@ export function ApiKeyDialog({ isOpen, onOpenChange, onSave, existingApiKey }: A
                     placeholder="새 API 키를 입력하세요..."
                     className="col-span-3"
                 />
+                 <Button type="button" onClick={handleSave} disabled={!newApiKey.trim()}>
+                    추가
+                </Button>
             </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="secondary">
-              취소
+              닫기
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSave} disabled={!newApiKey.trim()}>
-            새 키 저장
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

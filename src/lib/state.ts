@@ -3,7 +3,7 @@ import { CanvasObject, Annotation, Highlight, Tool, BrushSize } from './types';
 
 export interface AppState {
   isMounted: boolean;
-  apiKey: string | null;
+  apiKeys: string[];
   baseImage: string | null;
   elementImages: (File | null)[];
   elementImageUrls: (string | null)[];
@@ -21,7 +21,7 @@ export interface AppState {
 
 export const initialState: AppState = {
   isMounted: false,
-  apiKey: null,
+  apiKeys: [],
   baseImage: null,
   elementImages: [null, null, null],
   elementImageUrls: [null, null, null],
@@ -42,7 +42,7 @@ export type ActionPayloads = {
     SET_IS_MOUNTED: boolean;
     LOAD_STATE_FROM_HISTORY: Partial<AppState> | null;
     START_NEW_SESSION: { baseImage: string };
-    SET_API_KEY: string | null;
+    SET_API_KEYS: string[];
     SET_BASE_IMAGE: string | null;
     SET_ELEMENT_IMAGES: (File | null)[];
     SET_ELEMENT_IMAGE_URLS: (string | null)[];
@@ -72,7 +72,7 @@ export function reducer(state: AppState, action: Action): AppState {
             return {
                 ...initialState,
                 isMounted: true,
-                apiKey: state.apiKey,
+                apiKeys: state.apiKeys,
             }
         }
         return {
@@ -86,8 +86,8 @@ export function reducer(state: AppState, action: Action): AppState {
             canvasObjects: [],
             customPrompt: '',
         };
-    case 'SET_API_KEY':
-      return { ...state, apiKey: action.payload };
+    case 'SET_API_KEYS':
+      return { ...state, apiKeys: action.payload };
     case 'SET_BASE_IMAGE':
       return { ...state, baseImage: action.payload };
     case 'SET_ELEMENT_IMAGES':

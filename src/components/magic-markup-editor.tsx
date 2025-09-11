@@ -59,7 +59,8 @@ export function MagicMarkupEditor() {
           isOpen={hook.isApiKeyDialogOpen}
           onOpenChange={hook.setIsApiKeyDialogOpen}
           onSave={hook.handleSaveApiKey}
-          existingApiKey={hook.apiKey}
+          onDelete={hook.handleDeleteApiKey}
+          existingApiKeys={hook.apiKeys}
         />
 
       </div>
