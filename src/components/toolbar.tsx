@@ -170,9 +170,6 @@ export function Toolbar({
                           )}
                         >
                             <Image src={action.imageUrl} alt={action.name} layout="fill" objectFit="cover" />
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">{action.name}</span>
-                            </div>
                         </button>
                     </DialogClose>
                 ))}
