@@ -160,6 +160,15 @@ export function Toolbar({
           )}
         </CardContent>
       </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">동작</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-4">아직 추가된 동작이 없습니다.</p>
+        </CardContent>
+      </Card>
 
       <Card className="flex-1 flex flex-col">
         <CardHeader>
