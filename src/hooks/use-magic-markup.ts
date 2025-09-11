@@ -2,6 +2,7 @@
 'use client';
 
 import { useRef, useCallback, ChangeEvent, useEffect, useReducer } from 'react';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight } from '@/lib/types';
 import { resizeImage, dataUrlToBlob } from '@/lib/canvas-utils';
@@ -16,7 +17,6 @@ const BRUSH_SIZES: Record<BrushSize, number> = {
   large: 20,
 };
 const MAX_DIMENSION = 1000;
-const QR_CODE_MAX_DIMENSION = 400;
 const SELECTION_PADDING = 10;
 const LOCAL_STORAGE_KEY_SESSION = 'magic-markup-session';
 const LOCAL_STORAGE_KEY_API_KEY = 'magic-markup-api-key';
@@ -500,18 +500,48 @@ export function useMagicMarkup() {
       dispatchAction('SET_IS_LOADING', false);
     }
   };
+
+  const uploadToCloudinary = async (imageDataUrl: string): Promise<string | null> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Cloudinary configuration is missing.");
+    }
+    
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    
+    const data = new FormData();
+    data.append('file', imageDataUrl);
+    data.append('upload_preset', uploadPreset);
+
+    try {
+        const response = await axios.post(url, data);
+        return response.data.secure_url;
+    } catch (error) {
+        console.error("Cloudinary upload failed:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Image Upload Failed',
+          description: 'Could not upload the image to generate a QR code.'
+        });
+        return null;
+    }
+  };
   
   const handleExportWithQrCode = async () => {
     if (!baseImage) return;
 
-    // Open the dialog first, with a loading state
-    setQrCodeDataUrl(null);
     setIsQrCodeDialogOpen(true);
+    setQrCodeDataUrl(null);
 
     try {
-      // Then, process the image and set the data URL
-      const compressedDataUrl = await resizeImage(baseImage, QR_CODE_MAX_DIMENSION, QR_CODE_MAX_DIMENSION);
-      setQrCodeDataUrl(compressedDataUrl);
+      const cloudinaryUrl = await uploadToCloudinary(baseImage);
+      if (cloudinaryUrl) {
+        setQrCodeDataUrl(cloudinaryUrl);
+      } else {
+        setIsQrCodeDialogOpen(false);
+      }
     } catch (error) {
       console.error("Failed to process image for QR Code", error);
       toast({
@@ -519,7 +549,6 @@ export function useMagicMarkup() {
         title: 'QR Code Error',
         description: 'Could not generate QR code for the image.',
       });
-      // Close the dialog if there's an error
       setIsQrCodeDialogOpen(false);
     }
   };
