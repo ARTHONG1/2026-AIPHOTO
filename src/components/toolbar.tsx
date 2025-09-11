@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -44,7 +45,7 @@ type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
 const PREDEFINED_PROMPTS = [
   { name: '얼굴에 아이언맨 가면을 씌워줘', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EC%95%84%EC%9D%B4%EC%96%B8%EB%A7%A8_%EA%B0%80%EB%A9%B4-removebg-preview.png?alt=media&token=ea998c1b-e447-4807-baa8-5570bfe0d8c1' },
-  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EA%B3%BC%ED%95%99%EC%9E%90%EC%95%88%EA%B2%BD-removebg-preview.png?alt=media&token=864459f1-3244-430c-8547-2b36e8abce67' },
+  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%AF%B8%EB%9E%98%20%EC%95%88%EA%B2%BD.png?alt=media&token=cb4e1d49-07e8-4992-9b05-f117e0807228' },
   // Add more prompts here
 ];
 
@@ -239,3 +240,5 @@ export function Toolbar({
     </aside>
   );
 }
+
+    
