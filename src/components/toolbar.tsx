@@ -32,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { ColorPicker } from './color-picker';
@@ -77,6 +78,8 @@ export function Toolbar({
   handleGenerate,
   isLoading,
   baseImage,
+  isActionDialogOpen,
+  setIsActionDialogOpen,
   EDITOR_COLORS,
 }: ToolbarProps) {
   return (
@@ -138,24 +141,40 @@ export function Toolbar({
           <CardTitle className="text-lg">동작</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-            {ACTIONS.map(action => (
-                <Button
-                    key={action}
-                    variant={selectedAction === action ? 'secondary' : 'outline'}
-                    onClick={() => setSelectedAction(selectedAction === action ? null : action)}
-                    className="justify-start"
-                >
-                    {selectedAction === action && <Check className="mr-2 size-4" />}
-                    {action}
-                </Button>
-            ))}
-             {selectedAction && (
-              <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)} className="text-muted-foreground">
-                <X className="mr-2" />
+          {selectedAction ? (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">{selectedAction}</span>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)}>
+                <X className="mr-2 size-4" />
                 선택 해제
               </Button>
-            )}
-             {ACTIONS.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">아직 추가된 동작이 없습니다.</p>}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">선택된 동작 없음</p>
+          )}
+           <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">동작 선택</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>동작 선택</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                {ACTIONS.map((action) => (
+                    <DialogClose asChild key={action}>
+                        <Button
+                        variant={selectedAction === action ? 'default' : 'secondary'}
+                        className="h-24 text-lg"
+                        onClick={() => setSelectedAction(action)}
+                        >
+                        {action}
+                        </Button>
+                    </DialogClose>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
 

@@ -44,6 +44,7 @@ export function useMagicMarkup() {
     isApiKeyDialogOpen,
     isQrCodeDialogOpen,
     qrCodeDataUrl,
+    isActionDialogOpen,
   } = state;
 
 
@@ -80,6 +81,7 @@ export function useMagicMarkup() {
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
   const setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
   const setQrCodeDataUrl = (url: string | null) => dispatchAction('SET_QR_CODE_DATA_URL', url);
+  const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -699,6 +701,7 @@ export function useMagicMarkup() {
     elementNames,
     isQrCodeDialogOpen,
     qrCodeDataUrl,
+    isActionDialogOpen,
 
     // Refs
     canvasRef,
@@ -717,6 +720,7 @@ export function useMagicMarkup() {
     setElementImageUrls,
     setElementNames,
     setIsQrCodeDialogOpen,
+    setIsActionDialogOpen,
 
     // Functions
     startNewSession,
