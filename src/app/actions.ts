@@ -21,7 +21,14 @@ export async function uploadImageToCloudinaryAction(imageData: string): Promise<
     const uploadResult = await cloudinary.uploader.upload(imageData, {
       folder: 'magic-markup' // Optional: organize uploads in a specific folder
     });
-    return uploadResult.secure_url;
+    
+    // Add the fl_attachment flag to force download
+    const downloadUrl = cloudinary.url(uploadResult.public_id, {
+      flags: 'attachment',
+      fetch_format: 'auto'
+    });
+
+    return downloadUrl;
   } catch (error) {
     console.error("Cloudinary upload failed on server:", error);
     return null;
