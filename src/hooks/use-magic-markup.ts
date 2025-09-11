@@ -5,7 +5,7 @@ import { useRef, useCallback, ChangeEvent, useEffect, useReducer } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Highlight } from '@/lib/types';
 import { resizeImage, dataUrlToBlob } from '@/lib/canvas-utils';
-import { generateImageEdit } from '@/ai/flows/generate-image-edit';
+import { generateImageAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
 
 
@@ -74,7 +74,11 @@ export function useMagicMarkup() {
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
-  const setApiKeys = (keys: string[]) => dispatchAction('SET_API_KEYS', keys);
+  
+  const setApiKeys = (keys: string[]) => {
+    dispatchAction('SET_API_KEYS', keys);
+    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, JSON.stringify(keys));
+  }
 
   // -- SESSION & HISTORY MANAGEMENT --
   
@@ -440,7 +444,8 @@ export function useMagicMarkup() {
       for (let i = 0; i < apiKeys.length; i++) {
         const currentKey = apiKeys[i];
         try {
-            result = await generateImageEdit(currentKey, {
+            result = await generateImageAction({
+                apiKey: currentKey,
                 baseImage,
                 annotatedImage,
                 elementImages: elementImageUrlsPayload,
@@ -569,7 +574,6 @@ export function useMagicMarkup() {
     }
     const newKeys = [...apiKeys, key];
     setApiKeys(newKeys);
-    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, JSON.stringify(newKeys));
     toast({ title: "API Key saved!"});
   }
 
@@ -577,7 +581,6 @@ export function useMagicMarkup() {
     const newKeys = [...apiKeys];
     newKeys.splice(index, 1);
     setApiKeys(newKeys);
-    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, JSON.stringify(newKeys));
     toast({ title: "API Key deleted!"});
   }
 
@@ -589,12 +592,12 @@ export function useMagicMarkup() {
             try {
                 const savedKeys = JSON.parse(savedKeysRaw);
                 if (Array.isArray(savedKeys)) {
-                    setApiKeys(savedKeys);
+                    dispatchAction('SET_API_KEYS', savedKeys);
                 }
             } catch (e) {
                 // If parsing fails, it's likely a raw string key from a previous version
                 if (typeof savedKeysRaw === 'string') {
-                    setApiKeys([savedKeysRaw]);
+                    dispatchAction('SET_API_KEYS', [savedKeysRaw]);
                 }
             }
         }
@@ -608,6 +611,7 @@ export function useMagicMarkup() {
       console.error("Failed to load session from local storage", e);
       localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
