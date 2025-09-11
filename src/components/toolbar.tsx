@@ -81,45 +81,11 @@ export function Toolbar({
 }: ToolbarProps) {
   return (
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">도구</CardTitle>
-          <div className="flex items-center gap-1">
-            <IconButton icon={Undo2} tooltip="실행 취소" onClick={undo} />
-            <IconButton icon={Redo2} tooltip="다시 실행" onClick={redo} />
-            <IconButton icon={Trash2} tooltip="모두 지우기" onClick={handleClear} />
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="flex items-center gap-1">
-            <IconButton icon={MousePointer2} tooltip="선택" isActive={tool === 'select'} onClick={() => setTool('select')} />
-            <IconButton icon={Brush} tooltip="강조" isActive={tool === 'highlight'} onClick={() => setTool('highlight')} />
-            <IconButton icon={Type} tooltip="텍스트" isActive={tool === 'annotate'} onClick={() => setTool('annotate')} />
-            <IconButton icon={Eraser} tooltip="지우기" isActive={tool === 'erase'} onClick={() => setTool('erase')} />
-          </div>
-          <Separator />
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <Palette className="size-5 text-muted-foreground" />
-              <ColorPicker colors={EDITOR_COLORS} selectedColor={color} onColorChange={setColor} />
-            </div>
-            <div className="flex items-center gap-2">
-              <Paintbrush className="size-5 text-muted-foreground" />
-              <ToggleGroup type="single" value={brushSize} onValueChange={(value) => value && setBrushSize(value as BrushSize)}>
-                <ToggleGroupItem value="small" aria-label="Small">
-                  <div className="bg-foreground rounded-full size-2" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="medium" aria-label="Medium">
-                  <div className="bg-foreground rounded-full size-3" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="large" aria-label="Large">
-                  <div className="bg-foreground rounded-full size-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-end gap-1">
+        <IconButton icon={Undo2} tooltip="실행 취소" onClick={undo} />
+        <IconButton icon={Redo2} tooltip="다시 실행" onClick={redo} />
+        <IconButton icon={Trash2} tooltip="모두 지우기" onClick={handleClear} />
+      </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
