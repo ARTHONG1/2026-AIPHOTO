@@ -84,6 +84,8 @@ export function Toolbar({
   setIsPromptDialogOpen,
   EDITOR_COLORS,
 }: ToolbarProps) {
+  const selectedPromptImage = PREDEFINED_PROMPTS.find(p => p.name === customPrompt)?.imageUrl;
+  
   return (
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
       <div className="flex items-center justify-end gap-1">
@@ -186,9 +188,15 @@ export function Toolbar({
           <CardTitle className="text-lg">프롬프트</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-           {customPrompt ? (
+          {customPrompt ? (
             <div className="flex items-center justify-between">
-              <span className="font-semibold">{customPrompt}</span>
+              {selectedPromptImage ? (
+                 <div className="relative w-20 aspect-square">
+                    <Image src={selectedPromptImage} alt={customPrompt} layout="fill" objectFit="contain" />
+                 </div>
+              ) : (
+                <span className="font-semibold">{customPrompt}</span>
+              )}
                <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')}>
                 <X className="mr-2 size-4" />
                 선택 해제
