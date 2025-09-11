@@ -504,10 +504,14 @@ export function useMagicMarkup() {
   const handleExportWithQrCode = async () => {
     if (!baseImage) return;
 
+    // Open the dialog first, with a loading state
+    setQrCodeDataUrl(null);
+    setIsQrCodeDialogOpen(true);
+
     try {
+      // Then, process the image and set the data URL
       const compressedDataUrl = await resizeImage(baseImage, QR_CODE_MAX_DIMENSION, QR_CODE_MAX_DIMENSION);
       setQrCodeDataUrl(compressedDataUrl);
-      setIsQrCodeDialogOpen(true);
     } catch (error) {
       console.error("Failed to process image for QR Code", error);
       toast({
@@ -515,6 +519,8 @@ export function useMagicMarkup() {
         title: 'QR Code Error',
         description: 'Could not generate QR code for the image.',
       });
+      // Close the dialog if there's an error
+      setIsQrCodeDialogOpen(false);
     }
   };
   
@@ -733,3 +739,5 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
+
+    
