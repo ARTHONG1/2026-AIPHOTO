@@ -50,6 +50,7 @@ const PREDEFINED_PROMPTS = [
 
 const ACTIONS = [
     '만세',
+    '하트',
 ]
 
 export function Toolbar({
