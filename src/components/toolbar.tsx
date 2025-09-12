@@ -49,7 +49,7 @@ const PREDEFINED_PROMPTS = [
 ];
 
 const ACTIONS = [
-    { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757651296/undefined_-_Imgur_kgw3tm.jpg' },
+    { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652479/%EB%A7%8C%EC%84%B8_%EB%AA%A8%EC%85%98_bolqaa.png' },
     { name: '하트', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%ED%95%98%ED%8A%B8%20%EB%AA%A8%EC%85%982.png?alt=media&token=cc931d6a-5725-44b9-aa5a-287e80b18ca8' },
     { name: '던지기', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%8D%98%EC%A7%80%EA%B8%B0.jpg?alt=media&token=9583c9f8-204a-4715-80c8-0ed9183d9358' },
 ]
@@ -173,11 +173,7 @@ export function Toolbar({
                             selectedAction === action.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            {action.imageUrl ? (
-                                <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4" />
-                            ) : (
-                                <div className="flex items-center justify-center h-full">{action.name}</div>
-                            )}
+                            <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4" />
                         </button>
                     </DialogClose>
                 ))}
