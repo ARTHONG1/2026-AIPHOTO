@@ -43,6 +43,7 @@ const GenerateImageEditInputSchema = z.object({
   customPrompt: z.string().optional().describe('Optional custom prompt to influence the image editing process.'),
   actionPrompt: z.string().optional().describe('An optional prompt to change the pose of the subject in the image.'),
   backgroundPrompt: z.string().optional().describe('An optional prompt to change the background of the image.'),
+  backgroundImageUrl: z.string().optional().describe("An image to use as the new background."),
 });
 
 const GenerateImageEditOutputSchema = z.object({
@@ -72,14 +73,22 @@ Base Image: {{media url=baseImage}}
 === Action Prompt
 {{{actionPrompt}}}
 
-Based on the action prompt, you will modify the pose of the subject in the base image.
+Based on the action-prompt, you will modify the pose of the subject in the base image.
 {{/if}}
 
 {{#if backgroundPrompt}}
 === Background Prompt
 {{{backgroundPrompt}}}
 
+{{#if backgroundImageUrl}}
+You MUST replace the background of the "Base Image" with this "New Background Image".
+Identify the main subject in the "Base Image" and place them seamlessly into the "New Background Image".
+Ensure the lighting, shadows, and perspective of the subject match the new background for a photorealistic result.
+
+New Background Image: {{media url=backgroundImageUrl}}
+{{else}}
 Based on the background prompt, you will modify the background of the base image.
+{{/if}}
 {{/if}}
 
 {{#if annotatedImage}}

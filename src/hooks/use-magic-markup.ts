@@ -7,6 +7,7 @@ import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Hig
 import { resizeImage } from '@/lib/canvas-utils';
 import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
+import { BACKGROUNDS } from '@/components/toolbar';
 
 
 const EDITOR_COLORS = ['#D35898', '#3B82F6', '#22C55E', '#EAB308'] as const;
@@ -455,7 +456,14 @@ export function useMagicMarkup() {
         .filter(el => el.url) as { name: string; url: string }[];
       
       const actionPrompt = selectedAction ? `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.` : undefined;
-      const backgroundPrompt = selectedBackground ? `Change the background of the image to be '${selectedBackground}'. Make it look realistic and natural, and blend the subject into the new background.` : undefined;
+      
+      let backgroundPrompt: string | undefined;
+      let backgroundImageUrl: string | undefined;
+      if (selectedBackground) {
+        backgroundPrompt = `Change the background of the image to be '${selectedBackground}'. Make it look realistic and natural, and blend the subject into the new background.`;
+        backgroundImageUrl = BACKGROUNDS.find(b => b.name === selectedBackground)?.imageUrl;
+      }
+
 
       let result;
       let success = false;
@@ -470,6 +478,7 @@ export function useMagicMarkup() {
                 customPrompt,
                 actionPrompt,
                 backgroundPrompt,
+                backgroundImageUrl,
               });
             
             if (result.editedImage) {
