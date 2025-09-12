@@ -50,7 +50,7 @@ const PREDEFINED_PROMPTS = [
 ];
 
 const ACTIONS = [
-    { name: '만세', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%A7%8C%EC%84%B8%20%EB%AA%A8%EC%85%98.png?alt=media&token=c89734ff-5db9-4392-ac9c-8770064d7eb4' },
+    { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757651296/undefined_-_Imgur_kgw3tm.jpg' },
     { name: '하트', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%ED%95%98%ED%8A%B8%20%EB%AA%A8%EC%85%982.png?alt=media&token=cc931d6a-5725-44b9-aa5a-287e80b18ca8' },
 ]
 
