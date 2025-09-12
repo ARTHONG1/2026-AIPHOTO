@@ -64,37 +64,40 @@ const imageEditPrompt = ai.definePrompt({
   model: 'googleai/gemini-2.5-flash-image-preview',
   config: {responseModalities: ['TEXT', 'IMAGE']},
   input: {schema: GenerateImageEditInputSchema},
-  prompt: `You are an AI image editor. You will take a base image, and edit it based on an annotated version of the image which includes highlights and text. You may also be provided with element images. You will always return a data URL representing the final edited image.
+  prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
-  Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
+You will always return a data URL representing the final edited image.
+Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
-Base Image: {{media url=baseImage}}
+Original Image with Subject: {{media url=baseImage}}
+The user's photo contains the main subject. You MUST extract this subject to be used in the final image.
+
 {{#if actionPrompt}}
 === Action Prompt
 {{{actionPrompt}}}
 
-Based on the action-prompt, you will modify the pose of the subject in the base image.
+Based on the action-prompt, you will modify the pose of the subject from the 'Original Image with Subject'.
 {{/if}}
 
 {{#if backgroundPrompt}}
-=== Background Prompt
+=== Background Replacement
 {{{backgroundPrompt}}}
 
 {{#if backgroundImageUrl}}
-You MUST replace the background of the "Base Image" with this "New Background Image".
-Identify the main subject in the "Base Image" and place them seamlessly into the "New Background Image".
-Ensure the lighting, shadows, and perspective of the subject match the new background for a photorealistic result.
+You MUST replace the background of the 'Original Image with Subject' with the 'New Background Image' provided below.
+Your main task is to identify the main subject in the 'Original Image with Subject' and place them seamlessly and realistically into the 'New Background Image'.
+Ensure the lighting, shadows, and perspective of the subject match the new background for a photorealistic result. The subject should look like they are naturally part of the new scene.
 
 New Background Image: {{media url=backgroundImageUrl}}
 {{else}}
-Based on the background prompt, you will modify the background of the base image.
+Based on the background prompt, you will generate a new background for the subject from the 'Original Image with Subject'.
 {{/if}}
 {{/if}}
 
 {{#if annotatedImage}}
 === Annotations
 
-The user has provided annotations to the image using simple highlighter and text tools. These annotations may circle, highlight, or otherwise mark edits for the original image. DO NOT keep any of the annotations directly, but use them to guide your final output.
+The user has provided annotations on the image using simple highlighter and text tools. These annotations may circle, highlight, or otherwise mark areas for edits. DO NOT include the annotations (highlights, drawn text) in the final output, but use them as a guide for your edits.
 
 Annotated Image: {{media url=annotatedImage}}
 {{/if}}
@@ -121,7 +124,9 @@ Incorporate the element images into the base image in a creative and seamless wa
 {{/if}}
 {{/if}}
 
-Please combine all of the above instructions (Action, Annotations, Elements, and Custom Prompt) into a single, cohesive, final image.
+=== Final Instruction
+Combine all of the above instructions (Action, Background, Annotations, Elements, and Custom Prompt) into a single, cohesive, final image.
+Your final output MUST contain the subject from the 'Original Image with Subject', modified and placed according to the instructions.
 `,
 });
 
