@@ -85,6 +85,7 @@ export function Toolbar({
   EDITOR_COLORS,
 }: ToolbarProps) {
   const selectedPromptImage = PREDEFINED_PROMPTS.find(p => p.name === customPrompt)?.imageUrl;
+  const selectedActionImage = ACTIONS.find(a => a.name === selectedAction)?.imageUrl;
   
   return (
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
@@ -146,8 +147,14 @@ export function Toolbar({
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           {selectedAction ? (
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">{selectedAction}</span>
+             <div className="flex items-center justify-between">
+             {selectedActionImage ? (
+                <div className="relative w-20 aspect-square">
+                   <img src={selectedActionImage} alt={selectedAction} className="w-full h-full object-contain" />
+                </div>
+             ) : (
+               <span className="font-semibold">{selectedAction}</span>
+             )}
               <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)}>
                 <X className="mr-2 size-4" />
                 선택 해제
