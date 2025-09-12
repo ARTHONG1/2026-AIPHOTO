@@ -56,6 +56,7 @@ const ACTIONS = [
 
 const BACKGROUNDS: { name: string; imageUrl: string }[] = [
     { name: '우주', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757657254/Gemini_Generated_Image_qkmdwrqkmdwrqkmd_gm1yuj.png' },
+    { name: '실험실', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757664005/1757663981648_ipeebp.png' },
 ];
 
 
