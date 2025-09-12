@@ -55,7 +55,7 @@ const ACTIONS = [
 ]
 
 const BACKGROUNDS: { name: string; imageUrl: string }[] = [
-    // Add background prompts here
+    { name: '우주', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757657254/Gemini_Generated_Image_qkmdwrqkmdwrqkmd_gm1yuj.png' },
 ];
 
 
@@ -160,7 +160,7 @@ export function Toolbar({
              <div className="flex items-center justify-between">
              {selectedBackgroundImage ? (
                 <div className="relative w-20 aspect-square">
-                   <img src={selectedBackgroundImage} alt={selectedBackground} className="w-full h-full object-contain" />
+                   <img src={selectedBackgroundImage} alt={selectedBackground} className="w-full h-full object-cover rounded-md" />
                 </div>
              ) : (
                <span className="font-semibold">{selectedBackground}</span>
@@ -190,7 +190,7 @@ export function Toolbar({
                             selectedBackground === background.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            <img src={background.imageUrl} alt={background.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
+                            <img src={background.imageUrl} alt={background.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}
@@ -209,7 +209,7 @@ export function Toolbar({
              <div className="flex items-center justify-between">
              {selectedActionImage ? (
                 <div className="relative w-20 aspect-square">
-                   <img src={selectedActionImage} alt={selectedAction} className="w-full h-full object-contain" />
+                   <img src={selectedActionImage} alt={selectedAction} className="w-full h-full object-cover rounded-md" />
                 </div>
              ) : (
                <span className="font-semibold">{selectedAction}</span>
@@ -239,7 +239,7 @@ export function Toolbar({
                             selectedAction === action.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
+                            <img src={action.imageUrl} alt={action.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}
@@ -258,7 +258,7 @@ export function Toolbar({
             <div className="flex items-center justify-between">
               {selectedPromptImage ? (
                  <div className="relative w-20 aspect-square">
-                    <img src={selectedPromptImage} alt={customPrompt} className="w-full h-full object-contain" />
+                    <img src={selectedPromptImage} alt={customPrompt} className="w-full h-full object-cover rounded-md" />
                  </div>
               ) : (
                 <span className="font-semibold">{customPrompt}</span>
@@ -289,7 +289,7 @@ export function Toolbar({
                             customPrompt === prompt.name ? "border-primary" : "border-transparent"
                             )}
                         >
-                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
+                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}
