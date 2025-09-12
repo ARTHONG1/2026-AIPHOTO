@@ -42,6 +42,7 @@ const GenerateImageEditInputSchema = z.object({
     ),
   customPrompt: z.string().optional().describe('Optional custom prompt to influence the image editing process.'),
   actionPrompt: z.string().optional().describe('An optional prompt to change the pose of the subject in the image.'),
+  backgroundPrompt: z.string().optional().describe('An optional prompt to change the background of the image.'),
 });
 
 const GenerateImageEditOutputSchema = z.object({
@@ -72,6 +73,13 @@ Base Image: {{media url=baseImage}}
 {{{actionPrompt}}}
 
 Based on the action prompt, you will modify the pose of the subject in the base image.
+{{/if}}
+
+{{#if backgroundPrompt}}
+=== Background Prompt
+{{{backgroundPrompt}}}
+
+Based on the background prompt, you will modify the background of the base image.
 {{/if}}
 
 {{#if annotatedImage}}
@@ -118,8 +126,8 @@ const generateImageEditFlow = ai.defineFlow(
   async (input, {context}) => {
     if (!context?.apiKey) throw new Error("Must supply an API key.");
 
-    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0) && !input.actionPrompt) {
-      throw new Error('Please provide an annotated image, a custom prompt, an action prompt, or at least one element image.');
+    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0) && !input.actionPrompt && !input.backgroundPrompt) {
+      throw new Error('Please provide an annotated image, a custom prompt, a background prompt, an action prompt, or at least one element image.');
     }
     
     const {media} = await imageEditPrompt(input, {config: {apiKey: context.apiKey}});

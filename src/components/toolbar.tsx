@@ -54,6 +54,11 @@ const ACTIONS = [
     { name: '던지기', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757651296/undefined_-_Imgur_kgw3tm.jpg' },
 ]
 
+const BACKGROUNDS: { name: string; imageUrl: string }[] = [
+    // Add background prompts here
+];
+
+
 export function Toolbar({
   tool,
   setTool,
@@ -74,6 +79,8 @@ export function Toolbar({
   setCustomPrompt,
   selectedAction,
   setSelectedAction,
+  selectedBackground,
+  setSelectedBackground,
   handlePromptKeyDown,
   handleGenerate,
   isLoading,
@@ -82,10 +89,13 @@ export function Toolbar({
   setIsActionDialogOpen,
   isPromptDialogOpen,
   setIsPromptDialogOpen,
+  isBackgroundDialogOpen,
+  setIsBackgroundDialogOpen,
   EDITOR_COLORS,
 }: ToolbarProps) {
   const selectedPromptImage = PREDEFINED_PROMPTS.find(p => p.name === customPrompt)?.imageUrl;
   const selectedActionImage = ACTIONS.find(a => a.name === selectedAction)?.imageUrl;
+  const selectedBackgroundImage = BACKGROUNDS.find(b => b.name === selectedBackground)?.imageUrl;
   
   return (
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
@@ -143,6 +153,55 @@ export function Toolbar({
       
       <Card>
         <CardHeader>
+          <CardTitle className="text-lg">배경</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {selectedBackground ? (
+             <div className="flex items-center justify-between">
+             {selectedBackgroundImage ? (
+                <div className="relative w-20 aspect-square">
+                   <img src={selectedBackgroundImage} alt={selectedBackground} className="w-full h-full object-contain" />
+                </div>
+             ) : (
+               <span className="font-semibold">{selectedBackground}</span>
+             )}
+              <Button variant="ghost" size="sm" onClick={() => setSelectedBackground(null)}>
+                <X className="mr-2 size-4" />
+                선택 해제
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">선택된 배경 없음</p>
+          )}
+           <Dialog open={isBackgroundDialogOpen} onOpenChange={setIsBackgroundDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">배경 선택</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>배경 선택</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                {BACKGROUNDS.map((background) => (
+                    <DialogClose asChild key={background.name}>
+                        <button
+                          onClick={() => setSelectedBackground(background.name)}
+                          className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
+                            selectedBackground === background.name ? "border-primary" : "border-transparent"
+                          )}
+                        >
+                            <img src={background.imageUrl} alt={background.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
+                        </button>
+                    </DialogClose>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
           <CardTitle className="text-lg">동작</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -176,11 +235,11 @@ export function Toolbar({
                     <DialogClose asChild key={action.name}>
                         <button
                           onClick={() => setSelectedAction(action.name)}
-                          className={cn("relative aspect-square w-full overflow-hidden rounded-lg border-2",
+                          className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
                             selectedAction === action.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4" />
+                            <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}
@@ -226,11 +285,11 @@ export function Toolbar({
                     <DialogClose asChild key={prompt.name}>
                         <button
                             onClick={() => setCustomPrompt(prompt.name)}
-                            className={cn("relative aspect-square w-full overflow-hidden rounded-lg border-2",
+                            className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
                             customPrompt === prompt.name ? "border-primary" : "border-transparent"
                             )}
                         >
-                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-contain p-4" />
+                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}

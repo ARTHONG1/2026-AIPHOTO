@@ -38,6 +38,7 @@ export function useMagicMarkup() {
     brushSize,
     customPrompt,
     selectedAction,
+    selectedBackground,
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
@@ -46,6 +47,7 @@ export function useMagicMarkup() {
     qrCodeDataUrl,
     isActionDialogOpen,
     isPromptDialogOpen,
+    isBackgroundDialogOpen,
   } = state;
 
 
@@ -74,6 +76,7 @@ export function useMagicMarkup() {
   const setBrushSize = (brushSize: BrushSize) => dispatchAction('SET_BRUSH_SIZE', brushSize);
   const setCustomPrompt = (prompt: string) => dispatchAction('SET_CUSTOM_PROMPT', prompt);
   const setSelectedAction = (action: string | null) => dispatchAction('SET_SELECTED_ACTION', action);
+  const setSelectedBackground = (background: string | null) => dispatchAction('SET_SELECTED_BACKGROUND', background);
   const setIsElementUploadOpen = (isOpen: boolean) => dispatchAction('SET_IS_ELEMENT_UPLOAD_OPEN', isOpen);
   const setEditingAnnotation = (annotation: Annotation | null) => dispatchAction('SET_EDITING_ANNOTATION', annotation);
   const setIsApiKeyDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_API_KEY_DIALOG_OPEN', isOpen);
@@ -84,6 +87,7 @@ export function useMagicMarkup() {
   const setQrCodeDataUrl = (url: string | null) => dispatchAction('SET_QR_CODE_DATA_URL', url);
   const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
+  const setIsBackgroundDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_BACKGROUND_DIALOG_OPEN', isOpen);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -391,11 +395,11 @@ export function useMagicMarkup() {
     const annotations = canvasObjects.filter(o => o.type === 'annotation') as Annotation[];
     const hasElements = elementImageUrls.some(url => url !== null);
     
-    if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements && !selectedAction) {
+    if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements && !selectedAction && !selectedBackground) {
       toast({
         variant: 'destructive',
         title: 'Nothing to Generate',
-        description: 'Please add highlights, annotations, a prompt, an element image, or select an action.',
+        description: 'Please add highlights, annotations, a prompt, a background, an element image, or select an action.',
       });
       return;
     }
@@ -451,6 +455,7 @@ export function useMagicMarkup() {
         .filter(el => el.url) as { name: string; url: string }[];
       
       const actionPrompt = selectedAction ? `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.` : undefined;
+      const backgroundPrompt = selectedBackground ? `Change the background of the image to be '${selectedBackground}'. Make it look realistic and natural, and blend the subject into the new background.` : undefined;
 
       let result;
       let success = false;
@@ -464,6 +469,7 @@ export function useMagicMarkup() {
                 elementImages: elementImageUrlsPayload,
                 customPrompt,
                 actionPrompt,
+                backgroundPrompt,
               });
             
             if (result.editedImage) {
@@ -645,12 +651,13 @@ export function useMagicMarkup() {
         elementNames,
         prompt: customPrompt,
         selectedAction,
+        selectedBackground,
       });
       localStorage.setItem(LOCAL_STORAGE_KEY_SESSION, dataToSave);
     } catch(e) {
       console.error("Failed to save session to local storage", e);
     }
-  }, [isMounted, baseImage, canvasObjects, elementImageUrls, elementNames, customPrompt, selectedAction]);
+  }, [isMounted, baseImage, canvasObjects, elementImageUrls, elementNames, customPrompt, selectedAction, selectedBackground]);
 
 
   useEffect(() => {
@@ -695,6 +702,7 @@ export function useMagicMarkup() {
     brushSize,
     customPrompt,
     selectedAction,
+    selectedBackground,
     isLoading,
     isElementUploadOpen,
     editingAnnotation,
@@ -705,6 +713,7 @@ export function useMagicMarkup() {
     qrCodeDataUrl,
     isActionDialogOpen,
     isPromptDialogOpen,
+    isBackgroundDialogOpen,
 
     // Refs
     canvasRef,
@@ -716,6 +725,7 @@ export function useMagicMarkup() {
     setBrushSize,
     setCustomPrompt,
     setSelectedAction,
+    setSelectedBackground,
     setIsElementUploadOpen,
     setEditingAnnotation,
     setIsApiKeyDialogOpen,
@@ -725,6 +735,7 @@ export function useMagicMarkup() {
     setIsQrCodeDialogOpen,
     setIsActionDialogOpen,
     setIsPromptDialogOpen,
+    setIsBackgroundDialogOpen,
 
     // Functions
     startNewSession,

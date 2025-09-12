@@ -14,6 +14,7 @@ export interface AppState {
   brushSize: BrushSize;
   customPrompt: string;
   selectedAction: string | null;
+  selectedBackground: string | null;
   isLoading: boolean;
   isElementUploadOpen: boolean;
   editingAnnotation: Annotation | null;
@@ -22,6 +23,7 @@ export interface AppState {
   qrCodeDataUrl: string | null;
   isActionDialogOpen: boolean;
   isPromptDialogOpen: boolean;
+  isBackgroundDialogOpen: boolean;
 }
 
 export const initialState: AppState = {
@@ -37,6 +39,7 @@ export const initialState: AppState = {
   brushSize: 'medium',
   customPrompt: '',
   selectedAction: null,
+  selectedBackground: null,
   isLoading: false,
   isElementUploadOpen: false,
   editingAnnotation: null,
@@ -45,6 +48,7 @@ export const initialState: AppState = {
   qrCodeDataUrl: null,
   isActionDialogOpen: false,
   isPromptDialogOpen: false,
+  isBackgroundDialogOpen: false,
 };
 
 
@@ -66,6 +70,7 @@ export type ActionPayloads = {
     SET_BRUSH_SIZE: BrushSize;
     SET_CUSTOM_PROMPT: string;
     SET_SELECTED_ACTION: string | null;
+    SET_SELECTED_BACKGROUND: string | null;
     SET_IS_LOADING: boolean;
     SET_IS_ELEMENT_UPLOAD_OPEN: boolean;
     SET_EDITING_ANNOTATION: Annotation | null;
@@ -74,6 +79,7 @@ export type ActionPayloads = {
     SET_QR_CODE_DATA_URL: string | null;
     SET_IS_ACTION_DIALOG_OPEN: boolean;
     SET_IS_PROMPT_DIALOG_OPEN: boolean;
+    SET_IS_BACKGROUND_DIALOG_OPEN: boolean;
 };
 
 export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
@@ -162,6 +168,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, customPrompt: action.payload };
     case 'SET_SELECTED_ACTION':
       return { ...state, selectedAction: action.payload };
+    case 'SET_SELECTED_BACKGROUND':
+        return { ...state, selectedBackground: action.payload };
     case 'SET_IS_LOADING':
       return { ...state, isLoading: action.payload };
     case 'SET_IS_ELEMENT_UPLOAD_OPEN':
@@ -178,6 +186,8 @@ export function reducer(state: AppState, action: Action): AppState {
         return { ...state, isActionDialogOpen: action.payload };
     case 'SET_IS_PROMPT_DIALOG_OPEN':
         return { ...state, isPromptDialogOpen: action.payload };
+    case 'SET_IS_BACKGROUND_DIALOG_OPEN':
+        return { ...state, isBackgroundDialogOpen: action.payload };
     default:
       return state;
   }
