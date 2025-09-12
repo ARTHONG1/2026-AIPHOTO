@@ -44,13 +44,14 @@ import { cn } from '@/lib/utils';
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
 const PREDEFINED_PROMPTS = [
-  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%AF%B8%EB%9E%98%20%EC%95%88%EA%B2%BD.png?alt=media&token=cb4e1d49-07e8-4992-9b05-f117e0807228' },
+  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652181/%EB%AF%B8%EB%9E%98_%EC%95%88%EA%B2%BD_geepn7.png' },
   // Add more prompts here
 ];
 
 const ACTIONS = [
     { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757651296/undefined_-_Imgur_kgw3tm.jpg' },
     { name: '하트', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%ED%95%98%ED%8A%B8%20%EB%AA%A8%EC%85%982.png?alt=media&token=cc931d6a-5725-44b9-aa5a-287e80b18ca8' },
+    { name: '던지기', imageUrl: 'https://firebasestorage.googleapis.com/v0/b/nanobanana-real-photo-booth.firebasestorage.app/o/%EB%8D%98%EC%A7%80%EA%B8%B0.jpg?alt=media&token=9583c9f8-204a-4715-80c8-0ed9183d9358' },
 ]
 
 export function Toolbar({
@@ -123,7 +124,7 @@ export function Toolbar({
               {elementImageUrls.map((url, i) =>
                 url ? (
                   <div key={i} className="relative aspect-square w-full">
-                    <Image src={url} alt={`Element ${i + 1}`} layout="fill" objectFit="cover" className="rounded-md" />
+                    <img src={url} alt={`Element ${i + 1}`} className="rounded-md w-full h-full object-cover" />
                     <Button variant="destructive" size="icon" className="absolute -right-2 -top-2 size-6 rounded-full" onClick={() => handleRemoveElementImage(i)}>
                       <X className="size-4" />
                     </Button>
@@ -163,7 +164,7 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>동작 선택</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
                 {ACTIONS.map((action) => (
                     <DialogClose asChild key={action.name}>
                         <button
@@ -172,7 +173,11 @@ export function Toolbar({
                             selectedAction === action.name ? "border-primary" : "border-transparent"
                           )}
                         >
-                            <Image src={action.imageUrl} alt={action.name} layout="fill" objectFit="contain" className="p-4" />
+                            {action.imageUrl ? (
+                                <img src={action.imageUrl} alt={action.name} className="w-full h-full object-contain p-4" />
+                            ) : (
+                                <div className="flex items-center justify-center h-full">{action.name}</div>
+                            )}
                         </button>
                     </DialogClose>
                 ))}
@@ -191,7 +196,7 @@ export function Toolbar({
             <div className="flex items-center justify-between">
               {selectedPromptImage ? (
                  <div className="relative w-20 aspect-square">
-                    <Image src={selectedPromptImage} alt={customPrompt} layout="fill" objectFit="contain" />
+                    <img src={selectedPromptImage} alt={customPrompt} className="w-full h-full object-contain" />
                  </div>
               ) : (
                 <span className="font-semibold">{customPrompt}</span>
@@ -213,7 +218,7 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>프롬프트 선택</DialogTitle>
               </DialogHeader>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
                 {PREDEFINED_PROMPTS.map(prompt => (
                     <DialogClose asChild key={prompt.name}>
                         <button
@@ -222,7 +227,7 @@ export function Toolbar({
                             customPrompt === prompt.name ? "border-primary" : "border-transparent"
                             )}
                         >
-                            <Image src={prompt.imageUrl} alt={prompt.name} layout="fill" objectFit="contain" className="p-4" />
+                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-contain p-4" />
                         </button>
                     </DialogClose>
                 ))}
