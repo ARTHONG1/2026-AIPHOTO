@@ -105,6 +105,7 @@ export function Toolbar({
         <IconButton icon={Trash2} tooltip="모두 지우기" onClick={handleClear} />
       </div>
 
+      {/*
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">요소</CardTitle>
@@ -150,6 +151,7 @@ export function Toolbar({
           )}
         </CardContent>
       </Card>
+      */}
       
       <Card>
         <CardHeader>
