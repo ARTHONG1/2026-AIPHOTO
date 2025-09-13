@@ -51,7 +51,7 @@ const PREDEFINED_PROMPTS = [
 const ACTIONS = [
     { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652479/%EB%A7%8C%EC%84%B8_%EB%AA%A8%EC%85%98_bolqaa.png' },
     { name: '하트', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652585/%ED%95%98%ED%8A%B8_%EB%AA%A8%EC%85%982_u31kti.png' },
-    { name: '던지기', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757651296/undefined_-_Imgur_kgw3tm.jpg' },
+    { name: '던지기', imageUrl: '/던지기.jpg' },
 ]
 
 export const BACKGROUNDS: { name: string; imageUrl: string }[] = [
