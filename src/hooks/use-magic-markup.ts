@@ -488,12 +488,6 @@ export function useMagicMarkup() {
       
       const actionPrompt = selectedAction ? `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.` : undefined;
       
-      const selectedActionObject = ACTIONS.find(b => b.name === selectedAction);
-      let actionImageUrl;
-      if (selectedActionObject) {
-        actionImageUrl = await new Promise<string>(resolve => toDataUrl(selectedActionObject.imageUrl, resolve));
-      }
-      
       let backgroundPrompt: string | undefined;
       const selectedBackgroundObject = BACKGROUNDS.find(b => b.name === selectedBackground);
       let backgroundImageUrl;
@@ -515,7 +509,6 @@ export function useMagicMarkup() {
                 elementImages: elementImageUrlsPayload.map(p => ({...p, ...toPayload(p.url)})),
                 customPrompt,
                 actionPrompt,
-                actionImageUrl: actionImageUrl ? toPayload(actionImageUrl) : undefined,
                 backgroundPrompt,
                 backgroundImageUrl: backgroundImageUrl ? toPayload(backgroundImageUrl) : undefined,
               });

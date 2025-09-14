@@ -46,7 +46,6 @@ const GenerateImageEditInputSchema = z.object({
     ),
   customPrompt: z.string().optional().describe('Optional custom prompt to influence the image editing process.'),
   actionPrompt: z.string().optional().describe('An optional prompt to change the pose of the subject in the image.'),
-  actionImageUrl: ImagePayloadSchema.optional().describe('An image to use as a reference for the action.'),
   backgroundPrompt: z.string().optional().describe('An optional prompt to change the background of the image.'),
   backgroundImageUrl: ImagePayloadSchema.optional().describe("An image to use as the new background."),
 });
@@ -83,9 +82,6 @@ This is the original image containing the subject. DO NOT CHANGE THE PERSON.
 === Action
 {{#if actionPrompt}}
 {{actionPrompt}}
-{{/if}}
-{{#if actionImageUrl}}
-Use this image as a reference for the pose: {{media url=actionImageUrl.url}}
 {{/if}}
 
 === Background
@@ -143,4 +139,5 @@ const generateImageEditFlow = ai.defineFlow(
 );
 
     
+
 
