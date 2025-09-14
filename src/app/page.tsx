@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -27,26 +26,28 @@ export default function ScienceFourCutPage() {
         </Button>
       </a>
 
-      <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          
+      <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
+        <div className="flex items-center justify-center gap-6">
+          <Image src="/icon.png" alt="Character Icon" width={100} height={100} className="hidden md:block" />
           <div>
-            <h1 className="text-4xl font-bold">AI한컷</h1>
-            <p className="text-purple-300">AI와 함께 만드는 나만의 과학 사진</p>
+            <h1 className="text-7xl font-bold">AI한컷</h1>
+            <p className="text-xl text-purple-300 mt-2">AI와 함께 만드는 나만의 과학 사진</p>
           </div>
+           <Image src="/icon.png" alt="Character Icon" width={100} height={100} className="hidden md:block transform -scale-x-100" />
         </div>
 
-        <p className="mb-8 text-gray-400">
+        <p className="text-lg text-gray-400">
           나만의 특별한 AI 사진을 만들어 보세요!
         </p>
 
-        <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
+        <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-12 py-6 text-xl" onClick={handleStart}>
             시작하기
         </Button>
       </div>
 
-      <div className="absolute bottom-8 w-full flex justify-center">
-        <Image src="/융합교육원.png" alt="융합교육원 로고" width={200} height={50} style={{objectFit: 'contain'}} />
+      <div className="absolute bottom-8 w-full flex flex-col items-center justify-center gap-2">
+        <Image src="/융합교육원.png" alt="융합교육원 로고" width={250} height={60} style={{objectFit: 'contain'}} />
+        <p className="text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
       </div>
     </div>
   );
