@@ -44,13 +44,13 @@ import { cn } from '@/lib/utils';
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
 const PREDEFINED_PROMPTS = [
-  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652181/%EB%AF%B8%EB%9E%98_%EC%95%88%EA%B2%BD_geepn7.png' },
+  { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: '/안경.png' },
   // Add more prompts here
 ];
 
 const ACTIONS = [
-    { name: '만세', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652479/%EB%A7%8C%EC%84%B8_%EB%AA%A8%EC%85%98_bolqaa.png' },
-    { name: '하트', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757652585/%ED%95%98%ED%8A%B8_%EB%AA%A8%EC%85%982_u31kti.png' },
+    { name: '만세', imageUrl: '/만세.png' },
+    { name: '하트', imageUrl: '/하트.png' },
     { name: '던지기', imageUrl: '/던지기.jpg' },
 ]
 
