@@ -56,9 +56,9 @@ export const ACTIONS = [
 ]
 
 export const BACKGROUNDS: { name: string; imageUrl: string }[] = [
-    { name: '우주', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757657254/Gemini_Generated_Image_qkmdwrqkmdwrqkmd_gm1yuj.png' },
-    { name: '실험실', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757664005/1757663981648_ipeebp.png' },
-    { name: '고고학', imageUrl: 'https://res.cloudinary.com/dckjyturf/image/upload/v1757665006/1757664992151_kzartg.png' },
+    { name: '우주', imageUrl: '/우주.png'  },
+    { name: '실험실', imageUrl: '/실험실.png' },
+    { name: '고고학', imageUrl: '/고고학.png' },
 ];
 
 
