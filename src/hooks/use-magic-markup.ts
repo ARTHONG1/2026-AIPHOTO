@@ -7,7 +7,7 @@ import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Hig
 import { resizeImage } from '@/lib/canvas-utils';
 import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
-import { BACKGROUNDS } from '@/components/toolbar';
+import { BACKGROUNDS, ACTIONS, PREDEFINED_PROMPTS } from '@/components/toolbar';
 
 
 const EDITOR_COLORS = ['#D35898', '#3B82F6', '#22C55E', '#EAB308'] as const;
@@ -84,7 +84,7 @@ export function useMagicMarkup() {
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
-  const setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
+  setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
   const setQrCodeDataUrl = (url: string | null) => dispatchAction('SET_QR_CODE_DATA_URL', url);
   const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
@@ -377,6 +377,28 @@ export function useMagicMarkup() {
     interactionState.current.isDragging = false;
   };
 
+  const toDataUrl = (url: string, callback: (dataUrl: string) => void) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+          const reader = new FileReader();
+          reader.onloadend = function() {
+              callback(reader.result as string);
+          }
+          reader.readAsDataURL(xhr.response);
+      };
+      xhr.open('GET', url);
+      xhr.responseType = 'blob';
+      xhr.send();
+  }
+
+  const toPayload = (url: string) => {
+    const match = url.match(/^data:(image\/[a-z]+);base64,/);
+    return {
+      url,
+      contentType: match ? match[1] : 'image/png',
+    };
+  };
+
   const handleGenerate = async () => {
     if (!apiKeys || apiKeys.length === 0) {
       setIsApiKeyDialogOpen(true);
@@ -452,16 +474,32 @@ export function useMagicMarkup() {
       }
 
       const elementImageUrlsPayload = elementImageUrls
-        .map((url, i) => ({ url, name: elementNames[i] || `element${i+1}` }))
-        .filter(el => el.url) as { name: string; url: string }[];
+        .map((url, i) => (url ? { url, name: elementNames[i] || `element${i+1}` } : null))
+        .filter(el => el) as { name: string; url: string; contentType?: string }[];
+      
+      const predefinedPrompt = PREDEFINED_PROMPTS.find(p => p.name === customPrompt);
+      if (predefinedPrompt && predefinedPrompt.imageUrl) {
+        const dataUrl = await new Promise<string>(resolve => toDataUrl(predefinedPrompt.imageUrl, resolve));
+        elementImageUrlsPayload.push({
+          name: 'prompt-image',
+          ...toPayload(dataUrl)
+        });
+      }
       
       const actionPrompt = selectedAction ? `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.` : undefined;
       
+      const selectedActionObject = ACTIONS.find(b => b.name === selectedAction);
+      let actionImageUrl;
+      if (selectedActionObject) {
+        actionImageUrl = await new Promise<string>(resolve => toDataUrl(selectedActionObject.imageUrl, resolve));
+      }
+      
       let backgroundPrompt: string | undefined;
-      let backgroundImageUrl: string | undefined;
-      if (selectedBackground) {
+      const selectedBackgroundObject = BACKGROUNDS.find(b => b.name === selectedBackground);
+      let backgroundImageUrl;
+      if (selectedBackgroundObject) {
+        backgroundImageUrl = await new Promise<string>(resolve => toDataUrl(selectedBackgroundObject.imageUrl, resolve));
         backgroundPrompt = `Change the background of the image to be '${selectedBackground}'. Make it look realistic and natural, and blend the subject into the new background.`;
-        backgroundImageUrl = BACKGROUNDS.find(b => b.name === selectedBackground)?.imageUrl;
       }
 
 
@@ -474,11 +512,12 @@ export function useMagicMarkup() {
                 apiKey: currentKey,
                 baseImage,
                 annotatedImage,
-                elementImages: elementImageUrlsPayload,
+                elementImages: elementImageUrlsPayload.map(p => ({...p, ...toPayload(p.url)})),
                 customPrompt,
                 actionPrompt,
+                actionImageUrl: actionImageUrl ? toPayload(actionImageUrl) : undefined,
                 backgroundPrompt,
-                backgroundImageUrl,
+                backgroundImageUrl: backgroundImageUrl ? toPayload(backgroundImageUrl) : undefined,
               });
             
             if (result.editedImage) {

@@ -19,6 +19,10 @@ const ai = genkit({
   model: 'googleai/gemini-2.5-flash',
 });
 
+const ImagePayloadSchema = z.object({
+  url: z.string(),
+  contentType: z.string().optional(),
+});
 
 // Define schemas for the input and output data
 const GenerateImageEditInputSchema = z.object({
@@ -34,7 +38,7 @@ const GenerateImageEditInputSchema = z.object({
       "The annotated image (base image with highlights and text), as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   elementImages: z
-    .array(z.object({name: z.string(), url: z.string()}))
+    .array(z.object({name: z.string(), url: z.string(), contentType: z.string().optional()}))
     .max(3)
     .optional()
     .describe(
@@ -42,8 +46,9 @@ const GenerateImageEditInputSchema = z.object({
     ),
   customPrompt: z.string().optional().describe('Optional custom prompt to influence the image editing process.'),
   actionPrompt: z.string().optional().describe('An optional prompt to change the pose of the subject in the image.'),
+  actionImageUrl: ImagePayloadSchema.optional().describe('An image to use as a reference for the action.'),
   backgroundPrompt: z.string().optional().describe('An optional prompt to change the background of the image.'),
-  backgroundImageUrl: z.string().optional().describe("An image to use as the new background."),
+  backgroundImageUrl: ImagePayloadSchema.optional().describe("An image to use as the new background."),
 });
 
 const GenerateImageEditOutputSchema = z.object({
@@ -66,67 +71,55 @@ const imageEditPrompt = ai.definePrompt({
   input: {schema: GenerateImageEditInputSchema},
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
+The MOST IMPORTANT rule is that you MUST NOT change the person in the Original Image. All edits must apply to the person in the Original Image.
+
 You will always return a data URL representing the final edited image.
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
-Original Image with Subject: {{media url=baseImage}}
-The user's photo contains the main subject. You MUST extract this subject to be used in the final image.
+=== Original Image
+This is the original image containing the subject. DO NOT CHANGE THE PERSON.
+{{media url=baseImage}}
 
+=== Action
 {{#if actionPrompt}}
-=== Action Prompt
-{{{actionPrompt}}}
-
-Based on the action-prompt, you will modify the pose of the subject from the 'Original Image with Subject'.
+{{actionPrompt}}
+{{/if}}
+{{#if actionImageUrl}}
+Use this image as a reference for the pose: {{media url=actionImageUrl.url}}
 {{/if}}
 
+=== Background
 {{#if backgroundPrompt}}
-=== Background Replacement
 {{{backgroundPrompt}}}
-
+{{/if}}
 {{#if backgroundImageUrl}}
-You MUST replace the background of the 'Original Image with Subject' with the 'New Background Image' provided below.
-Your main task is to identify the main subject in the 'Original Image with Subject' and place them seamlessly and realistically into the 'New Background Image'.
-Ensure the lighting, shadows, and perspective of the subject match the new background for a photorealistic result. The subject should look like they are naturally part of the new scene.
-
-New Background Image: {{media url=backgroundImageUrl}}
-{{else}}
-Based on the background prompt, you will generate a new background for the subject from the 'Original Image with Subject'.
-{{/if}}
+You MUST replace the background of the 'Original Image' with this new background.
+New Background Image: {{media url=backgroundImageUrl.url}}
 {{/if}}
 
-{{#if annotatedImage}}
 === Annotations
-
-The user has provided annotations on the image using simple highlighter and text tools. These annotations may circle, highlight, or otherwise mark areas for edits. DO NOT include the annotations (highlights, drawn text) in the final output, but use them as a guide for your edits.
-
+{{#if annotatedImage}}
+The user has provided annotations on the image. Use them as a guide for your edits, but DO NOT include the annotations (highlights, drawn text) in the final output.
 Annotated Image: {{media url=annotatedImage}}
 {{/if}}
 
-{{#if elementImages.length}}
 === Element Images
-
-The user has provided additional "element" images that might be referenced in the prompt or annotations.
+{{#if elementImages.length}}
+The user has provided additional "element" images.
 {{#each elementImages}}
 {{{this.name}}}: {{media url=this.url}}
 {{/each}}
 {{/if}}
 
-{{#if customPrompt}}
 === Custom Prompt
-
-The user has provided an additional custom prompt to guide the image edit:
-
+{{#if customPrompt}}
 {{{customPrompt}}}
-{{else}}
-{{#if elementImages.length}}
-=== Task
-Incorporate the element images into the base image in a creative and seamless way.
-{{/if}}
+If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt. For example, if the prompt is about changing clothes, use the 'prompt-image' as the new clothing, but you MUST keep the person from the original image.
 {{/if}}
 
 === Final Instruction
-Combine all of the above instructions (Action, Background, Annotations, Elements, and Custom Prompt) into a single, cohesive, final image.
-Your final output MUST contain the subject from the 'Original Image with Subject', modified and placed according to the instructions.
+Combine all of the above instructions into a single, cohesive, final image.
+Your final output MUST contain the subject from the 'Original Image', modified and placed according to the instructions. The person MUST NOT be changed.
 `,
 });
 
