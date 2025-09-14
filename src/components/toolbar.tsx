@@ -43,12 +43,12 @@ import { cn } from '@/lib/utils';
 
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
-const PREDEFINED_PROMPTS = [
+export const PREDEFINED_PROMPTS = [
   { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: '/안경.png' },
-  // Add more prompts here
+  { name: 'Change the clothing of the person in the photo to this T-shirt. Make it look natural and realistic, including folds, shadows, and lighting, as if they were originally wearing it.', imageUrl: '/티셔츠.png' },
 ];
 
-const ACTIONS = [
+export const ACTIONS = [
     { name: '만세', imageUrl: '/만세.png' },
     { name: '하트', imageUrl: '/하트.png' },
     { name: '던지기', imageUrl: '/던지기.jpg' },
