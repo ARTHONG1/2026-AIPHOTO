@@ -43,7 +43,10 @@ export default function ScienceFourCutPage() {
         <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
             시작하기
         </Button>
+      </div>
 
+      <div className="absolute bottom-8 w-full flex justify-center">
+        <Image src="/융합교육원.png" alt="융합교육원 로고" width={200} height={50} style={{objectFit: 'contain'}} />
       </div>
     </div>
   );
