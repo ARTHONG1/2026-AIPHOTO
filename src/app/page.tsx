@@ -34,6 +34,7 @@ export default function ScienceFourCutPage() {
             <h1 className="text-7xl font-bold">AI한컷</h1>
             <p className="text-xl text-purple-300 mt-2">AI와 함께 만드는 나만의 과학 사진</p>
           </div>
+          <Image src="/과학힘찬이.png" alt="과학힘찬이" width={100} height={100} style={{objectFit: 'contain'}} />
         </div>
 
         <p className="text-lg text-gray-400">
