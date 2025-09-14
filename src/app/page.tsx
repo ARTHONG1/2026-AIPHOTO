@@ -28,12 +28,10 @@ export default function ScienceFourCutPage() {
 
       <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
         <div className="flex items-center justify-center gap-6">
-          <Image src="/icon.png" alt="Character Icon" width={100} height={100} className="hidden md:block" />
           <div>
             <h1 className="text-7xl font-bold">AI한컷</h1>
             <p className="text-xl text-purple-300 mt-2">AI와 함께 만드는 나만의 과학 사진</p>
           </div>
-           <Image src="/icon.png" alt="Character Icon" width={100} height={100} className="hidden md:block transform -scale-x-100" />
         </div>
 
         <p className="text-lg text-gray-400">
