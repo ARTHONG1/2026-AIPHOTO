@@ -21,7 +21,7 @@ const ai = genkit({
 
 const ImagePayloadSchema = z.object({
   url: z.string(),
-  contentType: z.string().optional(),
+  contentType: z.string(),
 });
 
 // Define schemas for the input and output data
@@ -38,7 +38,7 @@ const GenerateImageEditInputSchema = z.object({
       "The annotated image (base image with highlights and text), as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   elementImages: z
-    .array(z.object({name: z.string(), url: z.string(), contentType: z.string().optional()}))
+    .array(z.object({name: z.string(), url: z.string(), contentType: z.string()}))
     .max(3)
     .optional()
     .describe(
@@ -89,12 +89,11 @@ Use this image as a reference for the pose: {{media url=actionImageUrl.url}}
 {{/if}}
 
 === Background
-{{#if backgroundPrompt}}
-{{{backgroundPrompt}}}
-{{/if}}
 {{#if backgroundImageUrl}}
-You MUST replace the background of the 'Original Image' with this new background.
+You MUST replace the background of the 'Original Image' with this new background. Make it look realistic and natural, and blend the subject from the 'Original Image' into the new background.
 New Background Image: {{media url=backgroundImageUrl.url}}
+{{else if backgroundPrompt}}
+{{{backgroundPrompt}}}
 {{/if}}
 
 === Annotations
