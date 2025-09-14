@@ -31,7 +31,7 @@ export default function ScienceFourCutPage() {
         <div className="flex items-center justify-center gap-4 mb-4">
           
           <div>
-            <h1 className="text-4xl font-bold">과학네컷</h1>
+            <h1 className="text-4xl font-bold">AI한컷</h1>
             <p className="text-purple-300">AI와 함께 만드는 나만의 과학 사진</p>
           </div>
         </div>
