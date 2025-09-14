@@ -57,3 +57,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 5px theme('colors.purple.400'), 0 0 10px theme('colors.purple.400');
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 15px theme('colors.purple.300'), 0 0 25px theme('colors.purple.300');
+    }
+  }
+  .animate-pulse-glow {
+    animation: pulse-glow 2.5s infinite ease-in-out;
+  }
+}

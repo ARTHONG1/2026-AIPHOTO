@@ -17,7 +17,14 @@ export default function ScienceFourCutPage() {
   };
   
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
+      <Button 
+        variant="outline"
+        className="absolute top-8 right-8 bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow"
+      >
+        바이브코딩 더 알아보기
+      </Button>
+
       <div className="w-full max-w-2xl mx-auto p-8 md:p-12 border-2 border-dashed border-purple-400/50 rounded-2xl bg-gray-900/50 shadow-lg text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
           
