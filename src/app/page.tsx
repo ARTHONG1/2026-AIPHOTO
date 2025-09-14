@@ -4,11 +4,14 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { useState } from 'react';
+import { CopyrightDialog } from '@/components/copyright-dialog';
 
 const LOCAL_STORAGE_KEY_SESSION = 'magic-markup-session';
 
 export default function ScienceFourCutPage() {
   const router = useRouter();
+  const [isCopyrightOpen, setIsCopyrightOpen] = useState(false);
 
   const handleStart = () => {
     // Clear the previous session from local storage
@@ -50,6 +53,16 @@ export default function ScienceFourCutPage() {
         <Image src="/융합교육원.png" alt="융합교육원 로고" width={350} height={84} style={{objectFit: 'contain'}} />
         <p className="text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
       </div>
+
+      <Button
+        variant="link"
+        onClick={() => setIsCopyrightOpen(true)}
+        className="absolute bottom-8 right-8 text-muted-foreground hover:text-white"
+      >
+        저작권 안내
+      </Button>
+
+      <CopyrightDialog isOpen={isCopyrightOpen} onOpenChange={setIsCopyrightOpen} />
     </div>
   );
 }
