@@ -37,7 +37,7 @@ export default function ScienceFourCutPage() {
         </div>
 
         <p className="mb-8 text-gray-400">
-          AI의 놀라운 능력으로 여러분의 사진을 특별한 과학 컨셉의 네컷 사진으로 만들어 보세요.
+          나만의 특별한 AI 사진을 만들어 보세요!
         </p>
 
         <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
