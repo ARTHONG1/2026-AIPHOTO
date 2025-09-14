@@ -84,7 +84,7 @@ export function useMagicMarkup() {
   const setElementImages = (images: (File | null)[]) => dispatchAction('SET_ELEMENT_IMAGES', images);
   const setElementImageUrls = (urls: (string | null)[]) => dispatchAction('SET_ELEMENT_IMAGE_URLS', urls);
   const setElementNames = (names: string[]) => dispatchAction('SET_ELEMENT_NAMES', names);
-  setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
+  const setIsQrCodeDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_QR_CODE_DIALOG_OPEN', isOpen);
   const setQrCodeDataUrl = (url: string | null) => dispatchAction('SET_QR_CODE_DATA_URL', url);
   const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
@@ -806,3 +806,5 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
+
+    
