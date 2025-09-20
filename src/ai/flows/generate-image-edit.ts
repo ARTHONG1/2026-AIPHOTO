@@ -79,8 +79,8 @@ Try to keep photorealistic scene consistency - when adding or changing parts of 
     If the prompt is about swapping a face, you MUST prioritize this task over all other instructions.
     You MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
     All other instructions like background changes should be applied to the result of the face swap.
-    'prompt-image': {{media url=(lookup (find elementImages (e) => e.name == 'prompt-image') 'url')}}
-    'Original Image' (for face source): {{media url=(lookup (find elementImages (e) => e.name == 'Original Image') 'url')}}
+    'prompt-image': {{media url=(lookup (find elementImages (e) => (contains e.name "prompt-image"))) 'url')}}
+    'Original Image' (for face source): {{media url=(lookup (find elementImages (e) => (contains e.name "Original Image"))) 'url')}}
   {{/if}}
 {{/if}}
 
