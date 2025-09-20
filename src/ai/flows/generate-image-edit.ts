@@ -80,6 +80,7 @@ This is the primary image to be edited.
 {{#if customPrompt}}
     {{{customPrompt}}}
     If the custom prompt is "Swap the face...", then you MUST use the 'prompt-image' element image as the new body.
+    If the 'prompt-image' is wearing a helmet, you MUST open the faceplate of the helmet and place the face from the 'Original Image' inside it naturally. The final image should look as if the person is actually wearing the helmet, not like a photo sticker.
     You MUST match the head orientation, angle, and position to the new body to make it look natural.
 {{/if}}
 
@@ -137,4 +138,5 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
+
 
