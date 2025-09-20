@@ -79,9 +79,11 @@ This is the primary image to be edited.
 === Custom Prompt
 {{#if customPrompt}}
     {{{customPrompt}}}
-    If the custom prompt is "Swap the face...", then you MUST use the 'prompt-image' element image as the new body.
-    If the 'prompt-image' is wearing a helmet, you MUST open the faceplate of the helmet and place the face from the 'Original Image' inside it naturally. The final image should look as if the person is actually wearing the helmet, not like a photo sticker.
+    If the custom prompt contains "Swap the face", you MUST use the 'prompt-image' element image as the new body.
+    For helmeted figures, you MUST make the helmet's visor transparent or retracted, revealing the face from the 'Original Image' inside. The final image should look as if the person is actually wearing the helmet, not like a photo sticker.
     You MUST match the head orientation, angle, and position to the new body to make it look natural.
+    If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
+    For prompts like changing clothes, you MUST keep the person from the 'Base Image for Editing' and apply the clothing from 'prompt-image'.
 {{/if}}
 
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
@@ -138,5 +140,6 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
+
 
 
