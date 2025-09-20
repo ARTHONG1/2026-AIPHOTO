@@ -473,17 +473,34 @@ export function useMagicMarkup() {
         annotatedImage = await resizeImage(fullSizeAnnotatedImage, MAX_DIMENSION, MAX_DIMENSION);
       }
 
-      const elementImageUrlsPayload = elementImageUrls
-        .map((url, i) => (url ? { url, name: elementNames[i] || `element${i+1}` } : null))
-        .filter(el => el) as { name: string; url: string; contentType?: string }[];
+      const elementImagePayloads = (await Promise.all(elementImageUrls.map(async (url, i) => {
+        if (!url) return null;
+        return {
+          name: elementNames[i] || `element${i+1}`,
+          ...toPayload(url)
+        };
+      }))).filter(el => el) as { name: string; url: string; contentType: string }[];
       
       const predefinedPrompt = PREDEFINED_PROMPTS.find(p => p.name === customPrompt);
       if (predefinedPrompt && predefinedPrompt.imageUrl) {
         const dataUrl = await new Promise<string>(resolve => toDataUrl(predefinedPrompt.imageUrl, resolve));
-        elementImageUrlsPayload.push({
+        elementImagePayloads.push({
           name: 'prompt-image',
           ...toPayload(dataUrl)
         });
+      }
+
+      let requestBaseImage = baseImage;
+      // Handle face swap
+      if (predefinedPrompt?.swap) {
+          const promptImageElement = elementImagePayloads.find(e => e.name === 'prompt-image');
+          if (promptImageElement) {
+              requestBaseImage = promptImageElement.url;
+              elementImagePayloads.push({
+                  name: 'Original Image',
+                  ...toPayload(baseImage)
+              });
+          }
       }
       
       let actionPrompt: string | undefined;
@@ -513,9 +530,9 @@ export function useMagicMarkup() {
         try {
             result = await generateImageAction({
                 apiKey: currentKey,
-                baseImage,
+                baseImage: requestBaseImage,
                 annotatedImage,
-                elementImages: elementImageUrlsPayload.map(p => ({...p, ...toPayload(p.url)})),
+                elementImages: elementImagePayloads,
                 customPrompt,
                 actionPrompt,
                 backgroundPrompt,

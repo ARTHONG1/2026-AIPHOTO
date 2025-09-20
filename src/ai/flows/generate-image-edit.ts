@@ -70,13 +70,13 @@ const imageEditPrompt = ai.definePrompt({
   input: {schema: GenerateImageEditInputSchema},
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
-The MOST IMPORTANT rule is that you MUST NOT change the person in the Original Image. All edits must apply to the person in the Original Image.
+The MOST IMPORTANT rule is that you MUST NOT change the person in the Original Image, unless the prompt is specifically about swapping the face.
 
 You will always return a data URL representing the final edited image.
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
 === Original Image
-This is the original image containing the subject. DO NOT CHANGE THE PERSON.
+This is the original image containing the subject.
 {{media url=baseImage}}
 
 === Action
@@ -109,12 +109,14 @@ The user has provided additional "element" images.
 === Custom Prompt
 {{#if customPrompt}}
 {{{customPrompt}}}
-If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt. For example, if the prompt is about changing clothes, use the 'prompt-image' as the new clothing, but you MUST keep the person from the original image.
+If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
+If the prompt is about swapping a face, you MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
+For other prompts like changing clothes, you MUST keep the person from the 'Original Image' and apply the clothing from 'prompt-image'.
 {{/if}}
 
 === Final Instruction
 Combine all of the above instructions into a single, cohesive, final image.
-Your final output MUST contain the subject from the 'Original Image', modified and placed according to the instructions. The person MUST NOT be changed.
+Your final output MUST contain the subject from the 'Original Image', modified and placed according to the instructions.
 `,
 });
 
@@ -137,7 +139,3 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
-
-    
-
-
