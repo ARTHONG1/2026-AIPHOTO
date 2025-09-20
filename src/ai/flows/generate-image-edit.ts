@@ -29,7 +29,7 @@ const GenerateImageEditInputSchema = z.object({
   baseImage: z
     .string()
     .describe(
-      "The base image to edit, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "The base image to edit, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'. This may also be referred to as 'Original Image'."
     ),
   annotatedImage: z
     .string()
@@ -67,15 +67,23 @@ const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
   model: 'googleai/gemini-2.5-flash-image-preview',
   config: {responseModalities: ['TEXT', 'IMAGE']},
-  input: {schema: z.any()},
+  input: {schema: GenerateImageEditInputSchema},
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
 You will always return a data URL representing the final edited image.
-Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
 === Base Image for Editing
 This is the primary image to be edited.
 {{media url=baseImage}}
+
+=== Custom Prompt
+{{#if customPrompt}}
+    {{{customPrompt}}}
+    If the custom prompt is "Swap the face...", then you MUST use the 'prompt-image' element image as the new body.
+    You MUST match the head orientation, angle, and position to the new body to make it look natural.
+{{/if}}
+
+Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
 === Action
 {{#if actionPrompt}}
@@ -98,17 +106,10 @@ Annotated Image: {{media url=annotatedImage}}
 
 === Element Images
 {{#if elementImages.length}}
-The user has provided additional "element" images. These are secondary unless specified in the Primary Task.
+The user has provided additional "element" images.
 {{#each elementImages}}
     {{{this.name}}}: {{media url=this.url}}
 {{/each}}
-{{/if}}
-
-=== Custom Prompt (Secondary Instructions)
-{{#if customPrompt}}
-    {{{customPrompt}}}
-    If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
-    For prompts like changing clothes, you MUST keep the person from the 'Base Image for Editing' and apply the clothing from 'prompt-image'.
 {{/if}}
 
 === Final Instruction
@@ -136,3 +137,4 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
+
