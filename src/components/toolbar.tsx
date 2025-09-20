@@ -47,7 +47,7 @@ type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 export const PREDEFINED_PROMPTS = [
   { name: 'Add a pair of futuristic AI engineering glasses on the person’s face. \nThe glasses should look realistic and seamlessly integrated, \nwith a metallic frame, glowing neon blue highlights, \nand transparent smart lenses displaying subtle holographic data. \nEnsure the glasses fit naturally on the face with proper lighting and shadows.', imageUrl: '/안경.png' },
   { name: 'Change the clothing of the person in the photo to this T-shirt. Make it look natural and realistic, including folds, shadows, and lighting, as if they were originally wearing it.', imageUrl: '/티셔츠.png' },
-  { name: "Change the clothing of the person in the photo to this armor. Make it look natural and realistic, including folds, shadows, and lighting, as if they were originally wearing it.", imageUrl: '/갑옷.png' },
+  { name: "Swap the face of the person in 'prompt-image' with the face from 'Original Image'. Make it look realistic and natural, and blend the subject into the new body.", imageUrl: '/갑옷.png', swap: true },
 ];
 
 export const ACTIONS = [
