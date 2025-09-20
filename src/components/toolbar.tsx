@@ -291,11 +291,11 @@ export function Toolbar({
                     <DialogClose asChild key={prompt.name}>
                         <button
                             onClick={() => setCustomPrompt(prompt.name)}
-                            className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
+                            className={cn("relative group aspect-video w-full overflow-hidden rounded-lg border-2",
                             customPrompt === prompt.name ? "border-primary" : "border-transparent"
                             )}
                         >
-                            <img src={prompt.imageUrl} alt={prompt.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                            <Image src={prompt.imageUrl} alt={prompt.name} layout="fill" className="object-contain transition-transform group-hover:scale-105" />
                         </button>
                     </DialogClose>
                 ))}
