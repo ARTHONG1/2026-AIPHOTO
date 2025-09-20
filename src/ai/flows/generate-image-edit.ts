@@ -73,15 +73,6 @@ const imageEditPrompt = ai.definePrompt({
 You will always return a data URL representing the final edited image.
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
-=== Primary Task: Face Swap (If Applicable)
-{{#if isFaceSwap}}
-  If the prompt is about swapping a face, you MUST prioritize this task over all other instructions.
-  You MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
-  All other instructions like background changes should be applied to the result of the face swap.
-  {{#if promptImage}}'prompt-image': {{media url=promptImage.url}}{{/if}}
-  {{#if originalImage}}'Original Image' (for face source): {{media url=originalImage.url}}{{/if}}
-{{/if}}
-
 === Base Image for Editing
 This is the primary image to be edited.
 {{media url=baseImage}}
@@ -115,16 +106,14 @@ The user has provided additional "element" images. These are secondary unless sp
 
 === Custom Prompt (Secondary Instructions)
 {{#if customPrompt}}
-  {{#unless isFaceSwap}}
     {{{customPrompt}}}
     If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
     For prompts like changing clothes, you MUST keep the person from the 'Base Image for Editing' and apply the clothing from 'prompt-image'.
-  {{/unless}}
 {{/if}}
 
 === Final Instruction
 Combine all of the above instructions into a single, cohesive, final image.
-Your final output MUST contain the subject from the 'Base Image for Editing' (or the result of the Primary Task if a face swap was performed), modified and placed according to the instructions.
+Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
 `,
 });
 
@@ -142,21 +131,7 @@ const generateImageEditFlow = ai.defineFlow(
       throw new Error('Please provide an annotated image, a custom prompt, a background prompt, an action prompt, or at least one element image.');
     }
     
-    const isFaceSwap = input.customPrompt?.includes("Swap the face");
-
-    const promptImage = input.elementImages?.find(e => e.name.includes("prompt-image"));
-    const originalImage = input.elementImages?.find(e => e.name.includes("Original Image"));
-    const otherElementImages = input.elementImages?.filter(e => !e.name.includes("prompt-image") && !e.name.includes("Original Image"));
-    
-    const promptInput = {
-      ...input,
-      elementImages: otherElementImages,
-      isFaceSwap,
-      promptImage,
-      originalImage,
-    };
-    
-    const {media} = await imageEditPrompt(promptInput, {config: {apiKey: context.apiKey}});
+    const {media} = await imageEditPrompt(input, {config: {apiKey: context.apiKey}});
 
     return {editedImage: media?.url || ''};
   }
