@@ -70,13 +70,22 @@ const imageEditPrompt = ai.definePrompt({
   input: {schema: GenerateImageEditInputSchema},
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
-The MOST IMPORTANT rule is that you MUST NOT change the person in the Original Image, unless the prompt is specifically about swapping the face.
-
 You will always return a data URL representing the final edited image.
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
-=== Original Image
-This is the original image containing the subject.
+=== Primary Task: Face Swap (If Applicable)
+{{#if customPrompt}}
+  {{#if (contains customPrompt "Swap the face")}}
+    If the prompt is about swapping a face, you MUST prioritize this task over all other instructions.
+    You MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
+    All other instructions like background changes should be applied to the result of the face swap.
+    'prompt-image': {{lookup (find elementImages (obj) => obj.name === 'prompt-image') 'url' |> media}}
+    'Original Image' (for face source): {{lookup (find elementImages (obj) => obj.name === 'Original Image') 'url' |> media}}
+  {{/if}}
+{{/if}}
+
+=== Base Image for Editing
+This is the primary image to be edited.
 {{media url=baseImage}}
 
 === Action
@@ -86,7 +95,7 @@ This is the original image containing the subject.
 
 === Background
 {{#if backgroundImageUrl}}
-You MUST replace the background of the 'Original Image' with this new background. Make it look realistic and natural, and blend the subject from the 'Original Image' into the new background.
+You MUST replace the background of the 'Base Image for Editing' with this new background. Make it look realistic and natural, and blend the subject from the 'Base Image for Editing' into the new background.
 New Background Image: {{media url=backgroundImageUrl.url}}
 {{else if backgroundPrompt}}
 {{{backgroundPrompt}}}
@@ -100,23 +109,26 @@ Annotated Image: {{media url=annotatedImage}}
 
 === Element Images
 {{#if elementImages.length}}
-The user has provided additional "element" images.
+The user has provided additional "element" images. These are secondary unless specified in the Primary Task.
 {{#each elementImages}}
-{{{this.name}}}: {{media url=this.url}}
+  {{#unless (contains this.name "Original Image")}}
+    {{{this.name}}}: {{media url=this.url}}
+  {{/unless}}
 {{/each}}
 {{/if}}
 
-=== Custom Prompt
+=== Custom Prompt (Secondary Instructions)
 {{#if customPrompt}}
-{{{customPrompt}}}
-If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
-If the prompt is about swapping a face, you MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
-For other prompts like changing clothes, you MUST keep the person from the 'Original Image' and apply the clothing from 'prompt-image'.
+  {{#unless (contains customPrompt "Swap the face")}}
+    {{{customPrompt}}}
+    If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
+    For prompts like changing clothes, you MUST keep the person from the 'Base Image for Editing' and apply the clothing from 'prompt-image'.
+  {{/unless}}
 {{/if}}
 
 === Final Instruction
 Combine all of the above instructions into a single, cohesive, final image.
-Your final output MUST contain the subject from the 'Original Image', modified and placed according to the instructions.
+Your final output MUST contain the subject from the 'Base Image for Editing' (or the result of the Primary Task if a face swap was performed), modified and placed according to the instructions.
 `,
 });
 
