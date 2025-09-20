@@ -67,21 +67,19 @@ const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
   model: 'googleai/gemini-2.5-flash-image-preview',
   config: {responseModalities: ['TEXT', 'IMAGE']},
-  input: {schema: GenerateImageEditInputSchema},
+  input: {schema: z.any()},
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
 You will always return a data URL representing the final edited image.
 Try to keep photorealistic scene consistency - when adding or changing parts of the picture, always match the lighting and make it look seamless and photorealistic.
 
 === Primary Task: Face Swap (If Applicable)
-{{#if customPrompt}}
-  {{#if (contains customPrompt "Swap the face")}}
-    If the prompt is about swapping a face, you MUST prioritize this task over all other instructions.
-    You MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
-    All other instructions like background changes should be applied to the result of the face swap.
-    'prompt-image': {{media url=(lookup (find elementImages (e) => (contains e.name "prompt-image"))) 'url')}}
-    'Original Image' (for face source): {{media url=(lookup (find elementImages (e) => (contains e.name "Original Image"))) 'url')}}
-  {{/if}}
+{{#if isFaceSwap}}
+  If the prompt is about swapping a face, you MUST prioritize this task over all other instructions.
+  You MUST take the face from the image named 'Original Image' and place it onto the body in 'prompt-image'.
+  All other instructions like background changes should be applied to the result of the face swap.
+  {{#if promptImage}}'prompt-image': {{media url=promptImage.url}}{{/if}}
+  {{#if originalImage}}'Original Image' (for face source): {{media url=originalImage.url}}{{/if}}
 {{/if}}
 
 === Base Image for Editing
@@ -111,15 +109,13 @@ Annotated Image: {{media url=annotatedImage}}
 {{#if elementImages.length}}
 The user has provided additional "element" images. These are secondary unless specified in the Primary Task.
 {{#each elementImages}}
-  {{#unless (contains this.name "Original Image")}}
     {{{this.name}}}: {{media url=this.url}}
-  {{/unless}}
 {{/each}}
 {{/if}}
 
 === Custom Prompt (Secondary Instructions)
 {{#if customPrompt}}
-  {{#unless (contains customPrompt "Swap the face")}}
+  {{#unless isFaceSwap}}
     {{{customPrompt}}}
     If an element image named 'prompt-image' exists, you MUST use that image to perform the edit described in this custom prompt.
     For prompts like changing clothes, you MUST keep the person from the 'Base Image for Editing' and apply the clothing from 'prompt-image'.
@@ -146,7 +142,21 @@ const generateImageEditFlow = ai.defineFlow(
       throw new Error('Please provide an annotated image, a custom prompt, a background prompt, an action prompt, or at least one element image.');
     }
     
-    const {media} = await imageEditPrompt(input, {config: {apiKey: context.apiKey}});
+    const isFaceSwap = input.customPrompt?.includes("Swap the face");
+
+    const promptImage = input.elementImages?.find(e => e.name.includes("prompt-image"));
+    const originalImage = input.elementImages?.find(e => e.name.includes("Original Image"));
+    const otherElementImages = input.elementImages?.filter(e => !e.name.includes("prompt-image") && !e.name.includes("Original Image"));
+    
+    const promptInput = {
+      ...input,
+      elementImages: otherElementImages,
+      isFaceSwap,
+      promptImage,
+      originalImage,
+    };
+    
+    const {media} = await imageEditPrompt(promptInput, {config: {apiKey: context.apiKey}});
 
     return {editedImage: media?.url || ''};
   }
