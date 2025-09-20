@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRef, useCallback, ChangeEvent, useEffect, useReducer } from 'react';
@@ -418,6 +419,9 @@ export function useMagicMarkup() {
     const annotations = canvasObjects.filter(o => o.type === 'annotation') as Annotation[];
     const hasElements = elementImageUrls.some(url => url !== null);
     
+    const predefinedPrompt = PREDEFINED_PROMPTS.find(p => p.name === customPrompt);
+    const isFaceSwap = !!predefinedPrompt?.swap;
+
     if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements && !selectedAction && !selectedBackground) {
       toast({
         variant: 'destructive',
@@ -481,7 +485,7 @@ export function useMagicMarkup() {
         };
       }))).filter(el => el) as { name: string; url: string; contentType: string }[];
       
-      const predefinedPrompt = PREDEFINED_PROMPTS.find(p => p.name === customPrompt);
+      
       if (predefinedPrompt && predefinedPrompt.imageUrl) {
         const dataUrl = await new Promise<string>(resolve => toDataUrl(predefinedPrompt.imageUrl, resolve));
         elementImagePayloads.push({
@@ -492,10 +496,12 @@ export function useMagicMarkup() {
 
       let requestBaseImage = baseImage;
       // Handle face swap
-      if (predefinedPrompt?.swap) {
+      if (isFaceSwap) {
           const promptImageElement = elementImagePayloads.find(e => e.name === 'prompt-image');
           if (promptImageElement) {
+              // The prompt image becomes the base image
               requestBaseImage = promptImageElement.url;
+              // The original base image is passed as an element so we can get the face
               elementImagePayloads.push({
                   name: 'Original Image',
                   ...toPayload(baseImage)
@@ -825,6 +831,3 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
-
-    
-    
