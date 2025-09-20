@@ -282,7 +282,7 @@ export function Toolbar({
             <DialogTrigger asChild>
               <Button variant="outline">프롬프트 선택</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-7xl">
               <DialogHeader>
                 <DialogTitle>프롬프트 선택</DialogTitle>
               </DialogHeader>
