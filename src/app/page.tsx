@@ -26,7 +26,7 @@ export default function ScienceFourCutPage() {
           variant="outline"
           className="bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow"
         >
-          바이크코딩 더 알아보기
+          바이브코딩 더 알아보기
         </Button>
       </a>
 
