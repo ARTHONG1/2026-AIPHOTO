@@ -515,6 +515,8 @@ export function useMagicMarkup() {
             actionPrompt = "Change the pose of the subject to be raising both hands up high. Make it look realistic and natural.";
         } else if (selectedAction === '하트') {
             actionPrompt = "Change the pose of the subject to be making a heart shape with both hands over their chest. Make it look realistic and natural.";
+        } else if (selectedAction === '찰칵') {
+            actionPrompt = "Change the pose of the subject to a 'snap' pose, making a rectangular frame with their thumbs and index fingers in front of their face, as if taking a picture. Make it look realistic and natural.";
         } else {
             actionPrompt = `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.`;
         }
