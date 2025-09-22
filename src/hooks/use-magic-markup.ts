@@ -420,7 +420,6 @@ export function useMagicMarkup() {
     const hasElements = elementImageUrls.some(url => url !== null);
     
     const predefinedPrompt = PREDEFINED_PROMPTS.find(p => p.name === customPrompt);
-    const isFaceSwap = !!predefinedPrompt?.swap;
 
     if (highlights.length === 0 && annotations.length === 0 && !customPrompt && !hasElements && !selectedAction && !selectedBackground) {
       toast({
@@ -495,19 +494,6 @@ export function useMagicMarkup() {
       }
 
       let requestBaseImage = baseImage;
-      // Handle face swap
-      if (isFaceSwap) {
-          const promptImageElement = elementImagePayloads.find(e => e.name === 'prompt-image');
-          if (promptImageElement) {
-              // The prompt image becomes the base image
-              requestBaseImage = promptImageElement.url;
-              // The original base image is passed as an element so we can get the face
-              elementImagePayloads.push({
-                  name: 'Original Image',
-                  ...toPayload(baseImage)
-              });
-          }
-      }
       
       let actionPrompt: string | undefined;
       if (selectedAction) {
@@ -516,7 +502,7 @@ export function useMagicMarkup() {
         } else if (selectedAction === '하트') {
             actionPrompt = "Change the pose of the subject to be making a heart shape with both hands over their chest. Make it look realistic and natural.";
         } else if (selectedAction === '찰칵') {
-            actionPrompt = "Change the pose of the subject to the 'photo frame' pose. They should form a rectangular frame with their thumbs and index fingers. The thumbs should meet at the bottom to form the base of the frame, and the index fingers should be parallel at the top. The frame should be tilted diagonally (top-right to bottom-left) and positioned to frame one of their eyes, as if looking through a camera viewfinder. The gaze should be directed inside the frame. The overall posture should be confident with a slight smile.";
+            actionPrompt = "Change the pose of the subject to the 'photo frame' pose. They should form a rectangular frame with their thumbs and index fingers, and position the frame over one of their eyes, as if looking through a camera viewfinder. The pose should be confident and look natural.";
         } else {
             actionPrompt = `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.`;
         }
@@ -833,5 +819,3 @@ export function useMagicMarkup() {
     EDITOR_COLORS,
   };
 }
-
-    
