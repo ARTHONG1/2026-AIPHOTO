@@ -502,7 +502,7 @@ export function useMagicMarkup() {
         } else if (selectedAction === '하트') {
             actionPrompt = "Change the pose of the subject to be making a heart shape with both hands over their chest. Make it look realistic and natural.";
         } else if (selectedAction === '찰칵') {
-            actionPrompt = "Change the pose of the subject to the 'photo frame' pose. They should form a rectangular frame with their thumbs and index fingers, and position the frame over one of their eyes, as if looking through a camera viewfinder. The pose should be confident and look natural.";
+            actionPrompt = "Change the pose of the subject to the 'photo frame' pose. Ensure it's a confident, natural 'camera click' gesture. Follow these steps for the pose: 1. Hand Shape: Create a rectangular frame using thumbs and index fingers. Thumbs should meet at the bottom, and index fingers should be parallel at the top, like holding a camera. 2. Frame Tilt: Tilt the frame diagonally (top-right to bottom-left) to resemble a camera viewfinder. 3. Face and Eye Position: Bring the hand-frame close to the face, placing it around one eye, so the eye is inside the frame. 4. Gaze: The subject's gaze should be directed inside the frame, as if looking through a camera lens. 5. Expression: The subject should have a slight, confident smile.";
         } else {
             actionPrompt = `Change the pose of the subject to be doing a '${selectedAction}' pose. Make it look realistic and natural.`;
         }
