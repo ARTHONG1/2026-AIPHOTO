@@ -41,10 +41,21 @@ const nextConfig = {
       }
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (isServer) {
       config.externals.push('handlebars');
     }
+    
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          ...(config.watchOptions.ignored || []),
+          /public/,
+        ],
+      };
+    }
+
     return config;
   }
 };
