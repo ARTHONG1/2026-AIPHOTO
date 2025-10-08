@@ -71,6 +71,7 @@ const imageEditPrompt = ai.definePrompt({
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
 You will always return a data URL representing the final edited image.
+Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
 
 === Base Image for Editing
 This is the primary image to be edited.
@@ -140,6 +141,7 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
+
 
 
 
