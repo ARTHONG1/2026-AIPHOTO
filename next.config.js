@@ -47,13 +47,10 @@ const nextConfig = {
     }
     
     if (dev) {
-      config.watchOptions = {
-        ...config.watchOptions,
-        ignored: [
-          ...(Array.isArray(config.watchOptions.ignored) ? config.watchOptions.ignored : []),
-          /public/,
-        ],
-      };
+      config.watchOptions.ignored = [
+        ...(Array.isArray(config.watchOptions.ignored) ? config.watchOptions.ignored : []),
+        /public/,
+      ];
     }
 
     return config;
