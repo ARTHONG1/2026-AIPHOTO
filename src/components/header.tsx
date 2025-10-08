@@ -22,7 +22,7 @@ export function Header({ onApiKeyClick, onExportWithQrCodeClick, isExportDisable
       <div className="flex items-center gap-2 w-1/3">
         <Image src="/icon.png" alt="Magic Markup Icon" width="32" height="32" className="rounded-xl" style={{ height: 'auto', width: 'auto' }}/>
         <h1 className="font-headline text-xl font-semibold tracking-tight text-foreground">
-          과학네컷
+          AI한컷
         </h1>
       </div>
       <div className="flex-1 text-center font-code text-xs text-muted-foreground">
