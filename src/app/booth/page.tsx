@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, Check, RefreshCw } from 'lucide-react';
+import { Camera, Check, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
@@ -15,6 +15,7 @@ export default function BoothPage() {
   const { startNewSession } = useMagicMarkup();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
 
@@ -54,6 +55,25 @@ export default function BoothPage() {
     }
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        if (imageDataUrl) {
+            startNewSession(imageDataUrl);
+            router.push('/editor');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const resetPhoto = () => {
     setPhotoData(null);
   };
@@ -69,7 +89,7 @@ export default function BoothPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 md:p-8">
       <div className="w-full max-w-md text-center">
         <h1 className="text-3xl font-bold mb-2">포토부스</h1>
-        <p className="text-muted-foreground mb-6">카메라를 보고 멋진 포즈를 취해주세요!</p>
+        <p className="text-muted-foreground mb-6">카메라를 보고 멋진 포즈를 취하거나 이미지를 업로드해주세요!</p>
 
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border-4 border-primary/20 bg-muted shadow-lg">
           {photoData ? (
@@ -90,6 +110,13 @@ export default function BoothPage() {
           )}
         </div>
         <canvas ref={canvasRef} className="hidden"></canvas>
+        <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*"
+        />
 
         <div className="mt-6 flex justify-center gap-4">
           {photoData ? (
@@ -103,9 +130,14 @@ export default function BoothPage() {
               </Button>
             </>
           ) : (
-            <Button size="lg" onClick={takePhoto} disabled={!hasCameraPermission}>
-              <Camera className="mr-2" /> 사진 찍기
-            </Button>
+            <>
+                <Button size="lg" onClick={takePhoto} disabled={!hasCameraPermission}>
+                    <Camera className="mr-2" /> 사진 찍기
+                </Button>
+                <Button size="lg" variant="outline" onClick={handleUploadClick}>
+                    <Upload className="mr-2" /> 이미지 업로드
+                </Button>
+            </>
           )}
         </div>
       </div>
