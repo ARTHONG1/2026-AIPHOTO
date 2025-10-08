@@ -26,7 +26,7 @@ export function Header({ onApiKeyClick, onExportWithQrCodeClick, isExportDisable
         </h1>
       </div>
       <div className="flex-1 text-center font-code text-xs text-muted-foreground">
-        <Link href="https://github.com/mbleigh/magic-markup" target="_blank" className="underline hover:text-foreground">open source</Link> by <Link href="https://mbleigh.dev/" target="_blank" className="underline hover:text-foreground">Michael Bleigh</Link> with <Link href="https://genkit.dev" target="_blank" className="underline hover:text-foreground">Genkit</Link> and Gemini 2.5 Flash
+        
       </div>
       <div className="flex justify-end w-1/3 gap-2">
         <Button variant="default" size="sm" onClick={() => router.push('/')} className="bg-yellow-500 text-black hover:bg-yellow-600">
