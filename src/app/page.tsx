@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -20,7 +21,7 @@ export default function ScienceFourCutPage() {
   
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans overflow-hidden">
-      <div className="absolute top-8 right-8 flex flex-col gap-2">
+      <div className="absolute top-8 right-8 flex flex-col gap-2 z-10">
         <a href="https://www.yes24.com/product/goods/152079426" target="_blank" rel="noopener noreferrer">
           <Button 
             variant="outline"
@@ -39,7 +40,7 @@ export default function ScienceFourCutPage() {
         </a>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto p-8 md:p-12 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
+      <div className="relative z-10 w-full max-w-2xl mx-auto p-8 md:p-12 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
         <div className="flex items-center justify-center gap-6">
           <Image src="/힘찬이.png" alt="힘찬이" width={100} height={100} style={{objectFit: 'contain'}} />
           <div>
@@ -58,16 +59,16 @@ export default function ScienceFourCutPage() {
         </Button>
       </div>
 
-      <div className="absolute bottom-1 w-full flex flex-col items-center justify-center gap-2">
+      <div className="absolute bottom-1 w-full flex flex-col items-center justify-center gap-2 z-0">
         <Image src="/교육청.png" alt="교육청 로고" width={280} height={84} style={{objectFit: 'contain'}} />
       </div>
 
-      <p className="absolute bottom-2 left-4 text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
+      <p className="absolute bottom-2 left-4 text-sm text-muted-foreground z-0">개발자 인천봉수초 교사 홍찬우</p>
 
       <Button
         variant="link"
         onClick={() => setIsCopyrightOpen(true)}
-        className="absolute bottom-8 right-8 text-muted-foreground hover:text-white"
+        className="absolute bottom-8 right-8 text-muted-foreground hover:text-white z-10"
       >
         저작권 안내
       </Button>
