@@ -60,7 +60,7 @@ export default function ScienceFourCutPage() {
       </div>
 
       <div className="absolute bottom-4 w-full flex flex-col items-center justify-center gap-2">
-        <Image src="/교육청.png" alt="교육청 로고" width={350} height={84} style={{objectFit: 'contain'}} />
+        <Image src="/교육청.png" alt="교육청 로고" width={280} height={84} style={{objectFit: 'contain'}} />
         <p className="text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
       </div>
 
