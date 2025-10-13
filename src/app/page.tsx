@@ -19,7 +19,7 @@ export default function ScienceFourCutPage() {
   };
   
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans overflow-hidden">
       <div className="absolute top-8 right-8 flex flex-col gap-2">
         <a href="https://www.yes24.com/product/goods/152079426" target="_blank" rel="noopener noreferrer">
           <Button 
@@ -60,8 +60,9 @@ export default function ScienceFourCutPage() {
 
       <div className="absolute bottom-1 w-full flex flex-col items-center justify-center gap-2">
         <Image src="/교육청.png" alt="교육청 로고" width={280} height={84} style={{objectFit: 'contain'}} />
-        <p className="text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
       </div>
+
+      <p className="absolute bottom-2 left-4 text-sm text-muted-foreground">개발자 인천봉수초 교사 홍찬우</p>
 
       <Button
         variant="link"
