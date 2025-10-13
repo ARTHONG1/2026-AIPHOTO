@@ -62,6 +62,7 @@ export const BACKGROUNDS: { name: string; imageUrl: string }[] = [
     { name: '실험실', imageUrl: '/실험실.png' },
     { name: '고고학', imageUrl: '/고고학.png' },
     { name: '강', imageUrl: '/강.png' },
+    { name: '바다', imageUrl: '/바다.png' },
 ];
 
 
