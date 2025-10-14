@@ -24,6 +24,7 @@ export function MagicMarkupEditor() {
       <Header
         onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
         onExportWithQrCodeClick={hook.handleExportWithQrCode}
+        onDownloadClick={hook.handleDownload}
         isExportDisabled={!hook.baseImage}
       />
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[1fr_350px]">

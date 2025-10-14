@@ -1,7 +1,7 @@
 
 'use client';
 
-import { KeyRound, QrCode, Home } from 'lucide-react';
+import { KeyRound, QrCode, Home, Download } from 'lucide-react';
 import { IconButton } from './icon-button';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,10 +11,11 @@ import { useRouter } from 'next/navigation';
 interface HeaderProps {
   onApiKeyClick: () => void;
   onExportWithQrCodeClick: () => void;
+  onDownloadClick: () => void;
   isExportDisabled: boolean;
 }
 
-export function Header({ onApiKeyClick, onExportWithQrCodeClick, isExportDisabled }: HeaderProps) {
+export function Header({ onApiKeyClick, onExportWithQrCodeClick, onDownloadClick, isExportDisabled }: HeaderProps) {
   const router = useRouter();
 
   return (
@@ -29,6 +30,10 @@ export function Header({ onApiKeyClick, onExportWithQrCodeClick, isExportDisable
         
       </div>
       <div className="flex justify-end w-1/3 gap-2">
+        <Button variant="outline" size="sm" onClick={onDownloadClick} disabled={isExportDisabled}>
+            <Download className="mr-2"/>
+            다운로드
+        </Button>
         <Button variant="default" size="sm" onClick={() => router.push('/')} className="bg-yellow-500 text-black hover:bg-yellow-600">
             <Home className="mr-2"/>
             처음으로

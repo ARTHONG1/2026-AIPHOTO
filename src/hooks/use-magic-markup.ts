@@ -594,6 +594,16 @@ export function useMagicMarkup() {
       setIsQrCodeDialogOpen(false);
     }
   };
+
+  const handleDownload = () => {
+    if (!baseImage) return;
+    const link = document.createElement('a');
+    link.href = baseImage;
+    link.download = 'ai-photo.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   const handleRemoveElementImage = (index: number) => {
     const newImages = [...elementImages];
@@ -810,6 +820,7 @@ export function useMagicMarkup() {
     handleSaveAnnotation,
     handleGenerate,
     handleExportWithQrCode,
+    handleDownload,
     handleRemoveElementImage,
     handlePromptKeyDown,
     handleSaveApiKey,
