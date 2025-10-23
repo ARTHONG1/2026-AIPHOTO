@@ -22,7 +22,7 @@ export default function ScienceFourCutPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans overflow-hidden">
       <div className="absolute top-8 right-8 flex flex-col gap-2 z-10">
-        <a href="https://www.yes24.com/product/goods/152079426" target="_blank" rel="noopener noreferrer">
+        <a href="https://product.kyobobook.co.kr/detail/S000217378952" target="_blank" rel="noopener noreferrer">
           <Button 
             variant="outline"
             className="bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow w-full"
