@@ -71,6 +71,7 @@ const imageEditPrompt = ai.definePrompt({
   prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
 
 You will always return a data URL representing the final edited image.
+You MUST change the subject's facial expression to a beautiful, natural smile, while keeping the original facial features. Make it a gentle and relaxed smile that makes the viewer feel good. Please be extra careful not to make the expression look artificial or awkward.
 Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
 
 === Base Image for Editing
@@ -141,6 +142,7 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
+
 
 
 
