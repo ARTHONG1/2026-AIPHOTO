@@ -24,6 +24,7 @@ export interface AppState {
   isActionDialogOpen: boolean;
   isPromptDialogOpen: boolean;
   isBackgroundDialogOpen: boolean;
+  guidedFlowStep: 'background' | 'action' | 'prompt' | 'done' | null;
 }
 
 export const initialState: AppState = {
@@ -49,6 +50,7 @@ export const initialState: AppState = {
   isActionDialogOpen: false,
   isPromptDialogOpen: false,
   isBackgroundDialogOpen: false,
+  guidedFlowStep: null,
 };
 
 
@@ -80,6 +82,7 @@ export type ActionPayloads = {
     SET_IS_ACTION_DIALOG_OPEN: boolean;
     SET_IS_PROMPT_DIALOG_OPEN: boolean;
     SET_IS_BACKGROUND_DIALOG_OPEN: boolean;
+    SET_GUIDED_FLOW_STEP: 'background' | 'action' | 'prompt' | 'done' | null;
 };
 
 export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
@@ -107,6 +110,8 @@ export function reducer(state: AppState, action: Action): AppState {
             canvasObjects: [],
             customPrompt: '',
             selectedAction: null,
+            selectedBackground: null,
+            guidedFlowStep: null,
         };
     case 'SET_API_KEYS':
       return { ...state, apiKeys: action.payload };
@@ -188,6 +193,8 @@ export function reducer(state: AppState, action: Action): AppState {
         return { ...state, isPromptDialogOpen: action.payload };
     case 'SET_IS_BACKGROUND_DIALOG_OPEN':
         return { ...state, isBackgroundDialogOpen: action.payload };
+    case 'SET_GUIDED_FLOW_STEP':
+        return { ...state, guidedFlowStep: action.payload };
     default:
       return state;
   }

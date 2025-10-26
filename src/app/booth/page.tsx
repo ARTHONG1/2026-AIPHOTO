@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { PhotoFrame } from '@/components/photo-frame';
 
 export default function BoothPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function BoothPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
+  const aspectRatio = 2 / 3;
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -46,9 +48,39 @@ export default function BoothPage() {
     if (video && canvas) {
       const context = canvas.getContext('2d');
       if (context) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        
+        let sourceX, sourceY, sourceWidth, sourceHeight;
+
+        if (videoWidth / videoHeight > aspectRatio) {
+          // Video is wider than the target ratio, crop the sides
+          sourceHeight = videoHeight;
+          sourceWidth = sourceHeight * aspectRatio;
+          sourceX = (videoWidth - sourceWidth) / 2;
+          sourceY = 0;
+        } else {
+          // Video is taller than the target ratio, crop the top and bottom
+          sourceWidth = videoWidth;
+          sourceHeight = sourceWidth / aspectRatio;
+          sourceX = 0;
+          sourceY = (videoHeight - sourceHeight) / 2;
+        }
+
+        canvas.width = sourceWidth;
+        canvas.height = sourceHeight;
+        
+        context.drawImage(
+            video,
+            sourceX,
+            sourceY,
+            sourceWidth,
+            sourceHeight,
+            0,
+            0,
+            sourceWidth,
+            sourceHeight
+        );
         const data = canvas.toDataURL('image/png');
         setPhotoData(data);
       }
@@ -67,7 +99,7 @@ export default function BoothPage() {
         const imageDataUrl = event.target?.result as string;
         if (imageDataUrl) {
             startNewSession(imageDataUrl);
-            router.push('/editor');
+            router.push('/editor?isGuided=true');
         }
       };
       reader.readAsDataURL(file);
@@ -82,7 +114,7 @@ export default function BoothPage() {
     if (!photoData) return;
     
     startNewSession(photoData);
-    router.push('/editor');
+    router.push('/editor?isGuided=true');
   };
 
   return (
@@ -91,14 +123,14 @@ export default function BoothPage() {
         <h1 className="text-3xl font-bold mb-2">포토부스</h1>
         <p className="text-muted-foreground mb-6">카메라를 보고 멋진 포즈를 취하거나 이미지를 업로드해주세요!</p>
 
-        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border-4 border-primary/20 bg-muted shadow-lg">
+        <PhotoFrame>
           {photoData ? (
-            <img src={photoData} alt="User capture" className="h-full w-full object-cover" />
+            <img src={photoData} alt="User capture" className="w-full h-full object-cover" />
           ) : (
             <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
           )}
 
-          {!hasCameraPermission && (
+          {!hasCameraPermission && !photoData && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
               <Alert variant="destructive">
                 <AlertTitle>카메라 접근 필요</AlertTitle>
@@ -108,7 +140,8 @@ export default function BoothPage() {
               </Alert>
             </div>
           )}
-        </div>
+        </PhotoFrame>
+
         <canvas ref={canvasRef} className="hidden"></canvas>
         <input 
             type="file" 

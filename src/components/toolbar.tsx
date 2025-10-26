@@ -41,6 +41,7 @@ import { IconButton } from './icon-button';
 import { BrushSize, Tool } from '@/lib/types';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { cn } from '@/lib/utils';
+import { useRef, useEffect } from 'react';
 
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
@@ -99,10 +100,25 @@ export function Toolbar({
   isBackgroundDialogOpen,
   setIsBackgroundDialogOpen,
   EDITOR_COLORS,
+  guidedFlowStep,
 }: ToolbarProps) {
   const selectedPromptImage = PREDEFINED_PROMPTS.find(p => p.name === customPrompt)?.imageUrl;
   const selectedActionImage = ACTIONS.find(a => a.name === selectedAction)?.imageUrl;
   const selectedBackgroundImage = BACKGROUNDS.find(b => b.name === selectedBackground)?.imageUrl;
+
+  const backgroundTriggerRef = useRef<HTMLButtonElement>(null);
+  const actionTriggerRef = useRef<HTMLButtonElement>(null);
+  const promptTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (guidedFlowStep === 'background' && backgroundTriggerRef.current) {
+      backgroundTriggerRef.current.click();
+    } else if (guidedFlowStep === 'action' && actionTriggerRef.current) {
+      actionTriggerRef.current.click();
+    } else if (guidedFlowStep === 'prompt' && promptTriggerRef.current) {
+      promptTriggerRef.current.click();
+    }
+  }, [guidedFlowStep]);
   
   return (
     <aside className="flex flex-col gap-4 border-l bg-card p-4">
@@ -184,7 +200,7 @@ export function Toolbar({
           )}
            <Dialog open={isBackgroundDialogOpen} onOpenChange={setIsBackgroundDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">배경 선택</Button>
+              <Button variant="outline" ref={backgroundTriggerRef}>배경 선택</Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
               <DialogHeader>
@@ -233,7 +249,7 @@ export function Toolbar({
           )}
            <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">동작 선택</Button>
+              <Button variant="outline" ref={actionTriggerRef}>동작 선택</Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
               <DialogHeader>
@@ -289,7 +305,7 @@ export function Toolbar({
 
           <Dialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">프롬프트 선택</Button>
+              <Button variant="outline" ref={promptTriggerRef}>프롬프트 선택</Button>
             </DialogTrigger>
             <DialogContent className="max-w-7xl">
               <DialogHeader>

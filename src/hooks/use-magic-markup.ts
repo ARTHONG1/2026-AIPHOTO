@@ -9,6 +9,7 @@ import { resizeImage } from '@/lib/canvas-utils';
 import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
 import { BACKGROUNDS, ACTIONS, PREDEFINED_PROMPTS } from '@/components/toolbar';
+import { useSearchParams } from 'next/navigation';
 
 
 const EDITOR_COLORS = ['#D35898', '#3B82F6', '#22C55E', '#EAB308'] as const;
@@ -50,6 +51,7 @@ export function useMagicMarkup() {
     isActionDialogOpen,
     isPromptDialogOpen,
     isBackgroundDialogOpen,
+    guidedFlowStep,
   } = state;
 
 
@@ -90,6 +92,7 @@ export function useMagicMarkup() {
   const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
   const setIsBackgroundDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_BACKGROUND_DIALOG_OPEN', isOpen);
+  const setGuidedFlowStep = (step: 'background' | 'action' | 'prompt' | 'done') => dispatchAction('SET_GUIDED_FLOW_STEP', step);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -682,6 +685,8 @@ export function useMagicMarkup() {
     toast({ title: "API Key deleted!"});
   }
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     dispatchAction('SET_IS_MOUNTED', true);
     try {
@@ -704,13 +709,18 @@ export function useMagicMarkup() {
       if (savedSession) {
         const sessionData = JSON.parse(savedSession);
         dispatchAction('LOAD_STATE_FROM_HISTORY', sessionData);
+
+        const isGuided = searchParams.get('isGuided') === 'true';
+        if (isGuided && sessionData.baseImage) {
+          setGuidedFlowStep('background');
+        }
       }
     } catch (e) {
       console.error("Failed to load session from local storage", e);
       localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isMounted || !baseImage) return;
@@ -761,6 +771,24 @@ export function useMagicMarkup() {
     redrawCanvas();
   }, [canvasObjects, redrawCanvas]);
 
+  useEffect(() => {
+    if (guidedFlowStep === 'background' && selectedBackground) {
+        setGuidedFlowStep('action');
+    }
+  }, [selectedBackground, guidedFlowStep]);
+
+  useEffect(() => {
+    if (guidedFlowStep === 'action' && selectedAction) {
+        setGuidedFlowStep('prompt');
+    }
+  }, [selectedAction, guidedFlowStep]);
+
+    useEffect(() => {
+    if (guidedFlowStep === 'prompt' && customPrompt) {
+        setGuidedFlowStep('done');
+    }
+  }, [customPrompt, guidedFlowStep]);
+
   return {
     // State
     isMounted,
@@ -785,6 +813,7 @@ export function useMagicMarkup() {
     isActionDialogOpen,
     isPromptDialogOpen,
     isBackgroundDialogOpen,
+    guidedFlowStep,
 
     // Refs
     canvasRef,
@@ -807,6 +836,7 @@ export function useMagicMarkup() {
     setIsActionDialogOpen,
     setIsPromptDialogOpen,
     setIsBackgroundDialogOpen,
+    setGuidedFlowStep,
 
     // Functions
     startNewSession,
