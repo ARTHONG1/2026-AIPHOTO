@@ -92,7 +92,7 @@ export function useMagicMarkup() {
   const setIsActionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_ACTION_DIALOG_OPEN', isOpen);
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
   const setIsBackgroundDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_BACKGROUND_DIALOG_OPEN', isOpen);
-  const setGuidedFlowStep = (step: 'background' | 'action' | 'prompt' | 'done') => dispatchAction('SET_GUIDED_FLOW_STEP', step);
+  const setGuidedFlowStep = (step: 'background' | 'action' | 'prompt' | 'done' | null) => dispatchAction('SET_GUIDED_FLOW_STEP', step);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -403,7 +403,7 @@ export function useMagicMarkup() {
     };
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!apiKeys || apiKeys.length === 0) {
       setIsApiKeyDialogOpen(true);
       return;
@@ -572,7 +572,7 @@ export function useMagicMarkup() {
     } finally {
       dispatchAction('SET_IS_LOADING', false);
     }
-  };
+  }, [apiKeys, baseImage, canvasObjects, elementImageUrls, customPrompt, selectedAction, selectedBackground, elementNames, startNewSession, toast]);
   
   const handleExportWithQrCode = async () => {
     if (!baseImage) return;
@@ -788,6 +788,13 @@ export function useMagicMarkup() {
         setGuidedFlowStep('done');
     }
   }, [customPrompt, guidedFlowStep]);
+
+  useEffect(() => {
+    if (guidedFlowStep === 'done') {
+      handleGenerate();
+      setGuidedFlowStep(null); // Reset the flow
+    }
+  }, [guidedFlowStep, handleGenerate]);
 
   return {
     // State
