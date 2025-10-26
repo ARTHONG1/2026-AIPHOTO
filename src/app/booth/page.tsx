@@ -140,9 +140,6 @@ export default function BoothPage() {
                 </Alert>
                 </div>
             )}
-             <div className="absolute bottom-4 right-4 text-right">
-                <p className="font-bold text-white text-xs font-mono">제27회 과학대제전</p>
-            </div>
         </div>
 
         <canvas ref={canvasRef} className="hidden"></canvas>
