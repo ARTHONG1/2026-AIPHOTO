@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, ChangeEvent, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Camera, Check, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-export default function BoothPage() {
+function BoothPageClient() {
   const router = useRouter();
   const { toast } = useToast();
   const { startNewSession } = useMagicMarkup();
@@ -176,4 +176,12 @@ export default function BoothPage() {
       </div>
     </main>
   );
+}
+
+export default function BoothPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <BoothPageClient />
+        </Suspense>
+    )
 }
