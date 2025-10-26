@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
@@ -8,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { PhotoFrame } from '@/components/photo-frame';
 
 export default function BoothPage() {
   const router = useRouter();
@@ -123,24 +121,29 @@ export default function BoothPage() {
         <h1 className="text-3xl font-bold mb-2">포토부스</h1>
         <p className="text-muted-foreground mb-6">카메라를 보고 멋진 포즈를 취하거나 이미지를 업로드해주세요!</p>
 
-        <PhotoFrame>
-          {photoData ? (
-            <img src={photoData} alt="User capture" className="w-full h-full object-cover" />
-          ) : (
-            <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
-          )}
-
-          {!hasCameraPermission && !photoData && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
-              <Alert variant="destructive">
-                <AlertTitle>카메라 접근 필요</AlertTitle>
-                <AlertDescription>
-                  이 기능을 사용하려면 브라우저 설정에서 카메라 접근을 허용해주세요.
-                </AlertDescription>
-              </Alert>
+        <div className="relative mx-auto w-full max-w-sm aspect-[2/3] overflow-hidden rounded-lg shadow-lg" style={{ backgroundColor: '#000000' }}>
+            <div className="absolute inset-0 p-4 pb-12 flex items-center justify-center">
+                {photoData ? (
+                <img src={photoData} alt="User capture" className="w-full h-full object-contain" />
+                ) : (
+                <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
+                )}
             </div>
-          )}
-        </PhotoFrame>
+
+            {!hasCameraPermission && !photoData && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
+                <Alert variant="destructive">
+                    <AlertTitle>카메라 접근 필요</AlertTitle>
+                    <AlertDescription>
+                    이 기능을 사용하려면 브라우저 설정에서 카메라 접근을 허용해주세요.
+                    </AlertDescription>
+                </Alert>
+                </div>
+            )}
+             <div className="absolute bottom-4 right-4 text-right">
+                <p className="font-bold text-white text-xs font-mono">제27회 과학대제전</p>
+            </div>
+        </div>
 
         <canvas ref={canvasRef} className="hidden"></canvas>
         <input 
