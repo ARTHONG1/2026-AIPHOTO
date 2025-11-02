@@ -619,7 +619,7 @@ export function useMagicMarkup() {
 
   const handleRestart = () => {
     setIsCompletionDialogOpen(false);
-    router.push('/booth?autoStart=true');
+    router.push('/');
   };
   
   const handleRemoveElementImage = (index: number) => {
