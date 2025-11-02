@@ -9,7 +9,7 @@ import { resizeImage } from '@/lib/canvas-utils';
 import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
 import { BACKGROUNDS, ACTIONS, PREDEFINED_PROMPTS } from '@/components/toolbar';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 
 const EDITOR_COLORS = ['#D35898', '#3B82F6', '#22C55E', '#EAB308'] as const;
@@ -27,6 +27,7 @@ const ANNOTATION_FONT_SIZE_MEDIUM = BRUSH_SIZES['medium'] * 4;
 export function useMagicMarkup() {
   const { toast } = useToast();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const router = useRouter();
 
   const {
     isMounted,
@@ -52,6 +53,8 @@ export function useMagicMarkup() {
     isPromptDialogOpen,
     isBackgroundDialogOpen,
     guidedFlowStep,
+    isCompletionDialogOpen,
+    generatedImageUrl,
   } = state;
 
 
@@ -93,6 +96,8 @@ export function useMagicMarkup() {
   const setIsPromptDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_PROMPT_DIALOG_OPEN', isOpen);
   const setIsBackgroundDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_BACKGROUND_DIALOG_OPEN', isOpen);
   const setGuidedFlowStep = (step: 'background' | 'action' | 'prompt' | 'done' | null) => dispatchAction('SET_GUIDED_FLOW_STEP', step);
+  const setIsCompletionDialogOpen = (isOpen: boolean) => dispatchAction('SET_IS_COMPLETION_DIALOG_OPEN', isOpen);
+  const setGeneratedImageUrl = (url: string | null) => dispatchAction('SET_GENERATED_IMAGE_URL', url);
   
   const setApiKeys = (keys: string[]) => {
     dispatchAction('SET_API_KEYS', keys);
@@ -403,6 +408,17 @@ export function useMagicMarkup() {
     };
   };
 
+  const handleDownload = (imageUrl?: string) => {
+    const url = imageUrl || baseImage;
+    if (!url) return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ai-photo.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   const handleGenerate = useCallback(async () => {
     if (!apiKeys || apiKeys.length === 0) {
       setIsApiKeyDialogOpen(true);
@@ -545,7 +561,11 @@ export function useMagicMarkup() {
                 newApiKeys.unshift(successfulKey);
                 setApiKeys(newApiKeys);
                 
+                handleDownload(resizedUrl);
+                setGeneratedImageUrl(resizedUrl);
+                setIsCompletionDialogOpen(true);
                 startNewSession(resizedUrl);
+                
                 success = true;
                 break;
             }
@@ -598,14 +618,9 @@ export function useMagicMarkup() {
     }
   };
 
-  const handleDownload = () => {
-    if (!baseImage) return;
-    const link = document.createElement('a');
-    link.href = baseImage;
-    link.download = 'ai-photo.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleRestart = () => {
+    setIsCompletionDialogOpen(false);
+    router.push('/booth?autoStart=true');
   };
   
   const handleRemoveElementImage = (index: number) => {
@@ -794,7 +809,8 @@ export function useMagicMarkup() {
       handleGenerate();
       setGuidedFlowStep(null); // Reset the flow
     }
-  }, [guidedFlowStep, handleGenerate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guidedFlowStep]);
 
   return {
     // State
@@ -821,6 +837,8 @@ export function useMagicMarkup() {
     isPromptDialogOpen,
     isBackgroundDialogOpen,
     guidedFlowStep,
+    isCompletionDialogOpen,
+    generatedImageUrl,
 
     // Refs
     canvasRef,
@@ -844,6 +862,7 @@ export function useMagicMarkup() {
     setIsPromptDialogOpen,
     setIsBackgroundDialogOpen,
     setGuidedFlowStep,
+    setIsCompletionDialogOpen,
 
     // Functions
     startNewSession,
@@ -862,6 +881,7 @@ export function useMagicMarkup() {
     handlePromptKeyDown,
     handleSaveApiKey,
     handleDeleteApiKey,
+    handleRestart,
 
     // Constants
     EDITOR_COLORS,

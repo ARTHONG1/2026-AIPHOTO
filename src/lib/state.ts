@@ -25,6 +25,8 @@ export interface AppState {
   isPromptDialogOpen: boolean;
   isBackgroundDialogOpen: boolean;
   guidedFlowStep: 'background' | 'action' | 'prompt' | 'done' | null;
+  isCompletionDialogOpen: boolean;
+  generatedImageUrl: string | null;
 }
 
 export const initialState: AppState = {
@@ -51,6 +53,8 @@ export const initialState: AppState = {
   isPromptDialogOpen: false,
   isBackgroundDialogOpen: false,
   guidedFlowStep: null,
+  isCompletionDialogOpen: false,
+  generatedImageUrl: null,
 };
 
 
@@ -83,6 +87,8 @@ export type ActionPayloads = {
     SET_IS_PROMPT_DIALOG_OPEN: boolean;
     SET_IS_BACKGROUND_DIALOG_OPEN: boolean;
     SET_GUIDED_FLOW_STEP: 'background' | 'action' | 'prompt' | 'done' | null;
+    SET_IS_COMPLETION_DIALOG_OPEN: boolean;
+    SET_GENERATED_IMAGE_URL: string | null;
 };
 
 export type Action = { [K in keyof ActionPayloads]: { type: K; payload: ActionPayloads[K] } }[keyof ActionPayloads];
@@ -195,6 +201,10 @@ export function reducer(state: AppState, action: Action): AppState {
         return { ...state, isBackgroundDialogOpen: action.payload };
     case 'SET_GUIDED_FLOW_STEP':
         return { ...state, guidedFlowStep: action.payload };
+    case 'SET_IS_COMPLETION_DIALOG_OPEN':
+      return { ...state, isCompletionDialogOpen: action.payload };
+    case 'SET_GENERATED_IMAGE_URL':
+      return { ...state, generatedImageUrl: action.payload };
     default:
       return state;
   }

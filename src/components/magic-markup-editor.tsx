@@ -1,6 +1,8 @@
 
+
 'use client';
 
+import { Suspense } from 'react';
 import { Camera } from 'lucide-react';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { Button } from '@/components/ui/button';
@@ -9,9 +11,11 @@ import { EditorCanvas } from './editor-canvas';
 import { Toolbar } from './toolbar';
 import { ApiKeyDialog } from './api-key-dialog';
 import { QrCodeDialog } from './qr-code-dialog';
+import { LoadingDialog } from './loading-dialog';
+import { CompletionDialog } from './completion-dialog';
 import { useRouter } from 'next/navigation';
 
-export function MagicMarkupEditor() {
+function MagicMarkupEditorClient() {
   const hook = useMagicMarkup();
   const router = useRouter();
 
@@ -24,7 +28,7 @@ export function MagicMarkupEditor() {
       <Header
         onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
         onExportWithQrCodeClick={hook.handleExportWithQrCode}
-        onDownloadClick={hook.handleDownload}
+        onDownloadClick={() => hook.handleDownload()}
         isExportDisabled={!hook.baseImage}
       />
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[1fr_350px]">
@@ -70,7 +74,24 @@ export function MagicMarkupEditor() {
           onOpenChange={hook.setIsQrCodeDialogOpen}
           dataUrl={hook.qrCodeDataUrl}
         />
+        
+        <LoadingDialog isOpen={hook.isLoading} />
+
+        <CompletionDialog
+          isOpen={hook.isCompletionDialogOpen}
+          onOpenChange={hook.setIsCompletionDialogOpen}
+          imageUrl={hook.generatedImageUrl}
+          onRestart={hook.handleRestart}
+        />
       </div>
     </div>
   );
+}
+
+export function MagicMarkupEditor() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MagicMarkupEditorClient />
+    </Suspense>
+  )
 }
