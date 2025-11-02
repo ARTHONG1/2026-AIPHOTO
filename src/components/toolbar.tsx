@@ -42,6 +42,7 @@ import { BrushSize, Tool } from '@/lib/types';
 import { useMagicMarkup } from '@/hooks/use-magic-markup';
 import { cn } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
+import { ScrollArea } from './ui/scroll-area';
 
 type ToolbarProps = ReturnType<typeof useMagicMarkup>;
 
@@ -206,20 +207,22 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>배경 선택</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-                {BACKGROUNDS.map((background) => (
-                    <DialogClose asChild key={background.name}>
-                        <button
-                          onClick={() => setSelectedBackground(background.name)}
-                          className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
-                            selectedBackground === background.name ? "border-primary" : "border-transparent"
-                          )}
-                        >
-                            <img src={background.imageUrl} alt={background.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                        </button>
-                    </DialogClose>
-                ))}
-              </div>
+              <ScrollArea className="h-[70vh]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4 pr-4">
+                  {BACKGROUNDS.map((background) => (
+                      <DialogClose asChild key={background.name}>
+                          <button
+                            onClick={() => setSelectedBackground(background.name)}
+                            className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
+                              selectedBackground === background.name ? "border-primary" : "border-transparent"
+                            )}
+                          >
+                              <img src={background.imageUrl} alt={background.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                          </button>
+                      </DialogClose>
+                  ))}
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </CardContent>
@@ -255,26 +258,28 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>동작 선택</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-                {ACTIONS.map((action) => (
-                    <DialogClose asChild key={action.name}>
-                        <button
-                          onClick={() => setSelectedAction(action.name)}
-                          className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
-                            selectedAction === action.name ? "border-primary" : "border-transparent"
-                          )}
-                        >
-                            {action.imageUrl ? (
-                                <img src={action.imageUrl} alt={action.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                            ) : (
-                                <div className="flex items-center justify-center w-full h-full bg-muted">
-                                    <span className="text-lg font-semibold">{action.name}</span>
-                                </div>
+              <ScrollArea className="h-[70vh]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4 pr-4">
+                  {ACTIONS.map((action) => (
+                      <DialogClose asChild key={action.name}>
+                          <button
+                            onClick={() => setSelectedAction(action.name)}
+                            className={cn("relative group aspect-square w-full overflow-hidden rounded-lg border-2",
+                              selectedAction === action.name ? "border-primary" : "border-transparent"
                             )}
-                        </button>
-                    </DialogClose>
-                ))}
-              </div>
+                          >
+                              {action.imageUrl ? (
+                                  <img src={action.imageUrl} alt={action.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                              ) : (
+                                  <div className="flex items-center justify-center w-full h-full bg-muted">
+                                      <span className="text-lg font-semibold">{action.name}</span>
+                                  </div>
+                              )}
+                          </button>
+                      </DialogClose>
+                  ))}
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </CardContent>
@@ -311,20 +316,22 @@ export function Toolbar({
               <DialogHeader>
                 <DialogTitle>프롬프트 선택</DialogTitle>
               </DialogHeader>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-                {PREDEFINED_PROMPTS.map(prompt => (
-                    <DialogClose asChild key={prompt.name}>
-                        <button
-                            onClick={() => setCustomPrompt(prompt.name)}
-                            className={cn("relative group aspect-video w-full overflow-hidden rounded-lg border-2",
-                            customPrompt === prompt.name ? "border-primary" : "border-transparent"
-                            )}
-                        >
-                            <Image src={prompt.imageUrl} alt={prompt.name} layout="fill" className="object-contain transition-transform group-hover:scale-105" />
-                        </button>
-                    </DialogClose>
-                ))}
-              </div>
+              <ScrollArea className="h-[70vh]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4 pr-4">
+                  {PREDEFINED_PROMPTS.map(prompt => (
+                      <DialogClose asChild key={prompt.name}>
+                          <button
+                              onClick={() => setCustomPrompt(prompt.name)}
+                              className={cn("relative group aspect-video w-full overflow-hidden rounded-lg border-2",
+                              customPrompt === prompt.name ? "border-primary" : "border-transparent"
+                              )}
+                          >
+                              <Image src={prompt.imageUrl} alt={prompt.name} layout="fill" className="object-contain transition-transform group-hover:scale-105" />
+                          </button>
+                      </DialogClose>
+                  ))}
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </CardContent>
