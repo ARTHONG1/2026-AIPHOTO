@@ -82,6 +82,7 @@ function MagicMarkupEditorClient() {
           onOpenChange={hook.setIsCompletionDialogOpen}
           imageUrl={hook.generatedImageUrl}
           onRestart={hook.handleRestart}
+          onDownload={hook.handleDownload}
         />
       </div>
     </div>

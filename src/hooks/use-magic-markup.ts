@@ -408,8 +408,8 @@ export function useMagicMarkup() {
     };
   };
 
-  const handleDownload = (imageUrl?: string) => {
-    const url = imageUrl || baseImage;
+  const handleDownload = useCallback(() => {
+    const url = generatedImageUrl || baseImage;
     if (!url) return;
     const link = document.createElement('a');
     link.href = url;
@@ -417,7 +417,7 @@ export function useMagicMarkup() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [baseImage, generatedImageUrl]);
   
   const handleGenerate = useCallback(async () => {
     if (!apiKeys || apiKeys.length === 0) {
@@ -561,7 +561,6 @@ export function useMagicMarkup() {
                 newApiKeys.unshift(successfulKey);
                 setApiKeys(newApiKeys);
                 
-                handleDownload(resizedUrl);
                 setGeneratedImageUrl(resizedUrl);
                 setIsCompletionDialogOpen(true);
                 startNewSession(resizedUrl);
@@ -811,6 +810,13 @@ export function useMagicMarkup() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guidedFlowStep]);
+  
+  useEffect(() => {
+    if (isCompletionDialogOpen && generatedImageUrl) {
+        handleDownload();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCompletionDialogOpen, generatedImageUrl]);
 
   return {
     // State
