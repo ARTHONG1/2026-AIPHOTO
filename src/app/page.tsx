@@ -16,7 +16,7 @@ export default function ScienceFourCutPage() {
   const handleStart = () => {
     // Clear the previous session from local storage
     localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
-    router.push('/booth');
+    router.push('/booth?autoStart=true');
   };
   
   return (

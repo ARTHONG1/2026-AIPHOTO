@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, ChangeEvent, Suspense } from 'react';
@@ -10,6 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 function BoothPageClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { startNewSession } = useMagicMarkup();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -17,28 +19,8 @@ function BoothPageClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const aspectRatio = 2 / 3;
-
-  useEffect(() => {
-    const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this feature.',
-        });
-      }
-    };
-    getCameraPermission();
-  }, [toast]);
 
   const takePhoto = () => {
     const video = videoRef.current;
@@ -52,13 +34,11 @@ function BoothPageClient() {
         let sourceX, sourceY, sourceWidth, sourceHeight;
 
         if (videoWidth / videoHeight > aspectRatio) {
-          // Video is wider than the target ratio, crop the sides
           sourceHeight = videoHeight;
           sourceWidth = sourceHeight * aspectRatio;
           sourceX = (videoWidth - sourceWidth) / 2;
           sourceY = 0;
         } else {
-          // Video is taller than the target ratio, crop the top and bottom
           sourceWidth = videoWidth;
           sourceHeight = sourceWidth / aspectRatio;
           sourceX = 0;
@@ -81,9 +61,69 @@ function BoothPageClient() {
         );
         const data = canvas.toDataURL('image/png');
         setPhotoData(data);
+        setCountdown(null);
       }
     }
   };
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this feature.',
+        });
+      }
+    };
+    getCameraPermission();
+  }, [toast]);
+  
+  useEffect(() => {
+    const autoStart = searchParams.get('autoStart') === 'true';
+    if (autoStart && hasCameraPermission && !photoData) {
+      setCountdown(10);
+    }
+  }, [searchParams, hasCameraPermission, photoData]);
+
+  useEffect(() => {
+    if (countdown === null || countdown < 0) return;
+
+    if (countdown === 0) {
+      takePhoto();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown]);
+  
+  const confirmPhoto = async () => {
+    if (!photoData) return;
+    startNewSession(photoData);
+    router.push('/editor?isGuided=true');
+  };
+
+  useEffect(() => {
+    if (photoData && searchParams.get('autoStart') === 'true') {
+      const timer = setTimeout(() => {
+        confirmPhoto();
+      }, 1000); // Give user a moment to see the photo
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoData, searchParams]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -106,13 +146,10 @@ function BoothPageClient() {
 
   const resetPhoto = () => {
     setPhotoData(null);
-  };
-
-  const confirmPhoto = async () => {
-    if (!photoData) return;
-    
-    startNewSession(photoData);
-    router.push('/editor?isGuided=true');
+     const autoStart = searchParams.get('autoStart') === 'true';
+    if (autoStart && hasCameraPermission) {
+      setCountdown(10);
+    }
   };
 
   return (
@@ -129,6 +166,17 @@ function BoothPageClient() {
                 <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
                 )}
             </div>
+            
+            {countdown !== null && countdown > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <span className="text-9xl font-bold text-white drop-shadow-lg">{countdown}</span>
+              </div>
+            )}
+             {countdown === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/30">
+                <span className="text-9xl font-bold text-white drop-shadow-lg animate-ping">찰칵!</span>
+              </div>
+            )}
 
             {!hasCameraPermission && !photoData && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
@@ -164,10 +212,10 @@ function BoothPageClient() {
             </>
           ) : (
             <>
-                <Button size="lg" onClick={takePhoto} disabled={!hasCameraPermission}>
+                <Button size="lg" onClick={takePhoto} disabled={!hasCameraPermission || countdown !== null}>
                     <Camera className="mr-2" /> 사진 찍기
                 </Button>
-                <Button size="lg" variant="outline" onClick={handleUploadClick}>
+                <Button size="lg" variant="outline" onClick={handleUploadClick} disabled={countdown !== null}>
                     <Upload className="mr-2" /> 이미지 업로드
                 </Button>
             </>
