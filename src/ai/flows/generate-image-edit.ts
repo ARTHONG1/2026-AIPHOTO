@@ -16,7 +16,7 @@ import {z} from 'genkit';
 
 const ai = genkit({
   plugins: [googleAI({apiKey: false})],
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-3-pro-image-preview',
 });
 
 const ImagePayloadSchema = z.object({
@@ -65,17 +65,22 @@ export async function generateImageEdit(apiKey: string, input: GenerateImageEdit
 // Define the prompt
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: 'googleai/gemini-2.5-flash-image-preview',
+  model: 'googleai/gemini-3-pro-image-preview',
   config: {responseModalities: ['TEXT', 'IMAGE']},
   input: {schema: GenerateImageEditInputSchema},
-  prompt: `You are an expert AI image editor. Your primary task is to seamlessly blend a subject from an original photo into a new context, following various instructions.
+  prompt: `You are an expert AI image editor. Your number one, most important, and absolute-priority goal is to preserve the facial identity of the person in the 'Base Image for Editing'. Do not change the shape of the face, the eyes, the nose, the mouth, or any other defining facial features. The only permitted change to the face is a subtle enhancement to a beautiful, natural smile.
 
 You will always return a data URL representing the final edited image.
+You will generate a 4k high-resolution image. The final image should look like it was taken in a professional photo studio with high-quality lighting and a sharp focus.
 You MUST change the subject's facial expression to a beautiful, natural smile, while keeping the original facial features. Make it a gentle and relaxed smile that makes the viewer feel good. Please be extra careful not to make the expression look artificial or awkward.
-Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
+
+Your workflow is:
+1.  **Preserve Face**: Identify the face in the 'Base Image for Editing'. This is the reference you MUST keep.
+2.  **Apply Edits**: Apply all other instructions (background, action, custom prompts) to the image.
+3.  **Final Check**: Ensure the face in the final image is identical to the face in the 'Base Image for Editing', with only the smile enhanced.
 
 === Base Image for Editing
-This is the primary image to be edited.
+This is the primary image to be edited. The face in this image MUST be preserved.
 {{media url=baseImage}}
 
 === Custom Prompt
@@ -119,6 +124,7 @@ The user has provided additional "element" images.
 
 === Final Instruction
 Combine all of the above instructions into a single, cohesive, final image.
+Your number one, most important, and absolute-priority goal is to preserve the facial identity of the person in the 'Base Image for Editing'.
 Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
 `,
 });
@@ -133,7 +139,7 @@ const generateImageEditFlow = ai.defineFlow(
   async (input, {context}) => {
     if (!context?.apiKey) throw new Error("Must supply an API key.");
 
-    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0) && !input.actionPrompt && !input.backgroundPrompt) {
+    if (!input.annotatedImage && !input.customPrompt && (!input.elementImages || input.elementImages.length === 0) && !input.actionPrompt && !input.backgroundPrompt && !input.backgroundImageUrl) {
       throw new Error('Please provide an annotated image, a custom prompt, a background prompt, an action prompt, or at least one element image.');
     }
     
@@ -142,9 +148,3 @@ const generateImageEditFlow = ai.defineFlow(
     return {editedImage: media?.url || ''};
   }
 );
-
-
-
-
-
-

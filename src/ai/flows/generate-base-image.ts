@@ -15,7 +15,7 @@ import {z} from 'genkit';
 
 const ai = genkit({
   plugins: [googleAI({apiKey: false})],
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-3-pro-image-preview',
 });
 
 
@@ -47,7 +47,7 @@ const generateBaseImageFlow = ai.defineFlow(
     if (!context?.apiKey) throw new Error("Must supply an API key.");
 
     const { media } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-image-preview',
+        model: 'googleai/gemini-3-pro-image-preview',
         config: {responseModalities: ['TEXT', 'IMAGE'], apiKey: context.apiKey},
         prompt: input.prompt,
     });
