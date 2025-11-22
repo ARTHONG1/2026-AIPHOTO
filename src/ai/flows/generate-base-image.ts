@@ -15,7 +15,6 @@ import {z} from 'genkit';
 
 const ai = genkit({
   plugins: [googleAI({apiKey: false})],
-  model: 'googleai/gemini-3-pro-image-preview',
 });
 
 
@@ -49,7 +48,9 @@ const generateBaseImageFlow = ai.defineFlow(
     const { media } = await ai.generate({
         model: 'googleai/gemini-3-pro-image-preview',
         config: {responseModalities: ['TEXT', 'IMAGE'], apiKey: context.apiKey},
-        prompt: input.prompt,
+        prompt: `You are an AI image generation expert. Your task is to generate a hyper-realistic, 4K ultra high-resolution image that is indistinguishable from a professional photograph taken in a high-end studio with perfect lighting and a tack-sharp focus, based on the following user prompt:
+
+        '${input.prompt}'`,
     });
 
     if (!media?.url) {

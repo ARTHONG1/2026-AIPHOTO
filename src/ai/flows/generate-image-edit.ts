@@ -16,7 +16,6 @@ import {z} from 'genkit';
 
 const ai = genkit({
   plugins: [googleAI({apiKey: false})],
-  model: 'googleai/gemini-3-pro-image-preview',
 });
 
 const ImagePayloadSchema = z.object({
@@ -71,7 +70,7 @@ const imageEditPrompt = ai.definePrompt({
   prompt: `You are an expert AI image editor. Your number one, most important, and absolute-priority goal is to preserve the facial identity of the person in the 'Base Image for Editing'. Do not change the shape of the face, the eyes, the nose, the mouth, or any other defining facial features. The only permitted change to the face is a subtle enhancement to a beautiful, natural smile.
 
 You will always return a data URL representing the final edited image.
-You will generate a 4k high-resolution image. The final image should look like it was taken in a professional photo studio with high-quality lighting and a sharp focus.
+You will generate a hyper-realistic, 4K ultra high-resolution image. The final image must be indistinguishable from a professional photograph taken in a high-end studio with perfect lighting and a tack-sharp focus.
 You MUST change the subject's facial expression to a beautiful, natural smile, while keeping the original facial features. Make it a gentle and relaxed smile that makes the viewer feel good. Please be extra careful not to make the expression look artificial or awkward.
 
 Your workflow is:
@@ -126,6 +125,7 @@ The user has provided additional "element" images.
 Combine all of the above instructions into a single, cohesive, final image.
 Your number one, most important, and absolute-priority goal is to preserve the facial identity of the person in the 'Base Image for Editing'.
 Your final output MUST contain the subject from the 'Base Image for Editing', modified and placed according to the instructions.
+The final image must be a hyper-realistic, 4K ultra high-resolution image, indistinguishable from a professional photograph.
 `,
 });
 
