@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -21,11 +20,11 @@ export default function ScienceFourCutPage() {
   
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans overflow-hidden">
-      <div className="absolute top-8 right-8 flex flex-col gap-2 z-10">
+      <header className="absolute top-0 left-0 right-0 flex justify-end items-center p-6 z-10 gap-4">
         <a href="https://product.kyobobook.co.kr/detail/S000217378952" target="_blank" rel="noopener noreferrer">
           <Button 
             variant="outline"
-            className="bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow w-full"
+            className="bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow"
           >
             바이브코딩 더 알아보기
           </Button>
@@ -33,12 +32,12 @@ export default function ScienceFourCutPage() {
         <a href="https://studio--studio-6411906927-c7113.us-central1.hosted.app" target="_blank" rel="noopener noreferrer">
           <Button 
             variant="outline"
-            className="bg-transparent border-gray-500 text-gray-400 hover:bg-gray-500/20 hover:text-white w-full"
+            className="bg-transparent border-gray-500 text-gray-400 hover:bg-gray-500/20 hover:text-white"
           >
             개발자 정보
           </Button>
         </a>
-      </div>
+      </header>
 
       <div className="relative z-10 w-full max-w-2xl mx-auto p-8 md:p-12 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
         <div className="flex items-center justify-center gap-6">
