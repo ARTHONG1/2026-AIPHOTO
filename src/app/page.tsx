@@ -21,6 +21,14 @@ export default function ScienceFourCutPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans overflow-hidden">
       <header className="absolute top-0 left-0 right-0 flex justify-end items-center p-6 z-10 gap-4">
+        <a href="https://www.yes24.com/product/goods/177808924" target="_blank" rel="noopener noreferrer">
+          <Button
+            variant="outline"
+            className="bg-transparent border-purple-400 text-purple-300 hover:bg-purple-400/20 hover:text-white animate-pulse-glow"
+          >
+            제미나이 더 알아보기
+          </Button>
+        </a>
         <a href="https://product.kyobobook.co.kr/detail/S000217378952" target="_blank" rel="noopener noreferrer">
           <Button 
             variant="outline"
