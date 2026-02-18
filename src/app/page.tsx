@@ -45,6 +45,14 @@ export default function ScienceFourCutPage() {
             개발자 정보
           </Button>
         </a>
+        <a href="https://studio--studio-2646915464-a86ca.us-central1.hosted.app/" target="_blank" rel="noopener noreferrer">
+          <Button 
+            variant="outline"
+            className="bg-transparent border-gray-500 text-gray-400 hover:bg-gray-500/20 hover:text-white"
+          >
+            클래스똑딱
+          </Button>
+        </a>
       </header>
 
       <div className="relative z-10 w-full max-w-2xl mx-auto p-8 md:p-12 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
