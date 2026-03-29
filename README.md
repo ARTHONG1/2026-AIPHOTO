@@ -66,3 +66,4 @@ Here's how it works:
 
 By encapsulating the AI logic in a Genkit flow, we cleanly separate the server-side AI processing from the client-side UI, making the application more organized, scalable, and maintainable.
 # science-photo
+# real-science-photo
