@@ -48,7 +48,6 @@ export function CompletionDialog({
     return () => clearInterval(timer);
   }, [isOpen]);
 
-  // 카운트다운 완료 시 재시작 로직을 별도의 useEffect로 분리하여 렌더링 중 상태 변경을 방지합니다.
   useEffect(() => {
     if (isOpen && countdown === 0) {
       onRestart();

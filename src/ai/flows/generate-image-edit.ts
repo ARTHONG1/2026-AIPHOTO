@@ -35,10 +35,10 @@ const GenerateImageEditOutputSchema = z.object({
 export type GenerateImageEditInput = z.infer<typeof GenerateImageEditInputSchema>;
 export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSchema>;
 
-// Genkit 1.x 권장 방식인 vertexAI.model() 헬퍼를 사용하여 모델을 정확히 지정합니다.
+// Genkit 1.x에서 문자열 모델 ID는 'provider/model' 형식을 따릅니다.
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: vertexai.model('gemini-3-pro-image'),
+  model: 'vertexai/gemini-3-pro-image',
   config: { responseModalities: ['IMAGE'] },
   input: { schema: GenerateImageEditInputSchema },
   prompt: `You are an expert AI image editor. Final image must be hyper-realistic, 4K resolution.
@@ -69,9 +69,8 @@ export async function generateImageEdit(input: GenerateImageEditInput): Promise<
     if (!media?.url) throw new Error('Model failed to return an image.');
     return { editedImage: media.url };
   } catch (error: any) {
-    // 상세한 서버 로그를 남겨 500 에러의 실체(403, 404 등)를 확인합니다.
     console.error('--- Vertex AI Generation Error Detail ---');
     console.error(error);
-    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message})`);
+    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 오류'})`);
   }
 }

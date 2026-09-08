@@ -99,10 +99,10 @@ export function Toolbar({
           <CardTitle className="text-lg">배경</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {selectedBackground ? (
+          {selectedBackground && selectedBackgroundImage ? (
              <div className="flex items-center justify-between">
                <div className="relative w-20 aspect-square rounded-md overflow-hidden">
-                  <Image src={selectedBackgroundImage!} alt={selectedBackground} fill className="object-cover" sizes="80px" />
+                  <Image src={selectedBackgroundImage} alt={selectedBackground} fill className="object-cover" sizes="80px" />
                </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedBackground(null)}>
                 <X className="mr-2 size-4" />
@@ -147,10 +147,10 @@ export function Toolbar({
           <CardTitle className="text-lg">동작</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {selectedAction ? (
+          {selectedAction && selectedActionImage ? (
              <div className="flex items-center justify-between">
                 <div className="relative w-20 aspect-square rounded-md overflow-hidden">
-                   <Image src={selectedActionImage!} alt={selectedAction} fill className="object-cover" sizes="80px" />
+                   <Image src={selectedActionImage} alt={selectedAction} fill className="object-cover" sizes="80px" />
                 </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)}>
                 <X className="mr-2 size-4" />
@@ -195,10 +195,10 @@ export function Toolbar({
           <CardTitle className="text-lg">프롬프트</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {customPrompt ? (
+          {customPrompt && selectedPromptImage ? (
             <div className="flex items-center justify-between">
               <div className="relative w-20 aspect-square rounded-md overflow-hidden">
-                 <Image src={selectedPromptImage!} alt={customPrompt} fill className="object-cover" sizes="80px" />
+                 <Image src={selectedPromptImage} alt={customPrompt} fill className="object-cover" sizes="80px" />
               </div>
                <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')}>
                 <X className="mr-2 size-4" />
