@@ -102,7 +102,7 @@ export function Toolbar({
         <CardContent className="flex flex-col gap-2">
           {selectedBackground && selectedBackgroundImage ? (
              <div className="flex items-center justify-between">
-               <div className="relative w-20 aspect-square rounded-md overflow-hidden">
+               <div className="relative size-20 rounded-md overflow-hidden border">
                   <Image src={selectedBackgroundImage} alt={selectedBackground} fill className="object-cover" sizes="80px" />
                </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedBackground(null)}>
@@ -150,7 +150,7 @@ export function Toolbar({
         <CardContent className="flex flex-col gap-2">
           {selectedAction && selectedActionImage ? (
              <div className="flex items-center justify-between">
-                <div className="relative w-20 aspect-square rounded-md overflow-hidden">
+                <div className="relative size-20 rounded-md overflow-hidden border">
                    <Image src={selectedActionImage} alt={selectedAction} fill className="object-cover" sizes="80px" />
                 </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)}>
@@ -198,7 +198,7 @@ export function Toolbar({
         <CardContent className="flex flex-col gap-2">
           {customPrompt && selectedPromptImage ? (
             <div className="flex items-center justify-between">
-              <div className="relative w-20 aspect-square rounded-md overflow-hidden">
+              <div className="relative size-20 rounded-md overflow-hidden border">
                  <Image src={selectedPromptImage} alt={customPrompt} fill className="object-contain" sizes="80px" />
               </div>
                <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')}>

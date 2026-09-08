@@ -193,7 +193,7 @@ export function useMagicMarkup() {
   const handleGenerate = useCallback(async () => {
     if (!baseImage) return;
     dispatchAction('SET_IS_LOADING', true);
-    console.log('--- [Client] handleGenerate Start ---');
+    console.log('--- [Client] handleGenerate Start (Vertex AI Only) ---');
     try {
       const elementImagePayloads = (await Promise.all(elementImageUrls.map(async (url, i) => {
         if (!url) return null;
@@ -203,7 +203,7 @@ export function useMagicMarkup() {
       const result = await generateImageAction({
         baseImage,
         elementImages: elementImagePayloads,
-        customPrompt,
+        customPrompt: customPrompt || undefined,
         actionPrompt: selectedAction ? `Pose: ${selectedAction}` : undefined,
         backgroundPrompt: selectedBackground ? `Background: ${selectedBackground}` : undefined,
       });
@@ -217,7 +217,7 @@ export function useMagicMarkup() {
       toast({ 
         variant: 'destructive', 
         title: '생성 실패', 
-        description: error.message || '이미지 생성 중 오류가 발생했습니다.' 
+        description: error.message || '이미지 생성 중 오류가 발생했습니다. (Vertex AI 응답 확인 필요)' 
       });
     } finally {
       dispatchAction('SET_IS_LOADING', false);
@@ -226,7 +226,7 @@ export function useMagicMarkup() {
 
   const handleDownload = useCallback(() => {
     const url = generatedImageUrl || baseImage;
-    if (!url || url === "") return;
+    if (!url || url.trim() === "") return;
     const link = document.createElement('a');
     link.href = url;
     link.download = 'ai-cut.png';
@@ -252,7 +252,7 @@ export function useMagicMarkup() {
       const data = JSON.parse(saved);
       dispatchAction('LOAD_STATE_FROM_HISTORY', data);
       if (searchParams.get('isGuided') === 'true') {
-        setTimeout(() => setGuidedFlowStep('background'), 500);
+        setTimeout(() => setGuidedFlowStep('background'), 800);
       }
     }
   }, [searchParams]);
@@ -276,7 +276,7 @@ export function useMagicMarkup() {
   useEffect(() => {
     if (guidedFlowStep === 'background' && selectedBackground) setGuidedFlowStep('action');
     if (guidedFlowStep === 'action' && selectedAction) setGuidedFlowStep('prompt');
-    if (guidedFlowStep === 'prompt' && customPrompt && customPrompt !== "") setGuidedFlowStep('done');
+    if (guidedFlowStep === 'prompt' && customPrompt && customPrompt.trim() !== "") setGuidedFlowStep('done');
     if (guidedFlowStep === 'done') {
       handleGenerate();
       setGuidedFlowStep(null);

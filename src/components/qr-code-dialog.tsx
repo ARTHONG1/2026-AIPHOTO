@@ -21,7 +21,7 @@ export function QrCodeDialog({ isOpen, onOpenChange, dataUrl }: QrCodeDialogProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (isOpen && dataUrl && dataUrl !== "" && canvasRef.current) {
+    if (isOpen && dataUrl && dataUrl.trim() !== "" && canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, dataUrl, {
         width: 256,
         margin: 2,
@@ -41,11 +41,14 @@ export function QrCodeDialog({ isOpen, onOpenChange, dataUrl }: QrCodeDialogProp
             스마트폰 카메라로 QR 코드를 스캔하여 이미지를 기기로 바로 다운로드하세요.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center justify-center p-4">
-          {dataUrl && dataUrl !== "" ? (
-            <canvas ref={canvasRef} />
+        <div className="flex items-center justify-center p-4 min-h-[260px]">
+          {dataUrl && dataUrl.trim() !== "" ? (
+            <canvas ref={canvasRef} className="rounded-lg shadow-sm" />
           ) : (
-            <p className="text-muted-foreground">QR 코드를 생성하는 중입니다...</p>
+            <div className="flex flex-col items-center gap-2">
+              <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">QR 코드를 생성하는 중입니다...</p>
+            </div>
           )}
         </div>
       </DialogContent>
