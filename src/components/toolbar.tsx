@@ -28,7 +28,7 @@ import { useRef, useEffect } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 
 export const PREDEFINED_PROMPTS = [
-  { name: "Add a pair of futuristic AI engineering glasses on the person's face. The glasses should look realistic and seamlessly integrated, with a metallic frame, glowing neon blue highlights, and transparent smart lenses displaying subtle holographic data.", imageUrl: '/안경.png' },
+  { name: "Add a pair of futuristic AI engineering glasses on the person's face.", imageUrl: '/안경.png' },
   { name: 'Change the clothing of the person in the photo to this T-shirt.', imageUrl: '/티셔츠.png' },
   { name: 'Place this wig on the person\'s head to make them look like Einstein.', imageUrl: '/아인슈타인가발.png' },
 ];
@@ -71,7 +71,7 @@ export function Toolbar({
 }: ReturnType<typeof useMagicMarkup>) {
   const selectedPromptImage = PREDEFINED_PROMPTS.find(p => p.name === customPrompt)?.imageUrl;
   const selectedActionImage = ACTIONS.find(a => a.name === selectedAction)?.imageUrl;
-  const selectedBackgroundImage = BACKGROUNDS.find(b => b.name === selectedBackground)?.imageUrl;
+  const selectedBackgroundItem = BACKGROUNDS.find(b => b.name === selectedBackground);
 
   const backgroundTriggerRef = useRef<HTMLButtonElement>(null);
   const actionTriggerRef = useRef<HTMLButtonElement>(null);
@@ -100,10 +100,10 @@ export function Toolbar({
           <CardTitle className="text-lg">배경</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {selectedBackground && selectedBackgroundImage ? (
+          {selectedBackground && selectedBackgroundItem ? (
              <div className="flex items-center justify-between">
                <div className="relative size-20 rounded-md overflow-hidden border">
-                  <Image src={selectedBackgroundImage} alt={selectedBackground} fill className="object-cover" sizes="80px" />
+                  <Image src={selectedBackgroundItem.imageUrl} alt={selectedBackground} fill className="object-cover" sizes="80px" />
                </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedBackground(null)}>
                 <X className="mr-2 size-4" />
@@ -132,7 +132,7 @@ export function Toolbar({
                               selectedBackground === background.name ? "border-primary" : "border-transparent"
                             )}
                           >
-                              <Image src={background.imageUrl} alt={background.name} fill className="object-cover transition-transform group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" />
+                              <Image src={background.imageUrl} alt={background.name} fill className="object-cover" sizes="300px" />
                           </button>
                       </DialogClose>
                   ))}
@@ -180,7 +180,7 @@ export function Toolbar({
                               selectedAction === action.name ? "border-primary" : "border-transparent"
                             )}
                           >
-                              <Image src={action.imageUrl} alt={action.name} fill className="object-cover transition-transform group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" />
+                              <Image src={action.imageUrl} alt={action.name} fill className="object-cover" sizes="300px" />
                           </button>
                       </DialogClose>
                   ))}
@@ -229,7 +229,7 @@ export function Toolbar({
                               customPrompt === prompt.name ? "border-primary" : "border-transparent"
                               )}
                           >
-                              <Image src={prompt.imageUrl} alt={prompt.name} fill className="object-contain transition-transform group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" />
+                              <Image src={prompt.imageUrl} alt={prompt.name} fill className="object-contain" sizes="300px" />
                           </button>
                       </DialogClose>
                   ))}

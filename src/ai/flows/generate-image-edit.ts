@@ -3,16 +3,20 @@
 
 /**
  * @fileOverview Vertex AI (global) 기반 이미지 편집 플로우.
- * 최신 Genkit 1.x 모델 참조 방식 및 모달리티 설정을 사용합니다.
+ * Genkit 1.x 표준 및 vertexAI.model() 헬퍼를 사용합니다.
  */
 
 import { genkit } from 'genkit';
 import { vertexAI } from '@genkit-ai/vertexai';
 import { z } from 'genkit';
 
-const vAI = vertexAI({ location: 'global' });
+const vAIPlugin = vertexAI({ 
+  projectId: 'project-1e3fbae0-3a3e-4723-ae1',
+  location: 'global' 
+});
+
 const ai = genkit({
-  plugins: [vAI],
+  plugins: [vAIPlugin],
 });
 
 const ImagePayloadSchema = z.object({
@@ -39,7 +43,7 @@ export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSche
 
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: vAI.model('gemini-3-pro-image'),
+  model: vertexAI.model('gemini-3-pro-image'),
   config: { 
     responseModalities: ['IMAGE', 'TEXT'] 
   },
@@ -67,18 +71,17 @@ Preserve identity, match lighting perfectly.`,
 });
 
 export async function generateImageEdit(input: GenerateImageEditInput): Promise<GenerateImageEditOutput> {
-  console.log('--- [Server] generateImageEdit Start (Vertex AI) ---');
+  console.log('--- [Server] generateImageEdit Start (Vertex AI Global) ---');
   try {
     const { media } = await imageEditPrompt(input);
     
     if (!media?.url) {
-      throw new Error('Vertex AI 모델이 이미지를 반환하지 않았습니다. (응답 확인 필요)');
+      throw new Error('Vertex AI 모델이 이미지를 반환하지 않았습니다.');
     }
     
     return { editedImage: media.url };
   } catch (error: any) {
     console.error('--- [Server] Vertex AI Critical Error ---', error);
-    // 상세 에러 메시지를 포함하여 클라이언트로 전달
-    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 오류'}). 요청 endpoint와 권한을 확인하세요.`);
+    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 오류'}).`);
   }
 }

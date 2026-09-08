@@ -193,7 +193,7 @@ export function useMagicMarkup() {
   const handleGenerate = useCallback(async () => {
     if (!baseImage) return;
     dispatchAction('SET_IS_LOADING', true);
-    console.log('--- [Client] handleGenerate Start (Vertex AI Only) ---');
+    console.log('--- [Client] handleGenerate Start (Vertex AI Global) ---');
     try {
       const elementImagePayloads = (await Promise.all(elementImageUrls.map(async (url, i) => {
         if (!url) return null;
@@ -217,7 +217,7 @@ export function useMagicMarkup() {
       toast({ 
         variant: 'destructive', 
         title: '생성 실패', 
-        description: error.message || '이미지 생성 중 오류가 발생했습니다. (Vertex AI 응답 확인 필요)' 
+        description: error.message || '이미지 생성 중 오류가 발생했습니다.' 
       });
     } finally {
       dispatchAction('SET_IS_LOADING', false);
