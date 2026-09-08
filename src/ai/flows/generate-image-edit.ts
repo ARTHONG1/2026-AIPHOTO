@@ -35,14 +35,13 @@ const GenerateImageEditOutputSchema = z.object({
 export type GenerateImageEditInput = z.infer<typeof GenerateImageEditInputSchema>;
 export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSchema>;
 
+// Genkit 1.x 권장 방식인 vertexAI.model() 헬퍼를 사용하여 모델을 정확히 지정합니다.
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: vertexAI.model('gemini-3-pro-image'),
+  model: vertexai.model('gemini-3-pro-image'),
   config: { responseModalities: ['IMAGE'] },
   input: { schema: GenerateImageEditInputSchema },
-  prompt: `You are an expert AI image editor. Your absolute priority is to preserve the facial identity of the person in the 'Base Image'. Do not change facial features except for enhancing a beautiful, natural smile.
-
-Final image must be hyper-realistic, 4K resolution, indistinguishable from a professional photograph.
+  prompt: `You are an expert AI image editor. Final image must be hyper-realistic, 4K resolution.
 
 === Base Image
 {{media url=baseImage}}
@@ -58,17 +57,10 @@ Background Description: {{{backgroundPrompt}}}
 
 === Annotations
 {{#if annotatedImage}}
-User Guide: {{media url=annotatedImage}} (Follow the highlights, do not include them in final result)
+User Guide: {{media url=annotatedImage}} (Follow the highlights)
 {{/if}}
 
-=== Element Images
-{{#if elementImages.length}}
-{{#each elementImages}}
-{{{this.name}}}: {{media url=this.url}}
-{{/each}}
-{{/if}}
-
-Preserve identity, enhance smile, match lighting perfectly.`,
+Preserve identity, match lighting perfectly.`,
 });
 
 export async function generateImageEdit(input: GenerateImageEditInput): Promise<GenerateImageEditOutput> {
@@ -77,7 +69,9 @@ export async function generateImageEdit(input: GenerateImageEditInput): Promise<
     if (!media?.url) throw new Error('Model failed to return an image.');
     return { editedImage: media.url };
   } catch (error: any) {
-    console.error('Vertex AI Error Details:', error);
+    // 상세한 서버 로그를 남겨 500 에러의 실체(403, 404 등)를 확인합니다.
+    console.error('--- Vertex AI Generation Error Detail ---');
+    console.error(error);
     throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message})`);
   }
 }

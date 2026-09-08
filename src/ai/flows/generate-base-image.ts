@@ -20,13 +20,10 @@ const GenerateBaseImageOutputSchema = z.object({
   generatedImage: z.string().describe('Generated image data URI'),
 });
 
-export type GenerateBaseImageInput = z.infer<typeof GenerateBaseImageInputSchema>;
-export type GenerateBaseImageOutput = z.infer<typeof GenerateBaseImageOutputSchema>;
-
-export async function generateBaseImage(input: GenerateBaseImageInput): Promise<GenerateBaseImageOutput> {
+export async function generateBaseImage(input: z.infer<typeof GenerateBaseImageInputSchema>): Promise<z.infer<typeof GenerateBaseImageOutputSchema>> {
   try {
     const { media } = await ai.generate({
-      model: vertexAI.model('gemini-3-pro-image'),
+      model: vertexai.model('gemini-3-pro-image'),
       config: { responseModalities: ['IMAGE'] },
       prompt: `Hyper-realistic, 4K studio photograph of: ${input.prompt}`,
     });
@@ -34,7 +31,8 @@ export async function generateBaseImage(input: GenerateBaseImageInput): Promise<
     if (!media?.url) throw new Error('Model failed to return an image.');
     return { generatedImage: media.url };
   } catch (error: any) {
-    console.error('Vertex AI Base Image Error:', error);
+    console.error('--- Base Image Generation Error ---');
+    console.error(error);
     throw new Error(`기본 이미지 생성 실패: ${error.message}`);
   }
 }
