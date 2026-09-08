@@ -42,7 +42,7 @@ export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSche
 
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: 'google/gemini-2.5-flash-image',
+  model: 'googleai/gemini-2.5-flash-image-preview',
   config: { 
     responseModalities: ['IMAGE', 'TEXT'] 
   },

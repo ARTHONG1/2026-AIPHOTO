@@ -28,7 +28,7 @@ const GenerateBaseImageOutputSchema = z.object({
 export async function generateBaseImage(input: z.infer<typeof GenerateBaseImageInputSchema>): Promise<z.infer<typeof GenerateBaseImageOutputSchema>> {
   try {
     const { media } = await ai.generate({
-      model: 'google/gemini-2.5-flash-image',
+      model: 'googleai/gemini-2.5-flash-image-preview',
       config: { responseModalities: ['IMAGE'] },
       prompt: `Hyper-realistic, 4K studio photograph of: ${input.prompt}`,
     });
