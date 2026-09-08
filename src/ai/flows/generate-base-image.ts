@@ -1,62 +1,41 @@
-// The directive tells the Next.js runtime that this code should only be executed on the server side.
+
 'use server';
 
 /**
- * @fileOverview AI flow for generating a base image from a text prompt.
- *
- * - `generateBaseImage` - The main function to trigger the image generation flow.
- * - `GenerateBaseImageInput` - Input type for the `generateBaseImage` function.
- * - `GenerateBaseImageOutput` - Output type for the `generateBaseImage` function.
+ * @fileOverview Vertex AI 기반 기본 이미지 생성 플로우.
  */
 
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-import {z} from 'genkit';
+import { genkit } from 'genkit';
+import { vertexAI } from '@genkit-ai/vertexai';
+import { z } from 'genkit';
 
 const ai = genkit({
-  plugins: [googleAI({apiKey: false})],
+  plugins: [vertexAI({ location: 'global' })],
 });
 
-
-// Define schemas for the input and output data
 const GenerateBaseImageInputSchema = z.object({
-    prompt: z.string().describe('The text prompt to generate an image from.'),
+  prompt: z.string().describe('Image generation prompt'),
 });
 
 const GenerateBaseImageOutputSchema = z.object({
-  generatedImage: z.string().describe('The generated image as a data URI.'),
+  generatedImage: z.string().describe('Generated image data URI'),
 });
 
 export type GenerateBaseImageInput = z.infer<typeof GenerateBaseImageInputSchema>;
 export type GenerateBaseImageOutput = z.infer<typeof GenerateBaseImageOutputSchema>;
 
-// Exported function to trigger the flow
-export async function generateBaseImage(apiKey: string, input: GenerateBaseImageInput): Promise<GenerateBaseImageOutput> {
-  return generateBaseImageFlow(input, {context: {apiKey}});
-}
-
-// Define the flow
-const generateBaseImageFlow = ai.defineFlow(
-  {
-    name: 'generateBaseImageFlow',
-    inputSchema: GenerateBaseImageInputSchema,
-    outputSchema: GenerateBaseImageOutputSchema,
-  },
-  async (input, {context}) => {
-    if (!context?.apiKey) throw new Error("Must supply an API key.");
-
+export async function generateBaseImage(input: GenerateBaseImageInput): Promise<GenerateBaseImageOutput> {
+  try {
     const { media } = await ai.generate({
-        model: 'googleai/gemini-3-pro-image-preview',
-        config: {responseModalities: ['TEXT', 'IMAGE'], apiKey: context.apiKey},
-        prompt: `You are an AI image generation expert. Your task is to generate a hyper-realistic, 4K ultra high-resolution image that is indistinguishable from a professional photograph taken in a high-end studio with perfect lighting and a tack-sharp focus, based on the following user prompt:
-
-        '${input.prompt}'`,
+      model: 'gemini-3-pro-image',
+      config: { responseModalities: ['IMAGE'] },
+      prompt: `Hyper-realistic, 4K studio photograph of: ${input.prompt}`,
     });
 
-    if (!media?.url) {
-        throw new Error('The AI model did not return an image.');
-    }
-
-    return {generatedImage: media.url};
+    if (!media?.url) throw new Error('Model failed to return an image.');
+    return { generatedImage: media.url };
+  } catch (error: any) {
+    console.error('Vertex AI Base Image Error:', error);
+    throw new Error(`기본 이미지 생성 실패: ${error.message}`);
   }
-);
+}

@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 interface LoadingDialogProps {
@@ -18,39 +19,14 @@ export function LoadingDialog({ isOpen }: LoadingDialogProps) {
       <DialogContent className="sm:max-w-md flex flex-col items-center justify-center gap-6 p-8" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">AI 이미지 생성 중</DialogTitle>
+          <DialogDescription className="text-center">
+            Vertex AI가 멋진 이미지를 만들고 있습니다. 잠시만 기다려 주세요...
+          </DialogDescription>
         </DialogHeader>
-        <div className="relative w-full h-24 overflow-hidden">
-          <div className="dino-container">
-            <div className="dino"></div>
-          </div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground animate-pulse">마법이 일어나는 중...</p>
         </div>
-        <p className="text-muted-foreground">잠시만 기다려 주세요...</p>
-        <style jsx>{`
-          .dino-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100px; 
-          }
-          .dino {
-            width: 80px;
-            height: 84px;
-            background-image: url('/dino.png');
-            background-size: 752px 84px;
-            animation: walk 1s steps(9) infinite, forward 5s linear infinite;
-            position: absolute;
-            bottom: 0;
-          }
-          @keyframes walk {
-            from { background-position-x: 0px; }
-            to { background-position-x: -676px; }
-          }
-          @keyframes forward {
-            from { transform: translateX(-100px); }
-            to { transform: translateX(110%); }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );

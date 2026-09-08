@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Suspense } from 'react';
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Header } from './header';
 import { EditorCanvas } from './editor-canvas';
 import { Toolbar } from './toolbar';
-import { ApiKeyDialog } from './api-key-dialog';
 import { QrCodeDialog } from './qr-code-dialog';
 import { LoadingDialog } from './loading-dialog';
 import { CompletionDialog } from './completion-dialog';
@@ -19,16 +17,13 @@ function MagicMarkupEditorClient() {
   const hook = useMagicMarkup();
   const router = useRouter();
 
-  if (!hook.isMounted) {
-    return null; // or a loading spinner
-  }
+  if (!hook.isMounted) return null;
 
   return (
     <div className="flex h-screen flex-col">
       <Header
-        onApiKeyClick={() => hook.setIsApiKeyDialogOpen(true)}
         onExportWithQrCodeClick={hook.handleExportWithQrCode}
-        onDownloadClick={() => hook.handleDownload()}
+        onDownloadClick={hook.handleDownload}
         isExportDisabled={!hook.baseImage}
       />
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[1fr_350px]">
@@ -61,14 +56,6 @@ function MagicMarkupEditorClient() {
         
         <Toolbar {...hook} />
 
-        <ApiKeyDialog 
-          isOpen={hook.isApiKeyDialogOpen}
-          onOpenChange={hook.setIsApiKeyDialogOpen}
-          onSave={hook.handleSaveApiKey}
-          onDelete={hook.handleDeleteApiKey}
-          existingApiKeys={hook.apiKeys}
-        />
-
         <QrCodeDialog
           isOpen={hook.isQrCodeDialogOpen}
           onOpenChange={hook.setIsQrCodeDialogOpen}
@@ -91,7 +78,7 @@ function MagicMarkupEditorClient() {
 
 export function MagicMarkupEditor() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
       <MagicMarkupEditorClient />
     </Suspense>
   )
