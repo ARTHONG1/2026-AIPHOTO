@@ -1,8 +1,9 @@
+
 'use server';
 
 /**
  * @fileOverview Vertex AI (global) 기반 이미지 편집 플로우.
- * gemini-3-pro-image 모델을 사용하여 초고해상도 편집 이미지를 생성합니다.
+ * 상세 디버깅 로깅이 추가되었습니다.
  */
 
 import { genkit } from 'genkit';
@@ -35,7 +36,6 @@ const GenerateImageEditOutputSchema = z.object({
 export type GenerateImageEditInput = z.infer<typeof GenerateImageEditInputSchema>;
 export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSchema>;
 
-// Genkit 1.x에서 문자열 모델 ID는 'provider/model' 형식을 따릅니다.
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
   model: 'vertexai/gemini-3-pro-image',
@@ -64,13 +64,35 @@ Preserve identity, match lighting perfectly.`,
 });
 
 export async function generateImageEdit(input: GenerateImageEditInput): Promise<GenerateImageEditOutput> {
+  console.log('--- [Server] generateImageEdit Internal Start ---');
+  console.log('Model Name: vertexai/gemini-3-pro-image');
+  
   try {
     const { media } = await imageEditPrompt(input);
-    if (!media?.url) throw new Error('Model failed to return an image.');
+    
+    if (!media?.url) {
+      console.error('--- [Server] Model Response Error: No Media URL ---');
+      throw new Error('Model failed to return an image URL.');
+    }
+    
+    console.log('--- [Server] generateImageEdit Success ---');
     return { editedImage: media.url };
   } catch (error: any) {
-    console.error('--- Vertex AI Generation Error Detail ---');
-    console.error(error);
-    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 오류'})`);
+    console.error('--- [Server] CRITICAL VERTEX AI ERROR ---');
+    console.error('Error Name:', error.name);
+    console.error('Error Message:', error.message);
+    console.error('Error Stack:', error.stack);
+    
+    // API 응답 객체가 있는 경우 상세 내용 확인 시도
+    if (error.response) {
+      try {
+        const rawResponse = await error.response.text();
+        console.error('Raw API Response Body:', rawResponse.substring(0, 1000));
+      } catch (e) {
+        console.error('Could not read raw response body');
+      }
+    }
+
+    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 서버 오류'})`);
   }
 }

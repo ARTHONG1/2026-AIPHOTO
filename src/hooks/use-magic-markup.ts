@@ -201,6 +201,14 @@ export function useMagicMarkup() {
   const handleGenerate = useCallback(async () => {
     if (!baseImage) return;
     dispatchAction('SET_IS_LOADING', true);
+    console.log('--- [Client] Generation Started ---');
+    console.log('Payload:', {
+      customPrompt,
+      actionPrompt: selectedAction,
+      backgroundPrompt: selectedBackground,
+      elementsCount: elementImageUrls.filter(u => u).length
+    });
+
     try {
       const elementImagePayloads = (await Promise.all(elementImageUrls.map(async (url, i) => {
         if (!url) return null;
@@ -215,12 +223,24 @@ export function useMagicMarkup() {
         backgroundPrompt: selectedBackground ? `Background: ${selectedBackground}` : undefined,
       });
 
+      console.log('--- [Client] Generation Success ---', result);
+
       if (result.editedImage) {
         setGeneratedImageUrl(result.editedImage);
         setIsCompletionDialogOpen(true);
       }
     } catch (error: any) {
-      toast({ variant: 'destructive', title: '생성 실패', description: error.message });
+      console.error('--- [Client] Generation Critical Error ---');
+      console.error('Error Object:', error);
+      console.error('Error Message:', error.message);
+      if (error.stack) console.error('Error Stack:', error.stack);
+      if (error.digest) console.error('Next.js Error Digest:', error.digest);
+      
+      toast({ 
+        variant: 'destructive', 
+        title: '생성 실패', 
+        description: `오류 원인: ${error.message || '알 수 없는 서버 오류'}. 자세한 내용은 개발자 도구(F12) 콘솔을 확인하세요.` 
+      });
     } finally {
       dispatchAction('SET_IS_LOADING', false);
     }
