@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -43,7 +42,7 @@ export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSche
 
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: vertexAI.model('gemini-3-pro-image'),
+  model: 'google/gemini-2.5-flash-image',
   config: { 
     responseModalities: ['IMAGE', 'TEXT'] 
   },
