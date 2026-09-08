@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -13,7 +14,6 @@ export default function ScienceFourCutPage() {
   const [isCopyrightOpen, setIsCopyrightOpen] = useState(false);
 
   const handleStart = () => {
-    // Clear the previous session from local storage
     localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
     router.push('/booth?autoStart=true');
   };
@@ -57,12 +57,12 @@ export default function ScienceFourCutPage() {
 
       <div className="relative z-10 w-full max-w-2xl mx-auto p-8 md:p-12 rounded-2xl bg-gray-900/50 shadow-lg text-center flex flex-col items-center gap-8">
         <div className="flex items-center justify-center gap-6">
-          <Image src="/힘찬이.png" alt="힘찬이" width={100} height={100} style={{objectFit: 'contain'}} />
+          <Image src="/힘찬이.png" alt="힘찬이" width={100} height={100} style={{ width: 'auto', height: 'auto' }} />
           <div>
             <h1 className="text-7xl font-bold">AI한컷</h1>
             <p className="text-xl text-purple-300 mt-2">AI와 함께 만드는 나만의 과학 사진</p>
           </div>
-          <Image src="/과학힘찬이.png" alt="과학힘찬이" width={100} height={100} style={{objectFit: 'contain'}} />
+          <Image src="/과학힘찬이.png" alt="과학힘찬이" width={100} height={100} style={{ width: 'auto', height: 'auto' }} />
         </div>
 
         <p className="text-lg text-gray-400">
@@ -73,8 +73,6 @@ export default function ScienceFourCutPage() {
             시작하기
         </Button>
       </div>
-
-      
 
       <p className="absolute bottom-2 left-4 text-sm text-muted-foreground z-0">개발자 인천봉수초 교사 홍찬우</p>
 

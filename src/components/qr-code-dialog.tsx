@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -20,7 +21,7 @@ export function QrCodeDialog({ isOpen, onOpenChange, dataUrl }: QrCodeDialogProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (isOpen && dataUrl && canvasRef.current) {
+    if (isOpen && dataUrl && dataUrl !== "" && canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, dataUrl, {
         width: 256,
         margin: 2,
@@ -41,7 +42,7 @@ export function QrCodeDialog({ isOpen, onOpenChange, dataUrl }: QrCodeDialogProp
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-center p-4">
-          {dataUrl ? (
+          {dataUrl && dataUrl !== "" ? (
             <canvas ref={canvasRef} />
           ) : (
             <p className="text-muted-foreground">QR 코드를 생성하는 중입니다...</p>

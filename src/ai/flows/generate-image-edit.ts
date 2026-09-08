@@ -3,15 +3,16 @@
 
 /**
  * @fileOverview Vertex AI (global) 기반 이미지 편집 플로우.
- * 상세 디버깅 로깅이 추가되었습니다.
+ * 최신 Genkit 1.x 모델 참조 방식을 사용합니다.
  */
 
 import { genkit } from 'genkit';
 import { vertexAI } from '@genkit-ai/vertexai';
 import { z } from 'genkit';
 
+const vAI = vertexAI({ location: 'global' });
 const ai = genkit({
-  plugins: [vertexAI({ location: 'global' })],
+  plugins: [vAI],
 });
 
 const ImagePayloadSchema = z.object({
@@ -38,7 +39,7 @@ export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSche
 
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: 'vertexai/gemini-3-pro-image',
+  model: vAI.model('gemini-3-pro-image'),
   config: { responseModalities: ['IMAGE'] },
   input: { schema: GenerateImageEditInputSchema },
   prompt: `You are an expert AI image editor. Final image must be hyper-realistic, 4K resolution.
@@ -64,35 +65,17 @@ Preserve identity, match lighting perfectly.`,
 });
 
 export async function generateImageEdit(input: GenerateImageEditInput): Promise<GenerateImageEditOutput> {
-  console.log('--- [Server] generateImageEdit Internal Start ---');
-  console.log('Model Name: vertexai/gemini-3-pro-image');
-  
+  console.log('--- [Server] generateImageEdit Start ---');
   try {
     const { media } = await imageEditPrompt(input);
     
     if (!media?.url) {
-      console.error('--- [Server] Model Response Error: No Media URL ---');
       throw new Error('Model failed to return an image URL.');
     }
     
-    console.log('--- [Server] generateImageEdit Success ---');
     return { editedImage: media.url };
   } catch (error: any) {
-    console.error('--- [Server] CRITICAL VERTEX AI ERROR ---');
-    console.error('Error Name:', error.name);
-    console.error('Error Message:', error.message);
-    console.error('Error Stack:', error.stack);
-    
-    // API 응답 객체가 있는 경우 상세 내용 확인 시도
-    if (error.response) {
-      try {
-        const rawResponse = await error.response.text();
-        console.error('Raw API Response Body:', rawResponse.substring(0, 1000));
-      } catch (e) {
-        console.error('Could not read raw response body');
-      }
-    }
-
-    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 서버 오류'})`);
+    console.error('--- [Server] Vertex AI Error ---', error);
+    throw new Error(`이미지 생성 실패: Vertex AI 오류 (${error.message || '알 수 없는 오류'})`);
   }
 }

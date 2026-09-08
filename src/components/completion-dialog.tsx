@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Progress } from './ui/progress';
 
 interface CompletionDialogProps {
@@ -30,6 +31,10 @@ export function CompletionDialog({
   onDownload,
 }: CompletionDialogProps) {
   const [countdown, setCountdown] = useState(30);
+
+  const stableRestart = useCallback(() => {
+    onRestart();
+  }, [onRestart]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -50,9 +55,9 @@ export function CompletionDialog({
 
   useEffect(() => {
     if (isOpen && countdown === 0) {
-      onRestart();
+      stableRestart();
     }
-  }, [countdown, isOpen, onRestart]);
+  }, [countdown, isOpen, stableRestart]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -62,7 +67,7 @@ export function CompletionDialog({
           <DialogDescription className="text-center">멋진 AI 사진이 완성되었습니다. 다운로드하거나 다시 시작해보세요.</DialogDescription>
         </DialogHeader>
         <div className="my-4 relative aspect-[2/3] w-full">
-          {imageUrl && (
+          {imageUrl && imageUrl !== "" && (
             <Image
               src={imageUrl}
               alt="Generated image"

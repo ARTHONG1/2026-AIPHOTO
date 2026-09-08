@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -198,7 +199,7 @@ export function Toolbar({
           {customPrompt && selectedPromptImage ? (
             <div className="flex items-center justify-between">
               <div className="relative w-20 aspect-square rounded-md overflow-hidden">
-                 <Image src={selectedPromptImage} alt={customPrompt} fill className="object-cover" sizes="80px" />
+                 <Image src={selectedPromptImage} alt={customPrompt} fill className="object-contain" sizes="80px" />
               </div>
                <Button variant="ghost" size="sm" onClick={() => setCustomPrompt('')}>
                 <X className="mr-2 size-4" />

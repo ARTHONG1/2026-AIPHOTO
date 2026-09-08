@@ -7,7 +7,6 @@ import { type Tool, type BrushSize, type CanvasObject, type Annotation, type Hig
 import { resizeImage } from '@/lib/canvas-utils';
 import { generateImageAction, uploadImageToCloudinaryAction } from '@/app/actions';
 import { reducer, initialState, Action, ActionPayloads } from '@/lib/state';
-import { BACKGROUNDS, ACTIONS, PREDEFINED_PROMPTS } from '@/components/toolbar';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const EDITOR_COLORS = ['#D35898', '#3B82F6', '#22C55E', '#EAB308'] as const;
@@ -17,9 +16,7 @@ const BRUSH_SIZES: Record<BrushSize, number> = {
   large: 20,
 };
 const MAX_DIMENSION = 1000;
-const SELECTION_PADDING = 10;
 const LOCAL_STORAGE_KEY_SESSION = 'magic-markup-session';
-const ANNOTATION_FONT_SIZE_MEDIUM = BRUSH_SIZES['medium'] * 4;
 
 export function useMagicMarkup() {
   const { toast } = useToast();
@@ -39,7 +36,6 @@ export function useMagicMarkup() {
     selectedAction,
     selectedBackground,
     isLoading,
-    isElementUploadOpen,
     editingAnnotation,
     isQrCodeDialogOpen,
     qrCodeDataUrl,
@@ -54,15 +50,11 @@ export function useMagicMarkup() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const interactionState = useRef<{
     isDrawing?: boolean;
-    isDragging?: boolean;
-    dragOffset?: { x: number, y: number };
     lastPosition?: { x: number, y: number };
-    lastClickTime?: number;
   }>({});
 
   const history = useRef<any[]>([]);
   const historyPointer = useRef(-1);
-  const elementFileInputRef = useRef<HTMLInputElement>(null);
 
   const dispatchAction = <T extends keyof ActionPayloads>(type: T, payload: ActionPayloads[T]) => {
       dispatch({ type, payload } as Action);
@@ -201,14 +193,7 @@ export function useMagicMarkup() {
   const handleGenerate = useCallback(async () => {
     if (!baseImage) return;
     dispatchAction('SET_IS_LOADING', true);
-    console.log('--- [Client] Generation Started ---');
-    console.log('Payload:', {
-      customPrompt,
-      actionPrompt: selectedAction,
-      backgroundPrompt: selectedBackground,
-      elementsCount: elementImageUrls.filter(u => u).length
-    });
-
+    console.log('--- [Client] handleGenerate Start ---');
     try {
       const elementImagePayloads = (await Promise.all(elementImageUrls.map(async (url, i) => {
         if (!url) return null;
@@ -223,23 +208,16 @@ export function useMagicMarkup() {
         backgroundPrompt: selectedBackground ? `Background: ${selectedBackground}` : undefined,
       });
 
-      console.log('--- [Client] Generation Success ---', result);
-
       if (result.editedImage) {
         setGeneratedImageUrl(result.editedImage);
         setIsCompletionDialogOpen(true);
       }
     } catch (error: any) {
-      console.error('--- [Client] Generation Critical Error ---');
-      console.error('Error Object:', error);
-      console.error('Error Message:', error.message);
-      if (error.stack) console.error('Error Stack:', error.stack);
-      if (error.digest) console.error('Next.js Error Digest:', error.digest);
-      
+      console.error('--- [Client] Generation Critical Error ---', error);
       toast({ 
         variant: 'destructive', 
         title: '생성 실패', 
-        description: `오류 원인: ${error.message || '알 수 없는 서버 오류'}. 자세한 내용은 개발자 도구(F12) 콘솔을 확인하세요.` 
+        description: error.message || '이미지 생성 중 오류가 발생했습니다.' 
       });
     } finally {
       dispatchAction('SET_IS_LOADING', false);
@@ -248,7 +226,7 @@ export function useMagicMarkup() {
 
   const handleDownload = useCallback(() => {
     const url = generatedImageUrl || baseImage;
-    if (!url) return;
+    if (!url || url === "") return;
     const link = document.createElement('a');
     link.href = url;
     link.download = 'ai-cut.png';
@@ -262,10 +240,10 @@ export function useMagicMarkup() {
     if (url) setQrCodeDataUrl(url);
   };
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     localStorage.removeItem(LOCAL_STORAGE_KEY_SESSION);
     router.push('/');
-  };
+  }, [router]);
 
   useEffect(() => {
     dispatchAction('SET_IS_MOUNTED', true);
@@ -273,7 +251,9 @@ export function useMagicMarkup() {
     if (saved) {
       const data = JSON.parse(saved);
       dispatchAction('LOAD_STATE_FROM_HISTORY', data);
-      if (searchParams.get('isGuided') === 'true') setGuidedFlowStep('background');
+      if (searchParams.get('isGuided') === 'true') {
+        setTimeout(() => setGuidedFlowStep('background'), 500);
+      }
     }
   }, [searchParams]);
 
@@ -296,7 +276,7 @@ export function useMagicMarkup() {
   useEffect(() => {
     if (guidedFlowStep === 'background' && selectedBackground) setGuidedFlowStep('action');
     if (guidedFlowStep === 'action' && selectedAction) setGuidedFlowStep('prompt');
-    if (guidedFlowStep === 'prompt' && customPrompt) setGuidedFlowStep('done');
+    if (guidedFlowStep === 'prompt' && customPrompt && customPrompt !== "") setGuidedFlowStep('done');
     if (guidedFlowStep === 'done') {
       handleGenerate();
       setGuidedFlowStep(null);
@@ -306,7 +286,6 @@ export function useMagicMarkup() {
   return {
     ...state,
     canvasRef,
-    elementFileInputRef,
     setTool,
     setColor,
     setBrushSize,
@@ -335,9 +314,5 @@ export function useMagicMarkup() {
     handleRestart,
     EDITOR_COLORS,
     handleSaveAnnotation: () => {},
-    handlePromptKeyDown: () => {},
-    handleRemoveElementImage: () => {},
-    handleSaveApiKey: () => {},
-    handleDeleteApiKey: () => {},
   };
 }
