@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -27,7 +26,7 @@ export type GenerateBaseImageOutput = z.infer<typeof GenerateBaseImageOutputSche
 export async function generateBaseImage(input: GenerateBaseImageInput): Promise<GenerateBaseImageOutput> {
   try {
     const { media } = await ai.generate({
-      model: 'gemini-3-pro-image',
+      model: vertexAI.model('gemini-3-pro-image'),
       config: { responseModalities: ['IMAGE'] },
       prompt: `Hyper-realistic, 4K studio photograph of: ${input.prompt}`,
     });

@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -38,7 +37,7 @@ export type GenerateImageEditOutput = z.infer<typeof GenerateImageEditOutputSche
 
 const imageEditPrompt = ai.definePrompt({
   name: 'imageEditPrompt',
-  model: 'gemini-3-pro-image',
+  model: vertexAI.model('gemini-3-pro-image'),
   config: { responseModalities: ['IMAGE'] },
   input: { schema: GenerateImageEditInputSchema },
   prompt: `You are an expert AI image editor. Your absolute priority is to preserve the facial identity of the person in the 'Base Image'. Do not change facial features except for enhancing a beautiful, natural smile.
