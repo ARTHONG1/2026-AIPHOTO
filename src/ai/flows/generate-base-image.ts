@@ -5,12 +5,12 @@
  */
 
 import { genkit } from 'genkit';
-import { vertexAI } from '@genkit-ai/vertexai';
+import { vertexAI } from '@genkit-ai/google-genai';
 import { z } from 'genkit';
 
-const vAIPlugin = vertexAI({ 
+const vAIPlugin = vertexAI({
   projectId: 'project-1e3fbae0-3a3e-4723-ae1',
-  location: 'global' 
+  location: 'global'
 });
 
 const ai = genkit({
@@ -28,7 +28,7 @@ const GenerateBaseImageOutputSchema = z.object({
 export async function generateBaseImage(input: z.infer<typeof GenerateBaseImageInputSchema>): Promise<z.infer<typeof GenerateBaseImageOutputSchema>> {
   try {
     const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image-preview',
+      model: vertexAI.model('gemini-3-pro-image'),
       config: { responseModalities: ['IMAGE'] },
       prompt: `Hyper-realistic, 4K studio photograph of: ${input.prompt}`,
     });
