@@ -24,4 +24,9 @@
 ## Session 2026-10-02
 - tsc, next build 검증 통과
 - 1컷 프레임 10종, Pro 단독 설정, 얼굴 보존 모듈 포함 최신 버전 Firebase App Hosting 배포 완료 (/, /booth, /studio, /frames/festival.webp 200 응답 확인)
-- Git 변경 정리 및 커밋 준비
+- Git 변경 정리 및 원격(origin/main) 푸시 완료 (커밋 136cdad)
+- AR 라이브 포토 기능 구현:
+  - Cloudinary 의존성 제거, 프로젝트 자체 Firebase/GCP Cloud Storage 버킷(ai-hancut-photos-699923719631) 생성 및 연동
+  - src/lib/storage.ts(사진 및 메타데이터 업로드/조회), src/app/actions.ts(uploadForQrAction)
+  - /live/[id] AR 라이브 포토 웹 뷰어(src/app/live/[id]/page.tsx, src/components/live/live-photo-view.tsx): 터치 반응형 3D 패럴랙스 줌·파티클 애니메이션, 스마트폰 후면 카메라 기반 AR 오버레이 모드, 3초 라이브 영상(MP4/WebM) 갤러리 저장, 4x6 고화질 인쇄본 저장 지원
+  - 결과 화면(src/components/studio/result-view.tsx)의 QR 생성 버튼을 AR 라이브 포토 연동으로 업그레이드

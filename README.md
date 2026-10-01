@@ -35,10 +35,19 @@ PHOTOBOOTH_MOCK_AI=1로 실행하면 Vertex AI를 호출하지 않고 원본 사
 | PHOTOBOOTH_FALLBACK_MODEL | 기본 모델이 오류를 낼 때 한 번 다시 시도할 모델. 기본값은 비어 있음(Pro만 사용) |
 | PHOTOBOOTH_IMAGE_SIZE | 1K(기본) 또는 2K(선명하지만 Pro 약 60초로 1분 목표를 넘김) |
 | PHOTOBOOTH_FACE_TRANSFER | 0이면 얼굴 옮겨 붙이기를 끔 |
-| CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET | QR 받기용 업로드. 없으면 QR 버튼이 안내 문구만 보여 줍니다 |
+| PHOTOBOOTH_STORAGE_BUCKET | AR 라이브 포토 및 인쇄본 저장용 Firebase/GCP 버킷 (기본값: ai-hancut-photos-699923719631) |
 | PHOTOBOOTH_MOCK_AI | 1이면 AI 호출 생략 |
 
 키는 저장소에 넣지 말고 .env.local 또는 App Hosting 시크릿으로 관리합니다.
+
+## AR 라이브 포토 (Live Photo)
+
+결과 화면에서 "AR 라이브 포토 받기 (QR)"를 누르면 고유 QR 코드가 생성됩니다. 스마트폰 카메라로 스캔하면 전용 웹 뷰어(`/live/[id]`)로 접속합니다.
+
+- **인터랙티브 라이브 모션:** 사진을 터치하거나 재생 버튼을 누르면 부드러운 3D 패럴랙스 줌과 반짝이는 과학 파티클 효과, 미래지향적 사운드가 재생됩니다.
+- **AR 카메라 모드:** 스마트폰 후면 카메라를 켜서 인쇄된 종이 사진을 비추면, 증강현실(AR)로 종이 위에서 움직이는 홀로그램 사진이 재생됩니다.
+- **스마트폰 저장:** 1200×1800 300dpi 원본 인쇄 사진 다운로드와 3초짜리 움직이는 라이브 영상(MP4/WebM) 저장을 지원합니다.
+- **저장소:** 외부 서비스 없이 프로젝트의 Firebase / Google Cloud Storage 버킷(`ai-hancut-photos-699923719631`)에 안전하게 저장됩니다.
 
 ## 프리셋 에셋 다시 만들기
 
@@ -48,8 +57,9 @@ node scripts/build-assets.mjs 를 실행하면 public/의 원본 이미지와 [s
 
 ## 배포 (Firebase App Hosting)
 
-apphosting.yaml에 런타임 설정이 있습니다. Cloudinary를 쓰려면 firebase apphosting:secrets:set 으로 시크릿을 만든 뒤 apphosting.yaml의 주석을 해제합니다. App Hosting 서비스 계정에 Vertex AI 사용자 역할이 필요합니다.
+apphosting.yaml에 런타임 설정이 있습니다. App Hosting 서비스 계정에 Vertex AI 사용자 역할이 필요합니다.
 
 ## 라이선스
 
 Michael Bleigh의 Magic Markup(Apache License 2.0)을 바탕으로 인천봉수초 교사 홍찬우가 만든 2차 창작물입니다. 자세한 내용은 앱의 저작권 안내와 LICENSE를 참고하세요.
+

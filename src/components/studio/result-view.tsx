@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Check, Download, Home, Loader2, Printer, QrCode, RotateCcw } from 'lucide-react';
+import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles } from 'lucide-react';
 import { uploadForQrAction } from '@/app/actions';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
 import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
@@ -80,7 +80,7 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
     keepAlive();
     if (!framed || qr.status === 'loading' || qr.status === 'ready') return;
     setQr({ status: 'loading' });
-    const uploaded = await uploadForQrAction(framed);
+    const uploaded = await uploadForQrAction(framed, { frameId });
     if (!uploaded.ok) {
       setQr({ status: 'error', message: uploaded.error });
       return;
@@ -155,14 +155,15 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
             <Download className="size-6" aria-hidden /> 저장
           </button>
         </div>
-        <button type="button" className="btn-accent w-full" onClick={makeQr} disabled={!framed || qr.status === 'loading'}>
-          {qr.status === 'loading' ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <QrCode className="size-5" aria-hidden />}
-          휴대폰으로 받기 (QR)
+        <button type="button" className="btn-accent w-full flex items-center justify-center gap-2" onClick={makeQr} disabled={!framed || qr.status === 'loading'}>
+          {qr.status === 'loading' ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Sparkles className="size-5 text-amber-300" aria-hidden />}
+          AR 라이브 포토 받기 (QR)
         </button>
         {qr.status === 'ready' && (
-          <div className="panel flex flex-col items-center gap-2 p-4 animate-rise">
-            <img src={qr.dataUrl} alt="사진 다운로드 QR 코드" className="size-48 rounded-xl bg-white p-2" />
-            <p className="text-sm text-muted-foreground">휴대폰 카메라로 비춰 보세요</p>
+          <div className="panel flex flex-col items-center gap-2 p-4 animate-rise text-center">
+            <img src={qr.dataUrl} alt="AR 라이브 포토 QR 코드" className="size-48 rounded-xl bg-white p-2" />
+            <p className="text-sm font-semibold text-primary">스마트폰 카메라로 비춰보세요</p>
+            <p className="text-xs text-muted-foreground">사진이 살아서 움직이는 AR 라이브 포토가 열립니다</p>
           </div>
         )}
         {qr.status === 'error' && (
