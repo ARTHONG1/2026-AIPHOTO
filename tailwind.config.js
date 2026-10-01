@@ -16,10 +16,8 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        body: ['var(--font-inter)', 'sans-serif'],
-        headline: ['var(--font-inter)', 'sans-serif'],
-        code: ['"Source Code Pro"', 'monospace'],
-        marker: ['var(--font-patrick-hand)', 'cursive'],
+        body: ['"Pretendard"', '"Apple SD Gothic Neo"', '"Malgun Gothic"', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', '"Malgun Gothic"', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

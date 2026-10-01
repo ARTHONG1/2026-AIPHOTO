@@ -1,0 +1,24 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1
+
+env:
+  - variable: GOOGLE_CLOUD_LOCATION
+    value: global
+  - variable: PHOTOBOOTH_IMAGE_MODEL
+    value: gemini-3-pro-image
+  - variable: PHOTOBOOTH_FALLBACK_MODEL
+    value: gemini-3.1-flash-image
+  - variable: PHOTOBOOTH_IMAGE_SIZE
+    value: 1K
+  # Create these first with: firebase apphosting:secrets:set <NAME>
+  # - variable: CLOUDINARY_CLOUD_NAME
+  #   secret: CLOUDINARY_CLOUD_NAME
+  # - variable: CLOUDINARY_API_KEY
+  #   secret: CLOUDINARY_API_KEY
+  # - variable: CLOUDINARY_API_SECRET
+  #   secret: CLOUDINARY_API_SECRET

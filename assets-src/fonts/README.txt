@@ -1,0 +1,1 @@
+﻿Fonts used by scripts/build-frames.mjs, all SIL Open Font License 1.1. Google Fonts (github.com/google/fonts): Jua, Black Han Sans, Do Hyeon, Nanum Pen Script, Nanum Myeongjo, Orbitron, Noto Sans KR, Press Start 2P. NeoDunggeunmo neodgm.ttf (github.com/neodgm/neodgm). DSEG7 Classic (github.com/keshikan/DSEG).

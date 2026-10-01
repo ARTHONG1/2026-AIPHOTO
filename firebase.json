@@ -1,0 +1,24 @@
+{
+  "apphosting": [
+    {
+      "backendId": "ai-hancut",
+      "rootDir": "/",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".vibe",
+        ".playwright",
+        ".playwright-cli",
+        ".planning",
+        ".agents",
+        ".codex",
+        ".vscode",
+        "assets-src",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "**/.env*"
+      ]
+    }
+  ]
+}

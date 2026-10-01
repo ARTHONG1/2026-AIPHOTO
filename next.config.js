@@ -2,6 +2,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
+  // opencv-js (face transfer) is a 13 MB Emscripten bundle; load it from node_modules at runtime.
+  serverExternalPackages: ['@techstark/opencv-js'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

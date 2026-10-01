@@ -1,12 +1,6 @@
-import { MagicMarkupEditor } from '@/components/magic-markup-editor';
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
+// Old guided-flow links now land on the new studio.
 export default function EditorPage() {
-  return (
-    <main className="min-h-screen bg-background">
-      <Suspense fallback={<div>Loading...</div>}>
-        <MagicMarkupEditor />
-      </Suspense>
-    </main>
-  );
+  redirect('/studio');
 }

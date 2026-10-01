@@ -1,0 +1,11 @@
+[mcp_servers.context7]
+command = 'C:/Program Files/nodejs/node.exe'
+args = ['C:/Users/user/AppData/Local/VibeCoding/AgentTools/music-213f3ed1d0/node_modules/@upstash/context7-mcp/dist/index.js']
+startup_timeout_sec = 60
+tool_timeout_sec = 90
+
+[mcp_servers.chrome_devtools]
+command = 'C:/Program Files/nodejs/node.exe'
+args = ['C:/Users/user/AppData/Local/VibeCoding/AgentTools/music-213f3ed1d0/node_modules/chrome-devtools-mcp/build/src/bin/chrome-devtools-mcp.js', '--headless', '--isolated', '--no-usage-statistics', '--no-performance-crux', '--workspace=C:/Users/user/Documents/포토부스']
+startup_timeout_sec = 90
+tool_timeout_sec = 90

@@ -1,36 +1,31 @@
-import type {Metadata} from 'next';
-import { Inter, Patrick_Hand } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Jua } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Magic Markup',
-  description: 'AI-powered image editing with highlights and annotations.',
+  title: 'AI한컷',
+  description: 'AI와 함께 만드는 나만의 과학 사진',
 };
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0e1230',
+};
 
-const patrickHand = Patrick_Hand({
-  subsets: ['latin'],
+const jua = Jua({
   weight: '400',
-  variable: '--font-patrick-hand',
+  subsets: ['latin'],
+  variable: '--font-display',
   display: 'swap',
+  preload: false,
 });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn("dark", inter.variable, patrickHand.variable)}>
-      <head>
-      </head>
+    <html lang="ko" className={cn('dark', jua.variable)}>
       <body className="font-body antialiased">
         {children}
         <Toaster />
