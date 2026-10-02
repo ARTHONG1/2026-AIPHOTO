@@ -34,7 +34,9 @@ function BoothClient() {
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
+          // Ask for more source detail in the same single capture; ideal constraints let
+          // lower-resolution cameras keep working without upscaling their native image.
+          video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1440 } },
           audio: false,
         });
         if (cancelled) return;

@@ -41,7 +41,7 @@ export type FrameDef = {
   date?: FrameDate;
 };
 
-// AI photos are framed from the head to mid-thigh, so crops keep more of the top.
+// Keep more of the top for portraits; 4:5 composites leave only a small vertical crop.
 const FOCUS = 0.28;
 
 export const FRAMES: FrameDef[] = [
