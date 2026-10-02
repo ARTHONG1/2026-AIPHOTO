@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Home, Sparkles, X } from 'lucide-react';
 import { generatePhotoAction } from '@/app/actions';
+import { applyLensEffect, preloadLensEffect } from '@/lib/lens-effects';
 import { GeneratingOverlay } from '@/components/studio/generating-overlay';
 import { PresetGrid } from '@/components/studio/preset-grid';
 import { ResultView } from '@/components/studio/result-view';
@@ -137,11 +138,14 @@ export default function StudioPage() {
     if (!current.backgroundId && !current.poseId && !current.propIds.length && !current.compositionId) return;
     generatingRef.current = true;
     setGenerating(true);
+    preloadLensEffect(current.compositionId);
     try {
       const res = await generatePhotoAction({ photo, ...current });
       if (res.ok) {
-        setResult(res.image);
-        setResultState(res.image);
+        // Lens effects (bokeh, panning, tilt-shift, soft focus) are finished here in the browser.
+        const image = await applyLensEffect(res.image, current.compositionId);
+        setResult(image);
+        setResultState(image);
       } else {
         toast({ variant: 'destructive', title: '만들지 못했어요', description: res.error });
       }
