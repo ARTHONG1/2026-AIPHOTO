@@ -1,13 +1,13 @@
 // Per-visitor session: kept in memory for speed, mirrored to sessionStorage so a
 // refresh does not lose the photo. Everything is cleared when a visitor restarts.
 
-export type Selection = { backgroundId: string | null; poseId: string | null; propIds: string[] };
+export type Selection = { backgroundId: string | null; poseId: string | null; propIds: string[]; compositionId: string | null };
 
 const PHOTO_KEY = 'ai-hancut:photo';
 const SELECTION_KEY = 'ai-hancut:selection';
 const LEGACY_KEY = 'magic-markup-session';
 
-export const EMPTY_SELECTION: Selection = { backgroundId: null, poseId: null, propIds: [] };
+export const EMPTY_SELECTION: Selection = { backgroundId: null, poseId: null, propIds: [], compositionId: null };
 
 const memory: { photo: string | null; selection: Selection | null; result: string | null } = {
   photo: null,
@@ -54,7 +54,8 @@ export function loadSelection(): Selection {
   if (!memory.selection) {
     const raw = safe(() => sessionStorage.getItem(SELECTION_KEY));
     const parsed = raw ? safe(() => JSON.parse(raw) as Selection) : null;
-    memory.selection = parsed && Array.isArray(parsed.propIds) ? parsed : EMPTY_SELECTION;
+    // Selections saved before the composition step have no compositionId.
+    memory.selection = parsed && Array.isArray(parsed.propIds) ? { ...parsed, compositionId: parsed.compositionId ?? null } : EMPTY_SELECTION;
   }
   return memory.selection;
 }

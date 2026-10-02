@@ -11,12 +11,15 @@ import { ResultView } from '@/components/studio/result-view';
 import {
   BACKGROUND_CATEGORIES,
   BACKGROUNDS,
+  COMPOSITION_CATEGORIES,
+  COMPOSITIONS,
   MAX_PROPS,
   POSE_CATEGORIES,
   POSES,
   PROP_CATEGORIES,
   PROPS,
   findBackground,
+  findComposition,
   findPose,
   findProp,
 } from '@/lib/presets';
@@ -28,6 +31,7 @@ const STEPS = [
   { id: 'background', label: '배경', hint: '어디에서 찍을까요?' },
   { id: 'pose', label: '동작', hint: '어떤 포즈를 할까요?' },
   { id: 'prop', label: '소품', hint: '최대 ' + MAX_PROPS + '개까지 고를 수 있어요.' },
+  { id: 'composition', label: '구도', hint: '카메라로 어떻게 담을까요?' },
 ] as const;
 type StepId = (typeof STEPS)[number]['id'];
 
@@ -88,16 +92,36 @@ export default function StudioPage() {
     },
     [update, toast]
   );
+  const toggleComposition = useCallback(
+    (id: string) => {
+      const current = loadSelection();
+      update({ ...current, compositionId: current.compositionId === id ? null : id });
+    },
+    [update]
+  );
+  const toggleFor = (target: StepId, id: string) => {
+    if (target === 'background') toggleBackground(id);
+    else if (target === 'pose') togglePose(id);
+    else if (target === 'prop') toggleProp(id);
+    else toggleComposition(id);
+  };
 
   const chosen = useMemo(
     () => [
       { step: 'background' as StepId, label: '배경', items: [findBackground(selection.backgroundId)].filter(Boolean) },
       { step: 'pose' as StepId, label: '동작', items: [findPose(selection.poseId)].filter(Boolean) },
       { step: 'prop' as StepId, label: '소품', items: selection.propIds.map((id) => findProp(id)).filter(Boolean) },
+      { step: 'composition' as StepId, label: '구도', items: [findComposition(selection.compositionId)].filter(Boolean) },
     ],
     [selection]
   );
-  const hasChoice = Boolean(selection.backgroundId || selection.poseId || selection.propIds.length);
+  const hasChoice = Boolean(selection.backgroundId || selection.poseId || selection.propIds.length || selection.compositionId);
+  const nextLabel =
+    step === 'background'
+      ? selection.backgroundId ? '다음' : '배경 그대로'
+      : step === 'pose'
+        ? selection.poseId ? '다음' : '동작 없이'
+        : selection.propIds.length ? '다음' : '소품 없이';
 
   const restart = useCallback(() => {
     clearSession();
@@ -130,11 +154,11 @@ export default function StudioPage() {
   return (
     <main className="flex h-dvh flex-col gap-4 p-4 md:p-6">
       <header className="flex items-center justify-between gap-3">
-        <Link href="/" onClick={() => clearSession()} className="btn-ghost px-4 py-2 text-base">
-          <Home className="size-5" aria-hidden /> 처음으로
+        <Link href="/" onClick={() => clearSession()} aria-label="처음으로" className="btn-ghost shrink-0 whitespace-nowrap px-3 py-2 text-base sm:px-4">
+          <Home className="size-5" aria-hidden /> <span className="hidden sm:inline">처음으로</span>
         </Link>
         {!result && (
-          <nav aria-label="단계" className="flex gap-1 rounded-full bg-white/5 p-1">
+          <nav aria-label="단계" className="scrollbar-none flex min-w-0 gap-1 overflow-x-auto rounded-full bg-white/5 p-1">
             {STEPS.map((s, i) => (
               <button
                 key={s.id}
@@ -142,7 +166,7 @@ export default function StudioPage() {
                 onClick={() => setStep(s.id)}
                 aria-current={step === s.id ? 'step' : undefined}
                 className={cn(
-                  'rounded-full px-4 py-2 font-display text-lg transition-colors sm:px-6',
+                  'whitespace-nowrap rounded-full px-2.5 py-2 font-display text-base transition-colors sm:px-6 sm:text-lg',
                   step === s.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -180,7 +204,7 @@ export default function StudioPage() {
                         <button
                           key={item!.id}
                           type="button"
-                          onClick={() => (group.step === 'background' ? toggleBackground(item!.id) : group.step === 'pose' ? togglePose(item!.id) : toggleProp(item!.id))}
+                          onClick={() => toggleFor(group.step, item!.id)}
                           className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-sm hover:bg-white/20"
                           aria-label={item!.name + ' 선택 해제'}
                         >
@@ -226,23 +250,33 @@ export default function StudioPage() {
             {step === 'prop' && (
               <PresetGrid label="소품" variant="prop" items={PROPS} categories={PROP_CATEGORIES} selected={selection.propIds} onToggle={toggleProp} />
             )}
+            {step === 'composition' && (
+              <PresetGrid
+                label="구도"
+                variant="composition"
+                items={COMPOSITIONS}
+                categories={COMPOSITION_CATEGORIES}
+                selected={selection.compositionId ? [selection.compositionId] : []}
+                onToggle={toggleComposition}
+              />
+            )}
           </section>
         </div>
       )}
 
       {!result && (
-        <footer className="flex items-center justify-between gap-3">
-          <button type="button" className="btn-ghost" onClick={() => setStep(STEPS[Math.max(stepIndex - 1, 0)].id)} disabled={stepIndex === 0}>
+        <footer className="flex items-start justify-between gap-3">
+          <button type="button" className="btn-ghost whitespace-nowrap" onClick={() => setStep(STEPS[Math.max(stepIndex - 1, 0)].id)} disabled={stepIndex === 0}>
             <ArrowLeft className="size-5" aria-hidden /> 이전
           </button>
-          <div className="flex gap-3">
+          <div className="flex flex-1 flex-wrap justify-end gap-3">
             {stepIndex < STEPS.length - 1 && (
-              <button type="button" className="btn-ghost" onClick={goNext}>
-                {step === 'background' ? (selection.backgroundId ? '다음' : '배경 그대로') : selection.poseId ? '다음' : '동작 없이'}
+              <button type="button" className="btn-ghost whitespace-nowrap" onClick={goNext}>
+                {nextLabel}
                 <ArrowRight className="size-5" aria-hidden />
               </button>
             )}
-            <button type="button" className="btn-primary px-8" onClick={generate} disabled={!hasChoice || generating}>
+            <button type="button" className="btn-primary whitespace-nowrap px-5 max-sm:w-full sm:px-8" onClick={generate} disabled={!hasChoice || generating}>
               <Sparkles className="size-6" aria-hidden /> AI 사진 만들기
             </button>
           </div>

@@ -10,7 +10,7 @@ type Props = {
   categories: PresetCategory[];
   selected: string[];
   onToggle: (id: string) => void;
-  variant: 'background' | 'pose' | 'prop';
+  variant: 'background' | 'pose' | 'prop' | 'composition';
   label: string;
 };
 
@@ -52,7 +52,10 @@ const PresetCard = memo(function PresetCard({
           </span>
         )}
       </span>
-      <span className="px-3 py-2 font-display text-lg leading-tight">{item.name}</span>
+      <span className="flex flex-col gap-0.5 px-3 py-2">
+        <span className="font-display text-lg leading-tight">{item.name}</span>
+        {item.desc && <span className="text-sm leading-snug text-muted-foreground">{item.desc}</span>}
+      </span>
     </button>
   );
 });

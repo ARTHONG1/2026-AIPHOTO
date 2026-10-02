@@ -5,15 +5,17 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Part } from 'genkit';
+import sharp from 'sharp';
 import { FACE_TRANSFER, FALLBACK_IMAGE_MODEL_ID, IMAGE_MODEL_ID, IMAGE_SIZE, ai, imageModel } from '@/ai/genkit';
 import { analyzeFace, transferFace, type SourceFace } from '@/ai/face';
-import { MAX_PROPS, findBackground, findPose, findProp, type Preset } from '@/lib/presets';
+import { MAX_PROPS, findBackground, findComposition, findPose, findProp, type Preset } from '@/lib/presets';
 
 export type GenerateRequest = {
   photo: string;
   backgroundId?: string | null;
   poseId?: string | null;
   propIds?: string[];
+  compositionId?: string | null;
 };
 
 export type GenerateResult = { ok: true; image: string } | { ok: false; error: string };
@@ -27,6 +29,9 @@ const FACE_COVERING_POSES = new Set(['shush', 'binoculars']);
 // Hands or headwear close to the face: blend only brows, eyes, nose and mouth.
 const TIGHT_POSES = new Set(['v-sign', 'double-v', 'surprise', 'salute', 'think', 'head-scratch', 'boxing']);
 const TIGHT_PROPS = new Set(['einstein-wig', 'graduation-cap', 'explorer-hat', 'circuit-crown', 'astronaut-helmet']);
+// Compositions finished in code: the model draws the scene straight (it copies the level
+// background reference), so the Dutch tilt is a rotation of the whole picture plus a crop.
+const TILTED_COMPOSITIONS: Record<string, number> = { 'dutch-angle': -12 };
 
 // Prompt order was compared on real Pro renders (synthetic subject, scene + pose + item):
 // asking for "one on-location photograph" first, then identity, then each reference with a
@@ -34,11 +39,24 @@ const TIGHT_PROPS = new Set(['einstein-wig', 'graduation-cap', 'explorer-hat', '
 // Putting the scene image before the base photo duplicated held items, so the photo stays first.
 // Framing matters for likeness: head-to-knee shots drew the face ~70 px wide at 1K and the
 // identity drifted (face similarity 0.49-0.69); waist-up framing kept it ~125 px (0.88).
+// That waist-up framing stays the default; a composition chosen by the visitor replaces it,
+// so a long shot trades some likeness (and usually the face transfer) for the wide view.
 const TASK = [
   '=== TASK: a photorealistic on-location photograph of PERSON A. PERSON A is the real person in the BASE PHOTO. Photograph PERSON A inside the SCENE as if a professional photographer shot one single frame there with one camera.',
   'The result must never look like a cutout pasted on a backdrop: PERSON A stands inside the scene at a natural scale, with the scene visible around them.',
-  "Framing: a medium shot from the top of the head to about mid-thigh, so PERSON A's face is large, sharp and clearly recognizable. Show the full body only when the pose needs the legs (jumping, kicking, running, squatting or balancing on one leg), and even then keep the camera as close as the pose allows.",
 ].join('\n');
+
+const DEFAULT_FRAMING =
+  "Framing: a medium shot from the top of the head to about mid-thigh, so PERSON A's face is large, sharp and clearly recognizable. Show the full body only when the pose needs the legs (jumping, kicking, running, squatting or balancing on one leg), and even then keep the camera as close as the pose allows.";
+
+function framing(compositionId?: string | null): string {
+  const composition = findComposition(compositionId);
+  if (!composition) return DEFAULT_FRAMING;
+  return (
+    '=== COMPOSITION (camera framing chosen by the visitor, must match): ' + composition.prompt + '.\n' +
+    'The composition decides what is inside the frame and where the camera stands; it overrides the head angle of the BASE PHOTO but never the identity. If it crops part of the pose, show the visible part of the pose correctly.'
+  );
+}
 
 const IDENTITY = [
   '=== IDENTITY LOCK (highest priority): do not create a new person. Keep PERSON A recognizably identical: facial geometry and proportions, eye shape and spacing, eyebrows, nose, lips, jawline, cheekbones, skin tone, age, hairline, hairstyle and hair color, glasses, moles and body build.',
@@ -74,18 +92,21 @@ export function validateRequest(input: GenerateRequest): string | null {
   }
   if (input.backgroundId && !findBackground(input.backgroundId)) return '알 수 없는 배경입니다.';
   if (input.poseId && !findPose(input.poseId)) return '알 수 없는 동작입니다.';
+  if (input.compositionId && !findComposition(input.compositionId)) return '알 수 없는 구도입니다.';
   const propIds = input.propIds ?? [];
   if (!Array.isArray(propIds) || propIds.length > MAX_PROPS || propIds.some((id) => !findProp(id))) {
     return '소품 선택이 올바르지 않습니다.';
   }
-  if (!input.backgroundId && !input.poseId && propIds.length === 0) return '배경, 동작, 소품 중 하나 이상을 골라 주세요.';
+  if (!input.backgroundId && !input.poseId && propIds.length === 0 && !input.compositionId) {
+    return '배경, 동작, 소품, 구도 중 하나 이상을 골라 주세요.';
+  }
   return null;
 }
 
 export async function buildParts(input: GenerateRequest, face?: string | null): Promise<Part[]> {
   const photoType = input.photo.slice(5, input.photo.indexOf(';'));
   const parts: Part[] = [
-    { text: TASK },
+    { text: TASK + '\n' + framing(input.compositionId) },
     { text: '=== BASE PHOTO (PERSON A, the only identity source)' },
     { media: { url: input.photo, contentType: photoType } },
   ];
@@ -187,6 +208,40 @@ async function safeTransferFace(face: SourceFace, image: string, input: Generate
   return image;
 }
 
+/** Rotates the whole picture and crops the largest upright frame of the same size ratio. */
+async function tiltImage(image: string, degrees: number): Promise<string> {
+  const input = Buffer.from(image.slice(image.indexOf(',') + 1), 'base64');
+  const { width = 0, height = 0 } = await sharp(input).metadata();
+  if (!width || !height) return image;
+  const t = (Math.abs(degrees) * Math.PI) / 180;
+  const zoom = Math.cos(t) + (Math.max(width, height) / Math.min(width, height)) * Math.sin(t);
+  const rotated = await sharp(input).rotate(degrees, { background: '#000000' }).toBuffer({ resolveWithObject: true });
+  const cropW = Math.floor(width / zoom);
+  const cropH = Math.floor(height / zoom);
+  const output = await sharp(rotated.data)
+    .extract({
+      left: Math.floor((rotated.info.width - cropW) / 2),
+      top: Math.floor((rotated.info.height - cropH) / 2),
+      width: cropW,
+      height: cropH,
+    })
+    .resize(width, height)
+    .png()
+    .toBuffer();
+  return 'data:image/png;base64,' + output.toString('base64');
+}
+
+async function finishComposition(image: string, compositionId?: string | null): Promise<string> {
+  const degrees = compositionId ? TILTED_COMPOSITIONS[compositionId] : undefined;
+  if (!degrees) return image;
+  try {
+    return await tiltImage(image, degrees);
+  } catch (error) {
+    console.warn('[generatePhoto] tilt skipped', error instanceof Error ? error.message.slice(0, 200) : error);
+    return image;
+  }
+}
+
 export async function generatePhoto(input: GenerateRequest): Promise<GenerateResult> {
   const invalid = validateRequest(input);
   if (invalid) return { ok: false, error: invalid };
@@ -203,7 +258,7 @@ export async function generatePhoto(input: GenerateRequest): Promise<GenerateRes
     const composite = await renderWithFallback(await buildParts(input, face?.closeUp));
     if (!composite) return { ok: false, error: 'AI가 이미지를 만들지 못했어요. 다른 조합으로 다시 시도해 주세요.' };
     const image = face && FACE_TRANSFER ? await safeTransferFace(face, composite, input) : composite;
-    return { ok: true, image };
+    return { ok: true, image: await finishComposition(image, input.compositionId) };
   } catch (error) {
     console.error('[generatePhoto] Vertex AI error', error);
     const message = error instanceof Error ? error.message : String(error);

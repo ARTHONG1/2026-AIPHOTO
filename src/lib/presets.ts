@@ -13,6 +13,8 @@ export type Preset = {
   thumb?: string;
   /** Reference image sent to the model (under /public). */
   ref?: string;
+  /** Short plain-Korean explanation shown under the name (used for camera terms). */
+  desc?: string;
 };
 
 // ---------- backgrounds ----------
@@ -195,3 +197,50 @@ const PROP_MAP = byId(PROPS);
 export const findBackground = (id?: string | null) => (id ? BACKGROUND_MAP.get(id) : undefined);
 export const findPose = (id?: string | null) => (id ? POSE_MAP.get(id) : undefined);
 export const findProp = (id?: string | null) => (id ? PROP_MAP.get(id) : undefined);
+
+// ---------- compositions (camera framing) ----------
+// Text-only for the model: a sketch of a framed mannequin would fight the chosen pose.
+// Cards are drawn by scripts/build-assets.mjs from scripts/composition-geometry.mjs.
+export const COMPOSITION_CATEGORIES: PresetCategory[] = [
+  { id: 'zoom', label: '줌인·줌아웃' },
+  { id: 'angle', label: '카메라 각도' },
+  { id: 'layout', label: '자리 잡기' },
+];
+
+const composition = (id: string, name: string, category: string, desc: string, prompt: string): Preset => ({
+  id,
+  name,
+  category,
+  desc,
+  prompt,
+  thumb: '/presets/compositions/' + id + '.svg',
+});
+
+export const COMPOSITIONS: Preset[] = [
+  composition('close-up', '클로즈업', 'zoom', '얼굴을 크게 (줌인)',
+    'CLOSE-UP (zoomed in): frame from just above the top of the head to just below the shoulders. The face fills most of the frame and is perfectly sharp; the scene shows only as a softly blurred background around the head'),
+  composition('bust-shot', '바스트샷', 'zoom', '가슴 위까지',
+    'BUST SHOT: frame from just above the head to the middle of the chest. The face is large and sharp, with the scene visible behind the shoulders'),
+  composition('waist-shot', '웨이스트샷', 'zoom', '허리 위까지',
+    'WAIST SHOT: frame from just above the head to the waist, with the scene visible on both sides of PERSON A'),
+  composition('knee-shot', '니샷', 'zoom', '무릎 위까지',
+    'KNEE SHOT: frame from just above the head to just below the knees'),
+  composition('full-shot', '풀샷', 'zoom', '머리부터 발끝까지',
+    'FULL SHOT: the whole body from head to feet is inside the frame with a little space above the head and below the feet, both feet standing on the ground of the scene'),
+  composition('long-shot', '롱샷', 'zoom', '배경을 넓게 (줌아웃)',
+    'LONG SHOT (zoomed far out): an extreme wide establishing shot taken with a wide-angle lens from about 10 meters away. PERSON A is small: their whole body, head to feet, is only about 30 percent of the frame height, standing in the lower middle third, and the wide scene with lots of open space above and around them fills the rest of the frame. Do not enlarge PERSON A to show the face bigger; the small size is the point of this shot. Keep the face well lit and in focus even though it is small'),
+  composition('low-angle', '로우앵글', 'angle', '아래에서 올려다보기',
+    'LOW ANGLE (looking up): the camera sits close to the ground, about 40 cm high, and tilts up about 30 degrees at PERSON A. Show strong upward perspective: the shoes and legs are nearer and look larger, the head is farther away, the horizon sits in the bottom quarter of the frame and the sky or ceiling of the scene fills the top. PERSON A towers over the camera like a hero and looks down slightly toward the lens. Full body, head to feet, with the face clearly visible'),
+  composition('high-angle', '하이앵글', 'angle', '위에서 내려다보기',
+    'HIGH ANGLE (looking down): the camera is held about 1 meter above the head of PERSON A and tilts down about 40 degrees. Show strong downward perspective: the head and shoulders are nearer and look larger, the body narrows toward the feet, and the ground or floor of the scene fills the background instead of the sky. PERSON A looks up toward the lens, so the face is clearly visible. Full body, head to feet'),
+  composition('dutch-angle', '더치앵글', 'angle', '비스듬히 기울여 역동적으로',
+    // The tilt itself is applied after generation (see TILTED_COMPOSITIONS); the model only leaves room for the crop.
+    'DUTCH ANGLE: an energetic, dynamic shot. Frame from the head to the knees with generous space around PERSON A on every side and the head well below the top edge, because the finished picture is rotated and cropped afterwards. Keep PERSON A near the center of the frame'),
+  composition('rule-of-thirds', '3분할 구도', 'layout', '한쪽에 서서 배경과 함께',
+    'RULE OF THIRDS: frame from the head to the knees with PERSON A standing on the left third line of the frame, not in the center; the open right side shows the most interesting part of the scene'),
+  composition('center-frame', '중앙 구도', 'layout', '가운데에 반듯하게',
+    'CENTERED SYMMETRY: PERSON A stands exactly in the middle of the frame, facing the camera straight on, with the scene arranged evenly on both sides. Frame from the head to the knees'),
+];
+
+const COMPOSITION_MAP = byId(COMPOSITIONS);
+export const findComposition = (id?: string | null) => (id ? COMPOSITION_MAP.get(id) : undefined);
