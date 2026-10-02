@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Home, Sparkles, X } from 'lucide-react';
@@ -30,10 +30,15 @@ import { cn } from '@/lib/utils';
 const STEPS = [
   { id: 'background', label: '배경', hint: '어디에서 찍을까요?' },
   { id: 'pose', label: '동작', hint: '어떤 포즈를 할까요?' },
-  { id: 'prop', label: '소품', hint: '최대 ' + MAX_PROPS + '개까지 고를 수 있어요.' },
-  { id: 'composition', label: '구도', hint: '카메라로 어떻게 담을까요?' },
+  { id: 'prop', label: '소품', hint: '최대 ' + MAX_PROPS + '개, 고르면 잠시 뒤 구도로 넘어가요.' },
+  { id: 'composition', label: '구도', hint: '고르면 바로 AI 사진을 만들어요.' },
 ] as const;
 type StepId = (typeof STEPS)[number]['id'];
+
+// Event flow: every pick moves the visitor on by itself. Props allow several picks, so the
+// move to the composition step waits a moment after the last pick (or goes at once at the limit).
+const AUTO_NEXT_MS = 180;
+const PROP_ADVANCE_MS = 1500;
 
 export default function StudioPage() {
   const router = useRouter();
@@ -43,6 +48,9 @@ export default function StudioPage() {
   const [step, setStep] = useState<StepId>('background');
   const [generating, setGenerating] = useState(false);
   const [result, setResultState] = useState<string | null>(null);
+  const [propAdvancing, setPropAdvancing] = useState(false);
+  const propTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generatingRef = useRef(false);
 
   useEffect(() => {
     const saved = getPhoto();
@@ -82,28 +90,85 @@ export default function StudioPage() {
   const toggleProp = useCallback(
     (id: string) => {
       const current = loadSelection();
+      let next = current.propIds;
       if (current.propIds.includes(id)) {
-        update({ ...current, propIds: current.propIds.filter((p) => p !== id) });
+        next = current.propIds.filter((p) => p !== id);
       } else if (current.propIds.length >= MAX_PROPS) {
         toast({ title: '소품은 ' + MAX_PROPS + '개까지 고를 수 있어요.' });
+        return;
       } else {
-        update({ ...current, propIds: [...current.propIds, id] });
+        next = [...current.propIds, id];
+      }
+      update({ ...current, propIds: next });
+      if (propTimer.current) clearTimeout(propTimer.current);
+      propTimer.current = null;
+      setPropAdvancing(false);
+      if (next.length === 0) return;
+      // Only moves on if the visitor is still on the prop step when the timer fires.
+      const advance = () => {
+        propTimer.current = null;
+        setPropAdvancing(false);
+        setStep((s) => (s === 'prop' ? 'composition' : s));
+      };
+      if (next.length >= MAX_PROPS) {
+        propTimer.current = setTimeout(advance, AUTO_NEXT_MS);
+      } else {
+        setPropAdvancing(true);
+        propTimer.current = setTimeout(advance, PROP_ADVANCE_MS);
       }
     },
     [update, toast]
   );
-  const toggleComposition = useCallback(
+  useEffect(() => {
+    if (step !== 'prop' && propTimer.current) {
+      clearTimeout(propTimer.current);
+      propTimer.current = null;
+      setPropAdvancing(false);
+    }
+  }, [step]);
+  useEffect(() => () => {
+    if (propTimer.current) clearTimeout(propTimer.current);
+  }, []);
+
+  const generate = useCallback(async () => {
+    if (!photo || generatingRef.current) return;
+    // Read the stored selection so a pick made a moment ago is always included.
+    const current = loadSelection();
+    if (!current.backgroundId && !current.poseId && !current.propIds.length && !current.compositionId) return;
+    generatingRef.current = true;
+    setGenerating(true);
+    try {
+      const res = await generatePhotoAction({ photo, ...current });
+      if (res.ok) {
+        setResult(res.image);
+        setResultState(res.image);
+      } else {
+        toast({ variant: 'destructive', title: '만들지 못했어요', description: res.error });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: '연결이 끊겼어요', description: '인터넷 연결을 확인하고 다시 시도해 주세요.' });
+    } finally {
+      generatingRef.current = false;
+      setGenerating(false);
+    }
+  }, [photo, toast]);
+
+  // Picking a composition is the last choice: it selects (never unselects) and starts the AI.
+  const chooseComposition = useCallback(
     (id: string) => {
-      const current = loadSelection();
-      update({ ...current, compositionId: current.compositionId === id ? null : id });
+      if (generatingRef.current) return;
+      update({ ...loadSelection(), compositionId: id });
+      setTimeout(generate, AUTO_NEXT_MS);
     },
-    [update]
+    [update, generate]
   );
+  const clearComposition = useCallback(() => update({ ...loadSelection(), compositionId: null }), [update]);
   const toggleFor = (target: StepId, id: string) => {
     if (target === 'background') toggleBackground(id);
     else if (target === 'pose') togglePose(id);
     else if (target === 'prop') toggleProp(id);
-    else toggleComposition(id);
+    else clearComposition();
   };
 
   const chosen = useMemo(
@@ -121,31 +186,12 @@ export default function StudioPage() {
       ? selection.backgroundId ? '다음' : '배경 그대로'
       : step === 'pose'
         ? selection.poseId ? '다음' : '동작 없이'
-        : selection.propIds.length ? '다음' : '소품 없이';
+        : propAdvancing ? '곧 구도로 넘어가요' : selection.propIds.length ? '다음' : '소품 없이';
 
   const restart = useCallback(() => {
     clearSession();
     router.push('/');
   }, [router]);
-
-  const generate = async () => {
-    if (!photo || generating) return;
-    setGenerating(true);
-    try {
-      const res = await generatePhotoAction({ photo, ...selection });
-      if (res.ok) {
-        setResult(res.image);
-        setResultState(res.image);
-      } else {
-        toast({ variant: 'destructive', title: '만들지 못했어요', description: res.error });
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: '연결이 끊겼어요', description: '인터넷 연결을 확인하고 다시 시도해 주세요.' });
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   if (!photo) return null;
 
@@ -257,7 +303,7 @@ export default function StudioPage() {
                 items={COMPOSITIONS}
                 categories={COMPOSITION_CATEGORIES}
                 selected={selection.compositionId ? [selection.compositionId] : []}
-                onToggle={toggleComposition}
+                onToggle={chooseComposition}
               />
             )}
           </section>
@@ -271,7 +317,7 @@ export default function StudioPage() {
           </button>
           <div className="flex flex-1 flex-wrap justify-end gap-3">
             {stepIndex < STEPS.length - 1 && (
-              <button type="button" className="btn-ghost whitespace-nowrap" onClick={goNext}>
+              <button type="button" className={cn('btn-ghost whitespace-nowrap', propAdvancing && step === 'prop' && 'animate-pulse ring-2 ring-primary')} onClick={goNext}>
                 {nextLabel}
                 <ArrowRight className="size-5" aria-hidden />
               </button>
