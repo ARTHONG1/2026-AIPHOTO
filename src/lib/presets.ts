@@ -30,8 +30,8 @@ const bgImage = (id: string, name: string, category: string, prompt: string): Pr
   name,
   category,
   prompt,
-  thumb: '/presets/backgrounds/' + id + '.webp',
-  ref: '/presets/backgrounds/ref/' + id + '.jpg',
+  thumb: '/presets/backgrounds/' + id + '.avif',
+  ref: '/presets/backgrounds/ref/' + id + '.webp',
 });
 
 export const BACKGROUNDS: Preset[] = [
@@ -67,6 +67,24 @@ export const BACKGROUNDS: Preset[] = [
   bgImage('museum-hall', '자연사 박물관', 'adventure', 'a grand natural history museum hall with a huge dinosaur skeleton'),
   bgImage('storm-chase', '폭풍 관측', 'adventure', 'a weather research station watching a distant tornado under dramatic clouds'),
   bgImage('neon-city', '미래 도시', 'adventure', 'a futuristic city at night with flying cars and neon lights'),
+  bgImage('jupiter-europa', '목성과 유로파', 'space', 'the icy cracked surface of Jupiter\'s moon Europa with giant striped Jupiter filling the starry sky'),
+  bgImage('nebula', '성운 속 우주', 'space', 'a rocky asteroid ledge floating inside a huge colorful glowing nebula with newborn stars'),
+  bgImage('twin-suns', '쌍둥이 태양 행성', 'space', 'an alien desert planet with tall rock arches under two setting suns'),
+  bgImage('comet-surface', '혜성 위', 'space', 'the dark icy surface of a comet with glittering gas jets and a long glowing tail across the stars'),
+  bgImage('meteor-shower', '별똥별 밤', 'space', 'a grassy hilltop with a telescope at night under a spectacular meteor shower and the Milky Way'),
+  bgImage('geyser', '간헐천', 'nature', 'a geothermal valley with an erupting geyser and colorful steaming hot springs'),
+  bgImage('canyon-layers', '지층 협곡', 'nature', 'a canyon floor between towering red rock walls with clearly visible colorful rock layers'),
+  bgImage('glow-forest', '빛나는 버섯 숲', 'nature', 'a dark forest at night lit by bioluminescent glowing mushrooms and fireflies'),
+  bgImage('mudflat', '서해 갯벌', 'nature', 'a wide Korean west-coast tidal mudflat at low tide with shiny tidal channels at sunset'),
+  bgImage('quantum-computer', '양자컴퓨터 연구소', 'lab', 'a quantum computing lab with a golden chandelier-shaped dilution refrigerator and blue-lit racks'),
+  bgImage('mission-control', '우주 관제센터', 'lab', 'a space mission control room with rows of glowing consoles and a giant launch screen'),
+  bgImage('fusion-reactor', '핵융합 연구소', 'lab', 'a fusion research hall in front of a giant tokamak reactor with a glowing pink-violet plasma ring'),
+  bgImage('particle-collider', '입자가속기', 'lab', 'a long curved particle accelerator tunnel with a huge blue magnet pipe'),
+  bgImage('ai-classroom', '미래 AI 교실', 'lab', 'a bright futuristic classroom with floating holographic screens and a friendly robot teacher'),
+  bgImage('submarine', '심해 잠수정', 'adventure', 'inside a deep-sea submarine cockpit with a big round window full of glowing sea creatures'),
+  bgImage('floating-islands', '하늘 섬', 'adventure', 'a grassy floating island in the sky with waterfalls pouring off other floating islands'),
+  bgImage('underwater-dome', '해저 연구 기지', 'adventure', 'inside a glass-domed underwater research base with fish, coral and sea turtles outside'),
+  bgImage('time-portal', '타임머신 연구소', 'adventure', 'a steampunk time machine lab with a giant glowing swirling time portal, gears and clocks'),
 ];
 
 // ---------- poses ----------
@@ -133,6 +151,12 @@ export const POSES: Preset[] = [
   pose('tree-yoga', '나무 자세', 'sport', 'yoga tree pose on one leg with arms above the head'),
   pose('squat', '쪼그려 앉기', 'sport', 'a low squat with hands forward'),
   pose('stretch', '옆구리 스트레칭', 'sport', 'a side stretch with one arm reaching over the head'),
+  pose('eureka', '유레카!', 'science', 'one index finger raised beside the head as if a great idea just came'),
+  pose('look-far', '멀리 보기', 'science', 'one hand held flat above the eyes like a visor, looking into the distance'),
+  pose('finger-guns', '빵야', 'fun', 'both hands making finger guns pointing outward at chest height'),
+  pose('double-wave', '양손 흔들기', 'classic', 'both hands raised high and waving at the camera'),
+  pose('shrug', '으쓱', 'fun', 'shrugging with both palms turned up and elbows bent'),
+  pose('energy-blast', '에너지 발사', 'fun', 'both palms pushed out to one side together as if firing an energy blast'),
 ];
 
 // ---------- props ----------
@@ -150,8 +174,8 @@ const propImage = (id: string, name: string, category: string, prompt: string): 
   name,
   category,
   prompt,
-  thumb: '/presets/props/' + id + '.webp',
-  ref: '/presets/props/ref/' + id + '.png',
+  thumb: '/presets/props/' + id + '.avif',
+  ref: '/presets/props/ref/' + id + '.webp',
 });
 
 export const PROPS: Preset[] = [
@@ -187,6 +211,24 @@ export const PROPS: Preset[] = [
   propImage('plasma-ball', '플라스마 볼', 'magic', 'holding a glowing plasma ball with purple light filaments'),
   propImage('planet-orbit', '떠다니는 행성', 'magic', 'with small planets orbiting around the head'),
   propImage('light-bulb', '번뜩 아이디어', 'magic', 'with a glowing idea light bulb floating above the head'),
+  propImage('globe', '지구본', 'hold', 'holding a classic world globe on a brass stand'),
+  propImage('prism', '프리즘', 'hold', 'holding a glass prism that splits light into a bright rainbow'),
+  propImage('newton-cradle', '뉴턴의 요람', 'hold', 'holding a chrome Newton\'s cradle with one ball swinging'),
+  propImage('geode', '자수정 원석', 'hold', 'holding a split amethyst geode with sparkling purple crystals'),
+  propImage('satellite-model', '인공위성 모형', 'hold', 'holding a model satellite with golden foil and blue solar panels'),
+  propImage('mars-rover', '화성 탐사 로버', 'hold', 'holding a toy model of a six-wheeled Mars rover'),
+  propImage('test-tubes', '시험관 세트', 'hold', 'holding a wooden rack of test tubes filled with rainbow-colored liquids'),
+  propImage('volcano-model', '화산 실험', 'hold', 'holding a model volcano erupting with foamy red lava'),
+  propImage('stethoscope', '청진기', 'wear', 'wearing a stethoscope around the neck'),
+  propImage('headlamp', '헤드램프', 'head', 'wearing a bright glowing LED headlamp on the forehead'),
+  propImage('eeg-cap', '뇌파 측정 모자', 'head', 'wearing an EEG brainwave cap with small colorful electrodes, face fully visible'),
+  propImage('propeller-cap', '프로펠러 모자', 'head', 'wearing a colorful propeller beanie cap'),
+  propImage('pilot-headset', '관제 헤드셋', 'head', 'wearing a mission control headset with a boom microphone'),
+  propImage('exoskeleton', '웨어러블 로봇', 'wear', 'wearing a sleek white robotic exoskeleton on the shoulders and arms'),
+  propImage('flight-jacket', '우주비행사 재킷', 'wear', 'wearing an orange astronaut flight jacket with round mission patches'),
+  propImage('solar-wings', '태양광 날개', 'wear', 'wearing a backpack with two unfolded solar-panel wings'),
+  propImage('hologram-earth', '홀로그램 지구', 'magic', 'with a glowing blue hologram of the Earth floating above one open hand'),
+  propImage('mini-ufo', '미니 UFO', 'magic', 'with a small shiny flying saucer with glowing lights hovering beside the head'),
 ];
 
 const byId = (list: Preset[]) => new Map(list.map((p) => [p.id, p]));
@@ -199,12 +241,15 @@ export const findPose = (id?: string | null) => (id ? POSE_MAP.get(id) : undefin
 export const findProp = (id?: string | null) => (id ? PROP_MAP.get(id) : undefined);
 
 // ---------- compositions (camera framing) ----------
-// Text-only for the model: a sketch of a framed mannequin would fight the chosen pose.
-// Cards are drawn by scripts/build-assets.mjs from scripts/composition-geometry.mjs.
+// Real photography techniques only. Text-only for the model: a sketch of a framed mannequin
+// would fight the chosen pose. Cards are pencil storyboards from scripts/composition-geometry.mjs.
 export const COMPOSITION_CATEGORIES: PresetCategory[] = [
   { id: 'zoom', label: '줌인·줌아웃' },
   { id: 'angle', label: '카메라 각도' },
   { id: 'layout', label: '자리 잡기' },
+  { id: 'lens', label: '렌즈' },
+  { id: 'light', label: '빛과 노출' },
+  { id: 'shutter', label: '셔터와 특수 기법' },
 ];
 
 const composition = (id: string, name: string, category: string, desc: string, prompt: string): Preset => ({
@@ -217,6 +262,9 @@ const composition = (id: string, name: string, category: string, desc: string, p
 });
 
 export const COMPOSITIONS: Preset[] = [
+  // zoom
+  composition('extreme-close-up', '익스트림 클로즈업', 'zoom', '눈과 표정만 가득',
+    'EXTREME CLOSE-UP: frame tightly on the face from the eyebrows to the chin (the top of the head may be cropped); the eyes, skin texture and expression fill the frame and the scene shows only as soft color and light behind'),
   composition('close-up', '클로즈업', 'zoom', '얼굴을 크게 (줌인)',
     'CLOSE-UP (zoomed in): frame from just above the top of the head to just below the shoulders. The face fills most of the frame and is perfectly sharp; the scene shows only as a softly blurred background around the head'),
   composition('bust-shot', '바스트샷', 'zoom', '가슴 위까지',
@@ -229,17 +277,99 @@ export const COMPOSITIONS: Preset[] = [
     'FULL SHOT: the whole body from head to feet is inside the frame with a little space above the head and below the feet, both feet standing on the ground of the scene'),
   composition('long-shot', '롱샷', 'zoom', '배경을 넓게 (줌아웃)',
     'LONG SHOT (zoomed far out): an extreme wide establishing shot taken with a wide-angle lens from about 10 meters away. PERSON A is small: their whole body, head to feet, is only about 30 percent of the frame height, standing in the lower middle third, and the wide scene with lots of open space above and around them fills the rest of the frame. Do not enlarge PERSON A to show the face bigger; the small size is the point of this shot. Keep the face well lit and in focus even though it is small'),
-  composition('low-angle', '로우앵글', 'angle', '아래에서 올려다보기',
-    'LOW ANGLE (looking up): the camera sits close to the ground, about 40 cm high, and tilts up about 30 degrees at PERSON A. Show strong upward perspective: the shoes and legs are nearer and look larger, the head is farther away, the horizon sits in the bottom quarter of the frame and the sky or ceiling of the scene fills the top. PERSON A towers over the camera like a hero and looks down slightly toward the lens. Full body, head to feet, with the face clearly visible'),
+  composition('extreme-long-shot', '익스트림 롱샷', 'zoom', '대자연 속 아주 작은 나',
+    'EXTREME LONG SHOT: a vast establishing view from far away; PERSON A is tiny, about 12 percent of the frame height, standing in the lower third, and the huge scene dominates the picture. Do not enlarge PERSON A'),
+  // camera angle
+  composition('eye-level', '아이레벨', 'angle', '눈높이에서 정면으로',
+    'EYE LEVEL: the camera is exactly at the height of PERSON A eyes, level and straight on with no tilt, for a natural and honest perspective. Frame from the head to the knees'),
   composition('high-angle', '하이앵글', 'angle', '위에서 내려다보기',
     'HIGH ANGLE (looking down): the camera is held about 1 meter above the head of PERSON A and tilts down about 40 degrees. Show strong downward perspective: the head and shoulders are nearer and look larger, the body narrows toward the feet, and the ground or floor of the scene fills the background instead of the sky. PERSON A looks up toward the lens, so the face is clearly visible. Full body, head to feet'),
+  composition('low-angle', '로우앵글', 'angle', '아래에서 올려다보기',
+    'LOW ANGLE (looking up): the camera sits close to the ground, about 40 cm high, and tilts up about 30 degrees at PERSON A. Show strong upward perspective: the shoes and legs are nearer and look larger, the head is farther away, the horizon sits in the bottom quarter of the frame and the sky or ceiling of the scene fills the top. PERSON A towers over the camera like a hero and looks down slightly toward the lens. Full body, head to feet, with the face clearly visible'),
+  composition('birds-eye', '버드아이뷰', 'angle', '바로 위에서 수직으로',
+    "BIRD'S-EYE VIEW: the camera is directly overhead, about 3 meters up, pointing straight down. We see the top of the head and the shoulders, PERSON A looks straight up into the lens so the face is visible, and the ground of the scene spreads around them like a map"),
+  composition('worms-eye', '웜즈아이뷰', 'angle', '바닥에서 하늘로',
+    "WORM'S-EYE VIEW: the camera lies on the ground right in front of the feet, pointing almost straight up. Extreme upward perspective: the shoes are huge in the foreground, PERSON A towers into the sky or ceiling of the scene and looks down at the lens"),
   composition('dutch-angle', '더치앵글', 'angle', '비스듬히 기울여 역동적으로',
-    // The tilt itself is applied after generation (see TILTED_COMPOSITIONS); the model only leaves room for the crop.
+    // The tilt itself is applied after generation (see COMPOSITION_FINISHERS); the model only leaves room for the crop.
     'DUTCH ANGLE: an energetic, dynamic shot. Frame from the head to the knees with generous space around PERSON A on every side and the head well below the top edge, because the finished picture is rotated and cropped afterwards. Keep PERSON A near the center of the frame'),
+  composition('three-quarter', '쓰리쿼터', 'angle', '45도 비스듬히',
+    'THREE-QUARTER VIEW: the camera stands 45 degrees to one side; PERSON A turns the body slightly away but keeps the face toward the lens at a three-quarter angle, giving depth to the face. Frame from the head to mid-thigh'),
+  composition('profile', '프로필', 'angle', '옆모습 라인',
+    'PROFILE VIEW: the camera stands 90 degrees to the side; PERSON A is seen in a clean side profile looking across the frame toward the open side of the scene, with the outline of the forehead, nose, lips and chin clearly visible. Frame from the head to the knees'),
+  composition('aerial', '에어리얼', 'angle', '드론으로 높이서',
+    'AERIAL DRONE SHOT: from a drone high above and in front, looking down at about 45 degrees; PERSON A is small in the middle of the wide landscape, looking up and waving at the drone so the face catches the light'),
+  // layout
   composition('rule-of-thirds', '3분할 구도', 'layout', '한쪽에 서서 배경과 함께',
     'RULE OF THIRDS: frame from the head to the knees with PERSON A standing on the left third line of the frame, not in the center; the open right side shows the most interesting part of the scene'),
-  composition('center-frame', '중앙 구도', 'layout', '가운데에 반듯하게',
+  composition('center-frame', '중앙 대칭 구도', 'layout', '가운데에 반듯하게',
     'CENTERED SYMMETRY: PERSON A stands exactly in the middle of the frame, facing the camera straight on, with the scene arranged evenly on both sides. Frame from the head to the knees'),
+  composition('golden-ratio', '황금비 구도', 'layout', '황금 나선의 중심에',
+    'GOLDEN RATIO: the face of PERSON A sits on the golden-spiral point, about 38 percent from the left and 38 percent from the top, with the curves and lines of the scene spiralling toward them. Frame from the head to the knees'),
+  composition('diagonal', '대각선 구도', 'layout', '사선으로 역동적으로',
+    'DIAGONAL COMPOSITION: strong diagonal lines in the scene (a ridge, path, railing or light beam) run from the bottom-left to the top-right corner, and PERSON A stands on that diagonal in the lower-left third for an energetic layout. The camera itself stays level'),
+  composition('leading-lines', '리딩 라인', 'layout', '선들이 나를 가리키게',
+    'LEADING LINES: lines in the scene (paths, rails, floor seams, rows of lights) converge from the edges of the frame toward PERSON A, who stands at the vanishing point in the center. Full body'),
+  composition('negative-space', '여백 구도', 'layout', '넓은 빈 공간과 함께',
+    'NEGATIVE SPACE: PERSON A is small in the lower-left part of the frame, about a quarter of the frame height, and most of the frame is calm, open space of the scene such as sky or a wall; minimal and elegant'),
+  composition('frame-in-frame', '프레임 속 프레임', 'layout', '문·창·아치 안에',
+    'FRAME WITHIN A FRAME: shoot through a natural frame of the scene in the foreground (an arch, doorway, window, porthole or cave opening) so it surrounds PERSON A, who stands inside it in the middle; the frame edges are slightly darker'),
+  composition('foreground-framing', '전경 프레이밍', 'layout', '앞쪽 사물 사이로',
+    'FOREGROUND FRAMING: soft out-of-focus objects of the scene (leaves, rocks, crystals or equipment) fill the very front corners of the frame, and PERSON A is sharp in the middle distance between them. Frame from the head to the knees'),
+  composition('low-horizon', '낮은 지평선', 'layout', '하늘을 크게',
+    'LOW HORIZON: the horizon sits in the bottom fifth of the frame and the sky (or ceiling) fills the rest; PERSON A stands full body on that low horizon line, small against the big sky'),
+  // lens
+  composition('wide-angle', '광각 렌즈', 'lens', '넓게, 원근감은 크게',
+    'WIDE-ANGLE LENS (16 mm): the camera is close to PERSON A with a very wide field of view; strong perspective, lines stretch toward the edges and much of the scene is visible around them. Full body, with the face natural and undistorted in the center'),
+  composition('fisheye', '어안 렌즈', 'lens', '볼록 렌즈처럼 둥글게',
+    // The bulge is applied after generation; the model frames a centered, level shot with room around it.
+    'FISHEYE (the lens bulge is added afterwards): frame PERSON A from the head to the knees exactly in the center with plenty of the scene around them; keep the camera level and straight'),
+  composition('telephoto', '망원 압축', 'lens', '배경을 크게 끌어당기기',
+    'TELEPHOTO COMPRESSION (200 mm from far away): the main landmark of the scene looks huge and close right behind PERSON A, depth is flattened and the background is gently soft. Frame from the head to the knees'),
+  composition('bokeh', '아웃포커스', 'lens', '배경은 흐리게, 나만 또렷',
+    'SHALLOW DEPTH OF FIELD (85 mm at f/1.4, focused on the eyes): PERSON A is tack sharp from the head to the waist, while everything behind them is strongly out of focus. Render the scene reference as a heavy, creamy blur where shapes are only soft color masses and every light or bright highlight becomes a large round bokeh ball; no sharp detail anywhere in the background'),
+  composition('deep-focus', '팬포커스', 'lens', '앞부터 끝까지 모두 선명',
+    'DEEP FOCUS (f/16): everything is sharp, from an object of the scene close to the lens, through PERSON A in the middle distance, to the far background. Full body'),
+  composition('tilt-shift', '틸트시프트', 'lens', '장난감 미니어처처럼',
+    'TILT-SHIFT MINIATURE: seen from a high vantage point at a distance, with only a thin horizontal band around PERSON A in focus and strong blur at the top and bottom, plus saturated colors, so the whole scene looks like a tiny toy model; PERSON A small but sharp'),
+  composition('soft-focus', '소프트 포커스', 'lens', '몽글몽글 부드러운 빛',
+    'SOFT FOCUS FILTER: a dreamy diffusion-filter look with glowing highlights and a gentle halo around bright areas, while the face of PERSON A stays recognizable. Frame from the head to the waist'),
+  composition('starburst', '빛갈라짐', 'lens', '빛이 별처럼 갈라지게',
+    'STARBURST (f/22): a bright light source of the scene (the sun, a lamp or a star) bursts into sharp star-shaped rays near an upper corner, while PERSON A stands in the foreground. Frame from the head to the knees'),
+  // light and exposure
+  composition('silhouette', '실루엣', 'light', '역광 속 검은 윤곽',
+    'SILHOUETTE: shoot straight into a bright light behind PERSON A (a sunset, glowing portal or lit window) and expose for that light, so PERSON A becomes a crisp dark outline with a recognizable shape of the hair and pose. Full body'),
+  composition('rim-light', '역광 림라이트', 'light', '윤곽이 빛나게',
+    'BACKLIT RIM LIGHT: a strong light behind PERSON A draws a glowing rim around the hair, shoulders and arms, while a soft fill light keeps the face clearly visible. Frame from the head to the knees'),
+  composition('golden-hour', '골든아워', 'light', '노을빛 따뜻하게',
+    'GOLDEN HOUR: low, warm sunlight just before sunset (or the warmest light of the scene) comes from the side, with long soft shadows and a honey-colored glow on the skin. Frame from the head to the knees'),
+  composition('blue-hour', '블루아워', 'light', '해 진 뒤 푸른 시간',
+    'BLUE HOUR: just after sunset, deep blue ambient light covers the scene and warm lights glow, while a warm nearby light softly lights PERSON A; calm, cinematic mood. Frame from the head to the knees'),
+  composition('high-key', '하이키', 'light', '밝고 화사하게',
+    'HIGH-KEY: a bright, airy exposure with soft wrap-around light, minimal shadows and pale tones over the scene; cheerful and clean. Frame from the head to the waist'),
+  composition('low-key', '로우키', 'light', '어둡고 극적으로',
+    'LOW-KEY: a mostly dark frame with deep shadows where one focused light from the side picks PERSON A out of the darkness; dramatic and mysterious, with the face clearly lit. Frame from the head to the waist'),
+  composition('rembrandt', '렘브란트 조명', 'light', '볼에 빛 삼각형',
+    'REMBRANDT LIGHTING: one key light high and 45 degrees to the side lights the face of PERSON A and leaves a small triangle of light on the shadow-side cheek under the eye; painterly, with dark background tones. Close-up from the top of the head to the chest'),
+  composition('long-exposure', '장노출', 'light', '빛이 흐르는 궤적',
+    'LONG EXPOSURE (several seconds): moving lights in the scene become smooth glowing light trails (star trails, light painting, flowing water or vehicle lights) swirling around PERSON A, who stays perfectly still and sharp. Full body'),
+  // shutter and special techniques
+  composition('panning', '패닝', 'shutter', '배경이 흐르는 속도감',
+    'PANNING: the camera follows PERSON A moving sideways; PERSON A is sharp while the background is streaked with strong horizontal motion blur, giving a feeling of speed. Full body'),
+  composition('freeze-motion', '고속 셔터', 'shutter', '순간을 멈춘 듯',
+    'HIGH-SPEED SHUTTER (1/4000 s): an action moment frozen in mid-air, with hair and clothes caught in motion and droplets, dust or sparks of the scene frozen as crisp particles around PERSON A. Full body'),
+  composition('reflection', '반사 구도', 'shutter', '물·거울에 비친 나',
+    'REFLECTION: PERSON A and the scene are mirrored in a calm reflective surface (water, a polished floor or glass) in the lower part of the frame, and the waterline or floor line splits the frame into the real and the reflected halves. Full body'),
+  composition('forced-perspective', '강제 원근법', 'shutter', '거인과 소인 착시',
+    'FORCED PERSPECTIVE: a playful illusion of scale using distance; a giant landmark of the scene (a planet, the moon or a huge object) appears to rest on the open palm of PERSON A or be pinched between two fingers, lined up so it looks real. Full body'),
+  composition('little-planet', '리틀 플래닛', 'shutter', '작은 행성 위에 선 나',
+    'LITTLE PLANET (stereographic 360-degree panorama): the ground of the scene is bent into a complete small round globe, a sphere about 70 percent of the frame width in the lower half of the picture, with its curved horizon visible all the way around and the landmarks of the scene standing outward around its edge like on a tiny world. PERSON A stands upright on the very top of this little planet, full body, small but sharp and undistorted, and the sky fills the frame all around the globe'),
+  composition('flat-lay', '플랫레이', 'shutter', '누워서 위에서 찍기',
+    'FLAT LAY: PERSON A lies on their back on the ground of the scene with the head toward the top of the frame, photographed from straight above, arms in the pose, with textures and small items of the scene arranged around them; the face looks up into the camera'),
+  composition('candid', '캔디드', 'shutter', '자연스러운 순간 포착',
+    'CANDID SNAPSHOT: an unposed documentary moment, as if PERSON A had not noticed the camera, walking or looking at something in the scene with a natural expression, slightly off-center with a little foreground. Frame from the head to the knees'),
+  composition('double-exposure', '이중 노출', 'shutter', '실루엣 속 풍경',
+    'DOUBLE EXPOSURE: an artistic in-camera double exposure where the head-and-shoulders silhouette of PERSON A is filled with the landscape of the scene, the face still faintly recognizable, over a clean light background'),
 ];
 
 const COMPOSITION_MAP = byId(COMPOSITIONS);

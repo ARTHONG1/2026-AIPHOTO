@@ -2,9 +2,9 @@
 
 카메라로 사진을 찍고 배경·동작·소품·구도를 고르면 Vertex AI(Gemini 이미지 모델)가 과학 테마 사진으로 합성해 주는 키오스크용 웹앱입니다. Next.js 15, React 18, Genkit 1.x로 만들었습니다.
 
-화면 흐름은 처음 화면 → 촬영(10초 카운트다운) → 스튜디오(배경 → 동작 → 소품, 최대 3개 → 구도) → 생성(30초~1분) → 결과(프레임 선택, 인쇄·저장, QR, 60초 뒤 자동 초기화)입니다. 프리셋은 배경 32개, 동작 44개, 소품 32개, 구도 11개이며 [src/lib/presets.ts](src/lib/presets.ts)에서 관리합니다.
+화면 흐름은 처음 화면 → 촬영(10초 카운트다운) → 스튜디오(배경 → 동작 → 소품, 최대 3개 → 구도) → 생성(30초~1분) → 결과(프레임 선택, 인쇄·저장, QR, 60초 뒤 자동 초기화)입니다. 프리셋은 배경·동작·소품·구도 각 50개이며 [src/lib/presets.ts](src/lib/presets.ts)에서 관리합니다.
 
-구도는 줌인·줌아웃(클로즈업, 바스트샷, 웨이스트샷, 니샷, 풀샷, 롱샷), 카메라 각도(로우앵글, 하이앵글, 더치앵글), 자리 잡기(3분할, 중앙)로 나뉩니다. 구도는 그림 없이 글 지시로만 AI에 전달되고, 고르지 않으면 기본 구도(머리부터 허벅지 중간까지)를 씁니다. 더치앵글은 AI가 배경을 반듯하게 그리기 때문에, 생성이 끝난 뒤 서버에서 사진 전체를 12도 돌려 잘라 냅니다. 롱샷처럼 얼굴이 작아지는 구도에서는 얼굴 닮은 정도가 기본 구도보다 낮을 수 있습니다.
+구도는 실제 촬영 기법만 담았고 줌인·줌아웃, 카메라 각도, 자리 잡기, 렌즈, 빛과 노출, 셔터와 특수 기법으로 나뉩니다. 구도는 그림 없이 글 지시로만 AI에 전달되고, 고르지 않으면 기본 구도(머리부터 허벅지 중간까지)를 씁니다. 더치앵글과 어안 렌즈는 AI가 정확히 그리지 못해서, 생성이 끝난 뒤 서버에서 사진을 12도 돌려 잘라 내거나 가운데를 볼록하게 왜곡합니다. 롱샷처럼 얼굴이 작아지는 구도에서는 얼굴 닮은 정도가 기본 구도보다 낮을 수 있습니다.
 
 결과 화면과 QR로 여는 라이브 포토(/live/[id])에서는 사진을 누르면 크게 볼 수 있습니다([src/components/photo-zoom.tsx](src/components/photo-zoom.tsx)). 라이브 포토에는 스티커 꾸미기와 AR 카메라가 있습니다. 스티커는 과학 스티커 16종(SVG)과 이모지 16종이며([src/components/live/stickers.ts](src/components/live/stickers.ts)), 끌어서 옮기고 손잡이나 두 손가락으로 크기·방향을 바꿉니다. 꾸민 결과는 그 휴대폰의 localStorage에 사진별로 남고, 고화질 저장과 라이브 영상에 함께 들어갑니다. AR 카메라([src/components/live/ar-camera.tsx](src/components/live/ar-camera.tsx))의 기본 효과 '사진 속으로'는 MediaPipe Image Segmenter로 사람만 오려 내고, QR을 만들 때 저장한 배경의 원본(사람 없는 배경)을 뒤에 깝니다. 배경 빛에 맞춰 사람 색을 보정하고, 윤곽에 빛 테두리와 별가루를 더하며, 고개를 움직이면 배경이 따라 움직입니다. 배경은 화면에서 바꿀 수 있습니다. 그 밖에 MediaPipe Face Landmarker로 얼굴을 따라가는 우주 헬멧, 아인슈타인 머리, 실험 고글, 행성 왕관, 아이디어 전구, 내 사진 홀로그램이 있습니다. 모든 효과에서 표정 마법이 작동합니다(입 크게 벌리기는 로켓, 눈 꼭 감기는 번개, 눈썹 올리기는 별과 행성, 활짝 웃기는 반짝이와 하트). 사진과 5초 영상으로 저장하고 공유할 수 있습니다. MediaPipe wasm(jsDelivr)과 얼굴 모델(Google Storage)은 AR 카메라를 열 때 CDN에서 받습니다.
 
@@ -55,7 +55,7 @@ PHOTOBOOTH_MOCK_AI=1로 실행하면 Vertex AI를 호출하지 않고 원본 사
 
 ## 프리셋 에셋 다시 만들기
 
-node scripts/build-assets.mjs 를 실행하면 public/의 원본 이미지와 [scripts/pose-geometry.mjs](scripts/pose-geometry.mjs)의 포즈 정의로 public/presets/와 public/brand/를 새로 만듭니다. 동작 44개는 모두 같은 좌표 정의에서 그려서 한 가지 스타일로 맞춥니다. 카드에는 색이 있는 SVG를, AI에는 팔다리 방향만 담은 흑백 PNG를 보냅니다. --sheet 옵션을 주면 포즈 전체 미리보기 이미지를 임시 폴더에 저장합니다. 구도 카드는 같은 인물을 뷰파인더 안에 그린 SVG이며 [scripts/composition-geometry.mjs](scripts/composition-geometry.mjs)에서 정의합니다. 구도 카드만 다시 만들 때는 --compositions 옵션을 씁니다.
+node scripts/build-assets.mjs 를 실행하면 public/의 원본 이미지와 [scripts/pose-geometry.mjs](scripts/pose-geometry.mjs)의 포즈 정의로 public/presets/와 public/brand/를 새로 만듭니다. 동작 50개는 모두 같은 좌표 정의에서 그립니다. 카드는 연필 스케치 화풍의 데생 인형 SVG([scripts/sketch.mjs](scripts/sketch.mjs))이고, AI에는 팔다리 방향만 담은 흑백 PNG를 보냅니다. --sheet 옵션을 주면 포즈 전체 미리보기 이미지를 임시 폴더에 저장합니다. 구도 카드는 같은 데생 인형을 콘티처럼 그린 연필 스케치 SVG이며 [scripts/composition-geometry.mjs](scripts/composition-geometry.mjs)에서 정의합니다. 동작·구도 카드만 다시 만들 때는 --cards 옵션을 씁니다. 배경·소품 카드는 AVIF, AI에 보내는 참조 이미지는 WebP로 저장합니다(Gemini는 AVIF 참조를 받지 않습니다).
 
 배경과 소품은 모두 참조 이미지로 AI에 전달됩니다. 새 항목은 원본 PNG를 assets-src/backgrounds/ 또는 assets-src/props/에 <id>.png로 넣고(소품은 흰 배경), presets.ts에 같은 id로 bgImage/propImage 항목을 추가한 뒤 build-assets.mjs를 다시 실행합니다.
 

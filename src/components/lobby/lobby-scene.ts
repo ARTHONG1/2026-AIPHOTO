@@ -563,7 +563,7 @@ export function createLobbyScene(host: HTMLElement, { onReady }: Options = {}): 
     });
     const mesh = new THREE.Mesh(cardGeometry, material);
     mesh.visible = false;
-    loader.load('/presets/backgrounds/' + id + '.webp', (texture) => {
+    loader.load('/presets/backgrounds/' + id + '.avif', (texture) => {
       if (disposed) return texture.dispose();
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = 4;

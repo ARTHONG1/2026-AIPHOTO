@@ -29,9 +29,13 @@ const FACE_COVERING_POSES = new Set(['shush', 'binoculars']);
 // Hands or headwear close to the face: blend only brows, eyes, nose and mouth.
 const TIGHT_POSES = new Set(['v-sign', 'double-v', 'surprise', 'salute', 'think', 'head-scratch', 'boxing']);
 const TIGHT_PROPS = new Set(['einstein-wig', 'graduation-cap', 'explorer-hat', 'circuit-crown', 'astronaut-helmet']);
-// Compositions finished in code: the model draws the scene straight (it copies the level
-// background reference), so the Dutch tilt is a rotation of the whole picture plus a crop.
-const TILTED_COMPOSITIONS: Record<string, number> = { 'dutch-angle': -12 };
+// Lens and camera effects the model does not draw reliably are finished in code: it draws the
+// scene straight (it copies the level background reference), so the Dutch tilt is a rotation
+// of the whole picture plus a crop, and the fisheye is a barrel distortion of the result.
+const COMPOSITION_FINISHERS: Record<string, (image: string) => Promise<string>> = {
+  'dutch-angle': (image) => tiltImage(image, -12),
+  fisheye: (image) => fisheyeImage(image, 0.45),
+};
 
 // Prompt order was compared on real Pro renders (synthetic subject, scene + pose + item):
 // asking for "one on-location photograph" first, then identity, then each reference with a
@@ -231,13 +235,55 @@ async function tiltImage(image: string, degrees: number): Promise<string> {
   return 'data:image/png;base64,' + output.toString('base64');
 }
 
+/**
+ * Barrel (fisheye) distortion: the centre swells toward the viewer and the edges curve away.
+ * Each output pixel samples the source at radius r^(1+strength) (r = 0..1 to the corner), so the
+ * corners stay in place, plus a soft lens vignette.
+ */
+async function fisheyeImage(image: string, strength: number): Promise<string> {
+  const input = Buffer.from(image.slice(image.indexOf(',') + 1), 'base64');
+  const { data, info } = await sharp(input).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width: w, height: h, channels: ch } = info;
+  const out = Buffer.alloc(w * h * ch);
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  const R = Math.hypot(cx, cy);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = (x - cx) / R;
+      const dy = (y - cy) / R;
+      const r = Math.hypot(dx, dy);
+      const k = r > 0 ? Math.pow(r, strength) : 0;
+      const sx = Math.min(w - 1.001, Math.max(0, cx + dx * k * R));
+      const sy = Math.min(h - 1.001, Math.max(0, cy + dy * k * R));
+      const x0 = Math.floor(sx);
+      const y0 = Math.floor(sy);
+      const fx = sx - x0;
+      const fy = sy - y0;
+      const shade = 1 - 0.35 * r * r * r;
+      const o = (y * w + x) * ch;
+      const a = (y0 * w + x0) * ch;
+      const b = a + ch;
+      const c = a + w * ch;
+      const d = c + ch;
+      for (let i = 0; i < ch; i++) {
+        const top = data[a + i] + (data[b + i] - data[a + i]) * fx;
+        const bottom = data[c + i] + (data[d + i] - data[c + i]) * fx;
+        out[o + i] = Math.round((top + (bottom - top) * fy) * shade);
+      }
+    }
+  }
+  const png = await sharp(out, { raw: { width: w, height: h, channels: ch } }).png().toBuffer();
+  return 'data:image/png;base64,' + png.toString('base64');
+}
+
 async function finishComposition(image: string, compositionId?: string | null): Promise<string> {
-  const degrees = compositionId ? TILTED_COMPOSITIONS[compositionId] : undefined;
-  if (!degrees) return image;
+  const finish = compositionId ? COMPOSITION_FINISHERS[compositionId] : undefined;
+  if (!finish) return image;
   try {
-    return await tiltImage(image, degrees);
+    return await finish(image);
   } catch (error) {
-    console.warn('[generatePhoto] tilt skipped', error instanceof Error ? error.message.slice(0, 200) : error);
+    console.warn('[generatePhoto] composition finish skipped', error instanceof Error ? error.message.slice(0, 200) : error);
     return image;
   }
 }

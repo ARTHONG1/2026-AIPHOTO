@@ -53,4 +53,11 @@ export const POSE_GEOMETRY = {
   flex: { la: [95, 175], ra: [95, 175], lh: 'fist', rh: 'fist', ll: [10, 6], rl: [10, 6] },
   shush: { la: [10, 4], rt: { x: 262, y: 178 }, rb: 'down', rh: 'point', rhDir: 180 },
   'tuck-jump': { la: [150, 165], ra: [150, 165], lh: 'open', rh: 'open', ll: [35, -20], rl: [35, -20], dy: -40, extras: ['motion'] },
+  // Added for the 50-pose set.
+  eureka: { la: [10, 4], rt: { x: 336, y: 96 }, rb: 'down', rh: 'point', rhDir: 180, extras: ['idea'] },
+  'look-far': { la: [10, 4], rt: { x: 276, y: 104 }, rb: 'down', rh: 'open', rhDir: -90, lean: 4 },
+  'finger-guns': { lt: { x: 168, y: 246 }, rt: { x: 344, y: 246 }, lb: 'down', rb: 'down', lh: 'point', rh: 'point', lhDir: -100, rhDir: 100 },
+  'double-wave': { la: [125, 175], ra: [125, 175], lh: 'open', rh: 'open', lhDir: 190, rhDir: 170, extras: ['wave'] },
+  shrug: { lt: { x: 168, y: 234 }, rt: { x: 344, y: 234 }, lb: 'down', rb: 'down', lh: 'open', rh: 'open', lhDir: -150, rhDir: 150 },
+  'energy-blast': { lt: { x: 362, y: 244 }, rt: { x: 384, y: 230 }, lb: 'down', rb: 'down', lh: 'open', rh: 'open', lhDir: 90, rhDir: 90, lean: -6, ll: [14, 6], rl: [6, 2], extras: ['beam'] },
 };

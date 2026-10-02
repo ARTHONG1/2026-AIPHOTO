@@ -35,8 +35,12 @@ const PresetCard = memo(function PresetCard({
         active ? 'border-primary' : 'border-transparent'
       )}
     >
+      {/* Pose and composition cards are pencil sketches on paper and fill the whole square. */}
       <span
-        className={cn('relative block w-full overflow-hidden', variant === 'background' ? 'aspect-[4/5]' : 'aspect-square bg-white')}
+        className={cn(
+          'relative block w-full overflow-hidden',
+          variant === 'background' ? 'aspect-[4/5]' : variant === 'prop' ? 'aspect-square bg-white' : 'aspect-square bg-[#fbf8f1]'
+        )}
       >
         <img
           src={item.thumb}
@@ -44,7 +48,7 @@ const PresetCard = memo(function PresetCard({
           loading="lazy"
           decoding="async"
           draggable={false}
-          className={cn('size-full', variant === 'background' ? 'object-cover' : 'object-contain p-1')}
+          className={cn('size-full', variant === 'prop' ? 'object-contain p-1' : 'object-cover')}
         />
         {active && (
           <span className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">

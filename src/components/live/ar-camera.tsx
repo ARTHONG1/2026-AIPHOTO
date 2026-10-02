@@ -761,7 +761,7 @@ export default function ArCamera({ photoSrc, backgroundId, onClose }: Props) {
       portal.bg = img;
       Object.assign(portal, sceneColors(img));
     };
-    img.src = '/presets/backgrounds/ref/' + bgId + '.jpg';
+    img.src = '/presets/backgrounds/ref/' + bgId + '.webp';
   }, [bgId]);
 
   const files = useCallback(async () => {
