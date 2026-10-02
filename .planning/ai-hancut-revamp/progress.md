@@ -30,3 +30,4 @@
   - src/lib/storage.ts(사진 및 메타데이터 업로드/조회), src/app/actions.ts(uploadForQrAction)
   - /live/[id] AR 라이브 포토 웹 뷰어(src/app/live/[id]/page.tsx, src/components/live/live-photo-view.tsx): 터치 반응형 3D 패럴랙스 줌·파티클 애니메이션, 스마트폰 후면 카메라 기반 AR 오버레이 모드, 3초 라이브 영상(MP4/WebM) 갤러리 저장, 4x6 고화질 인쇄본 저장 지원
   - 결과 화면(src/components/studio/result-view.tsx)의 QR 생성 버튼을 AR 라이브 포토 연동으로 업그레이드
+- AR 라이브 포토가 휴대폰에서 빈 화면으로 보이던 문제 수정: 버킷에 CORS 헤더가 없어 crossOrigin 이미지 로딩이 실패함. /api/live/[id]/photo 같은 주소 경유로 사진 제공, 로딩·실패 안내, AR 전환 시 애니메이션 재시작. 다른 세션이 바꾼 프로젝트 기본값(.firebaserc, genkit.ts, storage.ts의 project-0c1d3dab)은 원래 project-1e3fbae0로 되돌림(로컬은 .env.local 사용). 커밋 fab8a44, App Hosting 배포 완료, 배포본 /live/Lrr3xTzX 사진 표시 확인
