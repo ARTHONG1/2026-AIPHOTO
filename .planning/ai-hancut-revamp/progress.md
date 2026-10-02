@@ -31,3 +31,27 @@
   - /live/[id] AR 라이브 포토 웹 뷰어(src/app/live/[id]/page.tsx, src/components/live/live-photo-view.tsx): 터치 반응형 3D 패럴랙스 줌·파티클 애니메이션, 스마트폰 후면 카메라 기반 AR 오버레이 모드, 3초 라이브 영상(MP4/WebM) 갤러리 저장, 4x6 고화질 인쇄본 저장 지원
   - 결과 화면(src/components/studio/result-view.tsx)의 QR 생성 버튼을 AR 라이브 포토 연동으로 업그레이드
 - AR 라이브 포토가 휴대폰에서 빈 화면으로 보이던 문제 수정: 버킷에 CORS 헤더가 없어 crossOrigin 이미지 로딩이 실패함. /api/live/[id]/photo 같은 주소 경유로 사진 제공, 로딩·실패 안내, AR 전환 시 애니메이션 재시작. 다른 세션이 바꾼 프로젝트 기본값(.firebaserc, genkit.ts, storage.ts의 project-0c1d3dab)은 원래 project-1e3fbae0로 되돌림(로컬은 .env.local 사용). 커밋 fab8a44, App Hosting 배포 완료, 배포본 /live/Lrr3xTzX 사진 표시 확인
+
+## Session 2026-10-03 — 렌즈 효과 작업 재개
+- 작업 시작 시 남아 있던 변경: 전신 인물 분할 보강(전체 + 확대 영역 마스크), 인물 위치 기반 초점 영역, 패닝 가장자리 보존, 합성 인물 크기 프롬프트.
+- Playwright CLI로 기존 jump.png에 보케/패닝/틸트시프트/소프트포커스 적용: 모두 PNG 1024x1536 출력. 처리 시간 1519/782/694/175ms (별도 최초 패닝 모델 로딩 포함 5643ms). 네 화면 스크린샷 직접 확인.
+- 삭제된 dev-lens 페이지의 .next/types 생성 캐시 제거 후 npm.cmd run typecheck 통과.
+- TEMP 주석이 있는 lens-test 화면, lens-test-generate API, public/__lens-test 이미지를 .planning/lens-verification-2026-10-03/로 이동해 보존. 생성 API는 호출하지 않음.
+- 임시 화면 생성 타입도 정리한 뒤 typecheck 재통과. 제품 코드 수정은 기존 변경을 유지함.
+- 스크린샷: .playwright-cli/lens-{bokeh,panning,tilt-shift,soft-focus}.png
+- 이번 세션에서는 프로덕션 빌드, 실제 AI 합성, 인쇄/QR 전체 흐름, 배포는 수행하지 않음.
+
+## Session 2026-10-03 — 최종 검증·배포·Git 반영
+- 사용자 승인: 렌즈 효과 작업 전부 끝까지 마무리(실제 합성, 검증, 배포, Git 반영).
+- 변경 검토: 전신 인물의 전체/확대 영역 분할 마스크 병합, 실제 인물 중심을 따르는 보케 초점, 패닝 윤곽 보존, 전신 구도 인물 크기 및 패닝 프롬프트 유지.
+- .planning/lens-verification-*/를 Git 제외: 임시 테스트 사진/API 백업은 로컬에 보존. Firebase는 기존 .planning 제외 설정을 사용.
+- npm.cmd run typecheck 및 git diff --check 통과. 격리 복사본에서 npm.cmd run build 통과(Next 15.0.7, 제품 경로만 포함). 기존 Genkit/OpenTelemetry의 선택적 exporter-jaeger 의존성 경고 존재.
+- 가상 인물(subject.jpg, 기존 생성 스크립트에서 fictional Korean man으로 생성한 자료)로 Pro 1K 실제 패닝 합성 성공: 31.9초. 얼굴 각도/표정 차이 보호 조건(residual 0.474)으로 얼굴 옮겨 붙이기는 생략.
+- 브라우저 검증: 최초 Playwright CLI 자동화는 홈 useEffect 세션 초기화와 주입 시점 경쟁, 이후 PC 메모리 부족(가용 약 180MB)으로 지연. 작업용 Playwright 세션 닫고 Chrome DevTools 격리 세션으로 최종 검증 완료. 제품 동작 변경 없음.
+- 프로덕션 빌드의 모의 AI로 네 효과 모두 실제 결과 화면 진입 및 1200x1800 출력·스크린샷 확인. 프레임 10종 전환, JPEG 300x300dpi, 저장 링크 생성, 인쇄 호출(실제 종이 출력은 생략, print stub)과 4in x 6in margin 0 스타일 확인.
+- QR 실제 업로드 성공: /live/PE-rYBky (가상 인물의 소프트포커스 검증 출력). 배포된 라이브 페이지의 canvas 720x1080 사진/파티클 표시 및 모바일 가로 넘침 없음 확인. 라이브 페이지는 img가 아닌 canvas 렌더링임.
+- Firebase CLI(photo011235 계정)로 apphosting:ai-hancut 배포 성공.
+- 배포 URL: https://ai-hancut--project-1e3fbae0-3a3e-4723-ae1.asia-east1.hosted.app
+- 배포본 /, /booth, /studio, /frames/festival.webp, /api/live/PE-rYBky/photo 모두 200. /lens-test, /api/lens-test-generate, /__lens-test/base.png 모두 404(임시 자료 제거 확인).
+- 실제 카메라/프린터 하드웨어 촬영·출력은 검증하지 않음. 기존 카메라/AR 코드는 변경하지 않음.
+- 스크린샷: .playwright-cli/final-result.png, final-bokeh.png, final-panning.png, final-tilt-shift.png, final-live-mobile.png. Git에 사진·키 포함하지 않음.

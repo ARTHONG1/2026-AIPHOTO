@@ -58,9 +58,16 @@ function framing(compositionId?: string | null): string {
   if (!composition) return DEFAULT_FRAMING;
   return (
     '=== COMPOSITION (camera framing chosen by the visitor, must match): ' + composition.prompt + '.\n' +
-    'The composition decides what is inside the frame and where the camera stands; it overrides the head angle of the BASE PHOTO but never the identity. If it crops part of the pose, show the visible part of the pose correctly.'
+    'The composition decides what is inside the frame and where the camera stands; it overrides the head angle of the BASE PHOTO but never the identity. If it crops part of the pose, show the visible part of the pose correctly.\n' +
+    SUBJECT_SIZE
   );
 }
+
+// Full-body compositions without a stated size came back with a small figure (under half the
+// frame height). The print frames trim about 6 % off the top and 16 % off the bottom of the 2:3
+// photo, so the body is placed high enough for the feet to survive that crop.
+const SUBJECT_SIZE =
+  "Subject size: unless the composition above states how small PERSON A is, PERSON A is the main subject and is large in the frame. In a full-body shot the body (including raised hands) fills about 70 percent of the frame height, from about one tenth below the top edge to about one fifth above the bottom edge, centered, with every limb, hand and foot complete inside the frame. Keep realistic body proportions for PERSON A's age and build; never shrink the body under a large head.";
 
 const IDENTITY = [
   '=== IDENTITY LOCK (highest priority): do not create a new person. Keep PERSON A recognizably identical: facial geometry and proportions, eye shape and spacing, eyebrows, nose, lips, jawline, cheekbones, skin tone, age, hairline, hairstyle and hair color, glasses, moles and body build.',

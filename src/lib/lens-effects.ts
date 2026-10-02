@@ -15,7 +15,7 @@ type Effect = (img: HTMLImageElement) => Promise<HTMLCanvasElement>;
 
 const EFFECTS: Record<string, Effect> = {
   bokeh: (img) => withPerson(img, (bg, person, full) => bokeh(bg, person, full)),
-  panning: (img) => withPerson(img, (bg, person) => panning(bg, person)),
+  panning: (img) => withPerson(img, (bg, person, full) => panning(bg, person, full)),
   'tilt-shift': (img) => withPerson(img, (bg, person, full) => tiltShift(full, person)),
   'soft-focus': async (img) => softFocus(toCanvas(img)),
 };
@@ -147,87 +147,132 @@ function segmenter(): Promise<ImageSegmenter> {
   return segmenterPromise;
 }
 
-type Masks = { person: HTMLCanvasElement; hole: HTMLCanvasElement; box: { top: number; bottom: number; cy: number } };
+type Box = { left: number; right: number; top: number; bottom: number; cx: number; cy: number };
+type Masks = {
+  /** Crisp cut-out of the person. */
+  person: HTMLCanvasElement;
+  /** The person widened, so nothing of them is left in the scene that gets blurred or smeared. */
+  hole: HTMLCanvasElement;
+  box: Box;
+};
 
-/** Person masks at full size: a crisp one for the cut-out, a wider one for the hole to fill. */
-async function personMasks(img: HTMLImageElement, w: number, h: number): Promise<Masks> {
-  const seg = await segmenter();
-  const res = seg.segment(img);
+/** Person confidence (0..1) from one segmenter pass, with the size of the mask it came from. */
+function segmentOnce(seg: ImageSegmenter, src: HTMLImageElement | HTMLCanvasElement) {
+  const res = seg.segment(src);
   const m = res.confidenceMasks?.[0];
   if (!m) {
     res.close();
     throw new Error('no mask');
   }
-  const mw = m.width;
-  const mh = m.height;
-  const conf = m.getAsFloat32Array().slice();
+  const out = { data: m.getAsFloat32Array().slice(), mw: m.width, mh: m.height };
   res.close();
+  return out;
+}
 
-  // Widen the hole mask a little (max filter) so no edge of the person is smeared into the blur.
-  let wide = conf;
-  for (let pass = 0; pass < Math.max(2, Math.round(mw / 90)); pass++) {
-    const next = new Float32Array(wide.length);
-    for (let y = 0; y < mh; y++) {
-      for (let x = 0; x < mw; x++) {
-        let v = 0;
-        for (let dy = -1; dy <= 1; dy++) {
-          const yy = Math.min(mh - 1, Math.max(0, y + dy));
-          for (let dx = -1; dx <= 1; dx++) {
-            const xx = Math.min(mw - 1, Math.max(0, x + dx));
-            v = Math.max(v, wide[yy * mw + xx]);
-          }
-        }
-        next[y * mw + x] = v;
-      }
+/** Adds a mask (bilinear-resampled) into the full-size confidence map at rect x,y,rw,rh (keeps the max). */
+function addMask(conf: Float32Array, w: number, m: { data: Float32Array; mw: number; mh: number }, x: number, y: number, rw: number, rh: number) {
+  const { data, mw, mh } = m;
+  for (let py = 0; py < rh; py++) {
+    const fy = Math.min(mh - 1, Math.max(0, ((py + 0.5) / rh) * mh - 0.5));
+    const y0 = Math.floor(fy);
+    const y1 = Math.min(mh - 1, y0 + 1);
+    const ty = fy - y0;
+    const row = (y + py) * w + x;
+    for (let px = 0; px < rw; px++) {
+      const fx = Math.min(mw - 1, Math.max(0, ((px + 0.5) / rw) * mw - 0.5));
+      const x0 = Math.floor(fx);
+      const x1 = Math.min(mw - 1, x0 + 1);
+      const tx = fx - x0;
+      const a = data[y0 * mw + x0] + (data[y0 * mw + x1] - data[y0 * mw + x0]) * tx;
+      const b = data[y1 * mw + x0] + (data[y1 * mw + x1] - data[y1 * mw + x0]) * tx;
+      const v = a + (b - a) * ty;
+      if (v > conf[row + px]) conf[row + px] = v;
     }
-    wide = next;
   }
+}
 
-  const small = (data: Float32Array, lo: number, hi: number) => {
-    const c = canvas(mw, mh);
-    const id = new ImageData(mw, mh);
-    for (let i = 0; i < data.length; i++) {
-      id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = 255;
-      id.data[i * 4 + 3] = smooth(lo, hi, data[i]) * 255;
-    }
-    ctx2d(c).putImageData(id, 0, 0);
-    return c;
-  };
-  const up = (c: HTMLCanvasElement, sharpen: boolean) => {
-    const out = canvas(w, h);
-    const oc = out.getContext('2d', { willReadFrequently: sharpen })!;
-    oc.imageSmoothingQuality = 'high';
-    oc.drawImage(c, 0, 0, w, h);
-    if (sharpen) {
-      // Upscaling softens the edge over several pixels; tighten it again at full size.
-      const id = oc.getImageData(0, 0, w, h);
-      for (let i = 3; i < id.data.length; i += 4) id.data[i] = smooth(0.35, 0.65, id.data[i] / 255) * 255;
-      oc.putImageData(id, 0, 0);
-    }
-    return out;
-  };
-
-  let top = mh;
+function boxOf(conf: Float32Array, w: number, h: number): Box | null {
+  let left = w;
+  let right = 0;
+  let top = h;
   let bottom = 0;
   let sum = 0;
+  let sumX = 0;
   let sumY = 0;
-  for (let y = 0; y < mh; y++) {
-    for (let x = 0; x < mw; x++) {
-      const v = conf[y * mw + x];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const v = conf[y * w + x];
       if (v > 0.5) {
-        top = Math.min(top, y);
-        bottom = Math.max(bottom, y);
+        if (x < left) left = x;
+        if (x > right) right = x;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
         sum += v;
+        sumX += v * x;
         sumY += v * y;
       }
     }
   }
-  if (!sum) throw new Error('no person found');
-  return {
-    person: up(small(conf, 0.3, 0.7), true),
-    hole: up(small(wide, 0.05, 0.3), false),
-    box: { top: (top / mh) * h, bottom: ((bottom + 1) / mh) * h, cy: (sumY / sum / mh) * h },
+  return sum ? { left, right: right + 1, top, bottom: bottom + 1, cx: sumX / sum, cy: sumY / sum } : null;
+}
+
+/** Grows an alpha mask by about r px: stamps it at offsets on two rings (cheap on the GPU). */
+function dilate(mask: HTMLCanvasElement, r: number) {
+  const out = canvas(mask.width, mask.height);
+  const oc = ctx2d(out);
+  oc.drawImage(mask, 0, 0);
+  for (const rr of [r * 0.5, r]) {
+    const n = 16;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      oc.drawImage(mask, Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+  }
+  return out;
+}
+
+/**
+ * Person masks at full size. The selfie segmenter works at 256x256 and is trained on people who
+ * fill the picture, so on a full-body photo it loses thin arms, hands and feet. A first pass finds
+ * the person, a second pass on a crop around them sees them about three times larger, and the two
+ * are merged (the larger of both confidences).
+ */
+async function personMasks(img: HTMLImageElement, w: number, h: number): Promise<Masks> {
+  const seg = await segmenter();
+  const conf = new Float32Array(w * h);
+  const first = segmentOnce(seg, img);
+  addMask(conf, w, first, 0, 0, w, h);
+  const rough = boxOf(conf, w, h);
+  if (!rough) throw new Error('no person found');
+
+  // Outstretched arms and feet are often missing from the first pass, so the crop reaches well
+  // past the rough box on every side.
+  const bh = rough.bottom - rough.top;
+  const bw = rough.right - rough.left;
+  const halfW = Math.max(bw * 0.75, bh * 0.6);
+  const cl = Math.max(0, Math.floor((rough.left + rough.right) / 2 - halfW));
+  const cr = Math.min(w, Math.ceil((rough.left + rough.right) / 2 + halfW));
+  const ct = Math.max(0, Math.floor(rough.top - bh * 0.25));
+  const cb = Math.min(h, Math.ceil(rough.bottom + bh * 0.3));
+  if ((cr - cl) * (cb - ct) < w * h * 0.7) {
+    const crop = canvas(cr - cl, cb - ct);
+    ctx2d(crop).drawImage(img, cl, ct, cr - cl, cb - ct, 0, 0, cr - cl, cb - ct);
+    addMask(conf, w, segmentOnce(seg, crop), cl, ct, cr - cl, cb - ct);
+  }
+  const box = boxOf(conf, w, h) ?? rough;
+
+  const alpha = (lo: number, hi: number) => {
+    const c = canvas(w, h);
+    const id = new ImageData(w, h);
+    for (let i = 0; i < conf.length; i++) {
+      id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = 255;
+      id.data[i * 4 + 3] = smooth(lo, hi, conf[i]) * 255;
+    }
+    ctx2d(c).putImageData(id, 0, 0);
+    return c;
   };
+  // The hole also takes the low-confidence fringe (hair tips, motion-blurred fingers).
+  return { person: alpha(0.3, 0.65), hole: dilate(alpha(0.08, 0.3), Math.max(4, w / 60)), box };
 }
 
 /** The scene with the person removed and the hole filled from the surroundings. */
@@ -290,12 +335,12 @@ function focusLayer(full: HTMLCanvasElement, masks: Masks) {
   const h = full.height;
   const zone = canvas(w, h);
   const zc = ctx2d(zone);
-  const { top, bottom } = masks.box;
+  const { top, bottom, cx: px } = masks.box;
   const cy = top + (bottom - top) * 0.45;
   const ry = (bottom - top) * 0.62;
   const rx = Math.min(w * 0.48, ry * 0.75);
   zc.save();
-  zc.translate(w / 2, cy);
+  zc.translate(px, cy);
   zc.scale(rx / ry, 1);
   const g = zc.createRadialGradient(0, 0, ry * 0.55, 0, 0, ry);
   g.addColorStop(0, 'rgba(0,0,0,1)');
@@ -367,7 +412,7 @@ function bokeh(scene: HTMLCanvasElement, person: { layer: HTMLCanvasElement; mas
 }
 
 /** Camera follows the subject: the scene streaks sideways, the person stays sharp. */
-function panning(scene: HTMLCanvasElement, person: { layer: HTMLCanvasElement }) {
+function panning(scene: HTMLCanvasElement, person: { layer: HTMLCanvasElement; masks: Masks }, full: HTMLCanvasElement) {
   const w = scene.width;
   const h = scene.height;
   const out = canvas(w, h);
@@ -382,6 +427,15 @@ function panning(scene: HTMLCanvasElement, person: { layer: HTMLCanvasElement })
     oc.drawImage(scene, dx, 0);
   }
   oc.globalAlpha = 1;
+  // The streak fades in over a thin band around the body, so a fingertip, held item or hair
+  // the cut-out missed stays in place instead of being wiped into the blur.
+  const band = dilate(person.masks.person, w / 150);
+  const near = canvas(w, h);
+  const nc = ctx2d(near);
+  nc.drawImage(full, 0, 0);
+  nc.globalCompositeOperation = 'destination-in';
+  nc.drawImage(blur(band, Math.max(2, Math.round(w / 220))), 0, 0);
+  oc.drawImage(near, 0, 0);
   oc.drawImage(person.layer, 0, 0);
   return out;
 }

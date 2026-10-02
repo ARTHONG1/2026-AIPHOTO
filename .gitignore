@@ -46,3 +46,5 @@ firebase-debug.log
 firestore-debug.log
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+# Local lens verification backups (source photos and temporary API harness)
+.planning/lens-verification-*/

@@ -355,7 +355,7 @@ export const COMPOSITIONS: Preset[] = [
     'LONG EXPOSURE (several seconds): moving lights in the scene become smooth glowing light trails (star trails, light painting, flowing water or vehicle lights) swirling around PERSON A, who stays perfectly still and sharp. Full body'),
   // shutter and special techniques
   composition('panning', '패닝', 'shutter', '배경이 흐르는 속도감',
-    'PANNING: the camera follows PERSON A moving sideways; PERSON A is sharp while the background is streaked with strong horizontal motion blur, giving a feeling of speed. Full body'),
+    'PANNING: the camera tracks PERSON A moving sideways across the scene; PERSON A is the large, sharp main subject in the center, full body from head to feet, while the background is streaked with horizontal motion blur, giving a feeling of speed. Keep a clear gap of background between the arms and the body so the outline reads cleanly'),
   composition('freeze-motion', '고속 셔터', 'shutter', '순간을 멈춘 듯',
     'HIGH-SPEED SHUTTER (1/4000 s): an action moment frozen in mid-air, with hair and clothes caught in motion and droplets, dust or sparks of the scene frozen as crisp particles around PERSON A. Full body'),
   composition('reflection', '반사 구도', 'shutter', '물·거울에 비친 나',
