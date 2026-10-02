@@ -14,6 +14,9 @@ export default function LivePhotoView({ meta }: Props) {
   const [arMode, setArMode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [photoState, setPhotoState] = useState<'loading' | 'ready' | 'error'>('loading');
+  // Same-origin copy of the photo (see /api/live/[id]/photo): the storage bucket has no CORS headers.
+  const photoSrc = '/api/live/' + encodeURIComponent(meta.id) + '/photo';
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoFeedRef = useRef<HTMLVideoElement | null>(null);
@@ -51,13 +54,28 @@ export default function LivePhotoView({ meta }: Props) {
   }, [isMuted]);
 
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = meta.photoUrl;
-    img.onload = () => {
-      imgRef.current = img;
+    let cancelled = false;
+    setPhotoState('loading');
+    const load = (src: string, onFail: () => void) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.onload = () => {
+        if (cancelled) return;
+        imgRef.current = img;
+        setPhotoState('ready');
+      };
+      img.onerror = () => {
+        if (!cancelled) onFail();
+      };
+      img.src = src;
     };
-  }, [meta.photoUrl]);
+    // The direct storage URL still displays the photo if the app route fails; only the
+    // video recording needs the same-origin copy.
+    load(photoSrc, () => load(meta.photoUrl, () => setPhotoState('error')));
+    return () => {
+      cancelled = true;
+    };
+  }, [photoSrc, meta.photoUrl]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -144,7 +162,8 @@ export default function LivePhotoView({ meta }: Props) {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isPlaying]);
+    // arMode swaps the canvas element, so the loop has to restart on the new one.
+  }, [isPlaying, arMode]);
 
   useEffect(() => {
     if (arMode) {
@@ -181,7 +200,8 @@ export default function LivePhotoView({ meta }: Props) {
 
   const downloadPhoto = async () => {
     try {
-      const res = await fetch(meta.photoUrl);
+      const res = await fetch(photoSrc);
+      if (!res.ok) throw new Error('photo ' + res.status);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -301,6 +321,18 @@ export default function LivePhotoView({ meta }: Props) {
                   if (!isPlaying) playChime();
                 }}
               />
+              {photoState !== 'ready' && (
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-sm text-cyan-200">
+                  {photoState === 'loading' ? (
+                    <>
+                      <span className="size-8 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-300" />
+                      <span>사진을 불러오는 중이에요</span>
+                    </>
+                  ) : (
+                    <span>사진을 불러오지 못했어요. 잠시 후 새로고침해 주세요.</span>
+                  )}
+                </div>
+              )}
               <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-xs text-white backdrop-blur-md">
                 <span className={"size-2 rounded-full " + (isPlaying ? "bg-emerald-400 animate-ping" : "bg-slate-400")} />
                 <span className="font-medium">{isPlaying ? 'LIVE ON' : 'PAUSED'}</span>
@@ -390,4 +422,3 @@ export default function LivePhotoView({ meta }: Props) {
     </main>
   );
 }
-
