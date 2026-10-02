@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles } from 'lucide-react';
+import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } from 'lucide-react';
 import { uploadForQrAction } from '@/app/actions';
+import { PhotoZoom } from '@/components/photo-zoom';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
 import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
   const [prints, setPrints] = useState<Record<string, string>>({});
   const [qr, setQr] = useState<QrState>({ status: 'idle' });
   const [left, setLeft] = useState(AUTO_RESTART_SECONDS);
+  const [zoomed, setZoomed] = useState(false);
   const restartRef = useRef(onRestart);
   restartRef.current = onRestart;
 
@@ -97,12 +99,22 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
       {/* Phones scroll this column; the photo keeps its own height instead of shrinking under the picker. */}
       <div className="relative flex shrink-0 items-center justify-center lg:min-h-0 lg:shrink">
         {framed ? (
-          <img
-            key={frameId}
-            src={framed}
-            alt={'완성된 AI 사진, ' + findFrame(frameId).name + ' 프레임'}
-            className="aspect-[2/3] h-[min(calc(100dvh-14rem),calc((100vw-2rem)*1.5))] w-auto max-w-full rounded-lg shadow-2xl animate-rise lg:h-auto lg:max-h-[calc(100dvh-8rem)]"
-          />
+          <button
+            type="button"
+            onClick={() => setZoomed(true)}
+            aria-label="사진 크게 보기"
+            className="group relative block cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
+          >
+            <img
+              key={frameId}
+              src={framed}
+              alt={'완성된 AI 사진, ' + findFrame(frameId).name + ' 프레임'}
+              className="aspect-[2/3] h-[min(calc(100dvh-14rem),calc((100vw-2rem)*1.5))] w-auto max-w-full rounded-lg shadow-2xl animate-rise lg:h-auto lg:max-h-[calc(100dvh-8rem)]"
+            />
+            <span className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition-transform group-hover:scale-105">
+              <ZoomIn className="size-4" aria-hidden /> 눌러서 크게 보기
+            </span>
+          </button>
         ) : (
           <div className="flex aspect-[2/3] h-[min(calc(100dvh-14rem),calc((100vw-2rem)*1.5))] max-w-full items-center justify-center rounded-lg bg-white/5 lg:h-[calc(100dvh-8rem)]">
             <Loader2 className="size-10 animate-spin text-muted-foreground" aria-label="프레임 입히는 중" />
@@ -189,6 +201,7 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
           <p className="text-center text-xs text-muted-foreground">{left}초 뒤 처음 화면으로 돌아가요</p>
         </div>
       </div>
+      {zoomed && framed && <PhotoZoom src={framed} alt="완성된 AI 사진 크게 보기" onClose={() => setZoomed(false)} />}
     </div>
   );
 }
