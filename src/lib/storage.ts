@@ -21,6 +21,7 @@ export type LivePhotoMeta = {
   backgroundId?: string;
   poseId?: string;
   propIds?: string[];
+  compositionId?: string;
 };
 
 export async function uploadLivePhoto(
@@ -45,6 +46,7 @@ export async function uploadLivePhoto(
     backgroundId: meta.backgroundId,
     poseId: meta.poseId,
     propIds: meta.propIds,
+    compositionId: meta.compositionId,
   };
 
   await Promise.all([

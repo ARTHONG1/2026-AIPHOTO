@@ -711,7 +711,7 @@ export default function LivePhotoView({ meta }: Props) {
       </footer>
 
       {zoomSrc && <PhotoZoom src={zoomSrc} alt="AI한컷 사진 크게 보기" onClose={() => setZoomSrc(null)} />}
-      {arSrc && <ArCamera photoSrc={arSrc} onClose={() => setArSrc(null)} />}
+      {arSrc && <ArCamera photoSrc={arSrc} backgroundId={meta.backgroundId} onClose={() => setArSrc(null)} />}
     </main>
   );
 }
@@ -754,4 +754,3 @@ function drawSelection(ctx: CanvasRenderingContext2D, s: PlacedSticker) {
   ctx.stroke();
   ctx.restore();
 }
-

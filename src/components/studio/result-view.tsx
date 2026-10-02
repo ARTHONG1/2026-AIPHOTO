@@ -13,13 +13,15 @@ const AUTO_RESTART_SECONDS = 60;
 
 type Props = {
   image: string;
+  /** What the visitor chose; stored with the QR upload so the live page knows the scene. */
+  choices?: { backgroundId?: string | null; poseId?: string | null; propIds?: string[]; compositionId?: string | null };
   onRestart: () => void;
   onRetry: () => void;
 };
 
 type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; dataUrl: string } | { status: 'error'; message: string };
 
-export function ResultView({ image, onRestart, onRetry }: Props) {
+export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
   // Finished prints per frame, so switching back and forth is instant.
   const [prints, setPrints] = useState<Record<string, string>>({});
@@ -82,7 +84,7 @@ export function ResultView({ image, onRestart, onRetry }: Props) {
     keepAlive();
     if (!framed || qr.status === 'loading' || qr.status === 'ready') return;
     setQr({ status: 'loading' });
-    const uploaded = await uploadForQrAction(framed, { frameId });
+    const uploaded = await uploadForQrAction(framed, { frameId, ...choices });
     if (!uploaded.ok) {
       setQr({ status: 'error', message: uploaded.error });
       return;
