@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { Maximize2, ShieldCheck, Volume2, VolumeX, X } from 'lucide-react';
+import { Maximize2, Pointer, ShieldCheck, Volume2, VolumeX, X } from 'lucide-react';
 import type { TransferState } from '@/lib/transfer/client';
 import type { MagicTreeScene, ViewMode } from '@/lib/magic-tree';
 import { Ambience } from '@/lib/magic-tree/ambience';
@@ -45,7 +45,8 @@ function useTreeSound(mode: ViewMode) {
   }, [on]);
   const previous = useRef(mode);
   useEffect(() => {
-    if (mode === 'code' && previous.current !== 'code') sound.current?.chord();
+    // Chime on every switch; the QR-to-tree reveal is the moment visitors react to.
+    if (previous.current !== mode) sound.current?.chord();
     previous.current = mode;
   }, [mode]);
   const toggle = () => {
@@ -63,17 +64,18 @@ function SoundButton({ on, toggle, className }: { on: boolean; toggle: () => voi
 }
 
 /**
- * Magic Tree QR. The tree grows in the result panel with the QR plot under it;
- * tapping settles the leaves into the scannable code. "QR 나무 크게 보기" opens the
- * same scene full screen like the original page. Only one WebGL scene runs at a time.
+ * Magic Tree QR. The result panel opens on the scannable code with a "QR을 눌러보세요"
+ * cue; tapping lifts the leaves off the code into the tree, and tapping again settles
+ * them back. "QR 나무 크게 보기" opens the same scene full screen like the original page.
+ * Only one WebGL scene runs at a time.
  */
 export function QrPortal({ url, dataUrl, state }: { url: string; dataUrl: string; state: TransferState }) {
-  const [mode, setMode] = useState<ViewMode>('tree');
+  const [mode, setMode] = useState<ViewMode>('code');
   const [big, setBig] = useState(false);
   const sound = useTreeSound(mode);
   return <div className="flex w-full flex-col items-center gap-2">
     {!big && <TreeStage url={url} dataUrl={dataUrl} status={state.status} mode={mode} setMode={setMode} controls={<SoundButton {...sound} className={styles.toggle} />} />}
-    {!big && <button type="button" className={styles.toggle} onClick={() => setBig(true)}><Maximize2 className="mr-1 inline size-3.5 align-[-2px]" aria-hidden />QR 나무 크게 보기</button>}
+    {!big && <button type="button" className={styles.toggle} onClick={() => setBig(true)}><Maximize2 className="size-3.5" aria-hidden />QR 나무 크게 보기</button>}
     <DialogPrimitive.Root open={big} onOpenChange={setBig}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Content className={styles.overlay} onOpenAutoFocus={event => event.preventDefault()}>
@@ -133,12 +135,15 @@ function TreeStage({ url, dataUrl, status, mode, setMode, full = false, controls
   const growing = showTree && settled === null;
   const rendered = failed ? 'fallback' : !ready ? 'loading' : growing ? 'growing' : mode !== settled ? 'transition' : settled;
   const toggle = () => {
-    if (failed) { setMode('tree'); setAttempt(n => n + 1); }
+    if (failed) setAttempt(n => n + 1);
     else setMode(mode === 'tree' ? 'code' : 'tree');
   };
-  const label = failed ? '3D 다시 시도' : mode === 'tree' ? 'QR 코드 보기' : '나무 다시 보기';
-  const pill = failed ? '3D 다시 시도' : !ready ? '나무를 키우고 있어요' : growing ? '나무가 자라고 있어요 · 누르면 QR 코드가 나와요' : mode === 'tree' ? '나무를 누르면 QR 코드가 나와요' : '휴대폰 카메라로 비춰 주세요 · 누르면 나무로 돌아가요';
-  const hint = failed ? '3D를 표시할 수 없어 기본 QR을 보여 드려요.' : !ready ? '나무를 준비하고 있어요. 지금 보이는 QR도 바로 스캔할 수 있어요.' : growing ? '나무가 자라고 있어요. 누르면 바로 QR 코드가 나와요.' : mode === 'tree' ? '나무를 누르면 잎이 내려앉아 QR 코드가 돼요.' : '휴대폰 카메라로 비춰 주세요. 다시 누르면 나무로 돌아가요.';
+  const codeShown = mode === 'code';
+  const cue = codeShown && !failed;
+  const label = failed ? '3D 다시 시도' : codeShown ? 'QR을 눌러 나무로 바꾸기' : '나무를 눌러 QR 코드로 바꾸기';
+  const cta = failed ? '3D 다시 시도' : codeShown ? 'QR을 눌러보세요' : 'QR 코드로 돌아가기';
+  const pill = failed ? '3D 다시 시도' : codeShown ? 'QR을 눌러보세요' : growing ? '나무가 자라고 있어요 · 누르면 QR 코드가 돼요' : '나무를 누르면 다시 QR 코드가 돼요';
+  const note = failed ? '3D를 표시할 수 없어 기본 QR을 보여 드려요.' : !ready ? 'QR을 준비하고 있어요. 지금 보이는 QR도 바로 스캔할 수 있어요.' : null;
   return <>
     <button ref={stage} type="button" onClick={toggle} aria-label={label} className={cn(styles.stage, full && styles.full, showTree ? styles.tree : styles.plain)} data-status={status} data-testid="qr-portal" data-view={full ? 'full' : 'card'} data-mode={failed ? 'fallback' : mode} data-rendered={rendered}>
       <img src={dataUrl} alt="AR 라이브 포토 QR 코드" className={styles.qr} width={512} height={512} />
@@ -147,13 +152,13 @@ function TreeStage({ url, dataUrl, status, mode, setMode, full = false, controls
       <span className={styles.guide} data-guide aria-hidden><i /><i /><i /><i /></span>
     </button>
     {full
-      ? <button type="button" className={styles.hint} onClick={toggle}>{pill}</button>
+      ? <button type="button" className={cn(styles.hint, cue && styles.hintCue)} onClick={toggle}>{cue && <Pointer className={cn('size-4', styles.nudge)} aria-hidden />}{pill}</button>
       : <>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <button type="button" className={styles.toggle} onClick={toggle}>{label}</button>
+          <button type="button" className={cn(styles.toggle, cue && styles.cta)} onClick={toggle}>{cue && <Pointer className={cn('size-4', styles.nudge)} aria-hidden />}{cta}</button>
           {controls}
         </div>
-        <p className="text-xs text-cyan-100/80">{hint}</p>
+        {note && <p className="text-xs text-cyan-100/80">{note}</p>}
       </>}
   </>;
 }

@@ -99,87 +99,85 @@ async page => {
   };
   const dialog = page.getByRole('dialog', { name: 'QR 나무' });
   const view = async expected => { const value = await portal.getAttribute('data-view'); if (value !== expected) throw new Error('Expected ' + expected + ' tree view, got ' + value); };
+  const guideOpacity = () => portal.locator('[data-guide]').evaluate(el => getComputedStyle(el).opacity);
   const first = await create();
-  // The tree stays in the result panel; full screen opens only on request.
-  await view('card');
-  // The plot appears first and the tree grows in over a few seconds.
-  await rendered('growing'); await page.waitForTimeout(500);
-  const early = await greenShare();
-  await portal.screenshot({ path: '.playwright-cli/portal-card-growing.png' });
-  await rendered('tree');
-  const grown = await greenShare();
-  if (!(early < grown * 0.6)) throw new Error('Tree did not grow in (' + early.toFixed(3) + ' -> ' + grown.toFixed(3) + ')');
-  if (await portal.locator('[data-guide]').evaluate(el => getComputedStyle(el).opacity) !== '0') throw new Error('Scan guide shows over the tree');
+  // The panel opens on the scannable QR with a short "tap the QR" cue; no full screen.
+  await view('card'); await rendered('code');
   if (await dialog.count()) throw new Error('Full-screen tree opened without being asked');
-  // Sound starts after the visitor's tap, and the reveal chord plays when the code appears.
-  await page.waitForFunction(() => window.__audio.at(-1)?.state === 'running', null, { timeout: 5000 }).catch(() => { throw new Error('Tree sound did not start'); });
-  const oscBefore = await page.evaluate(() => window.__osc);
-  await page.waitForTimeout(3000);
-  if (await portal.getAttribute('data-rendered') !== 'tree') throw new Error('Tree did not persist with reduced motion');
   const box = await portal.boundingBox();
-  if (!box || box.y < 0 || box.y + box.height > 1000) throw new Error('Initial tree is outside the viewport');
-  await treeDrawn();
-  await portal.screenshot({ path: '.playwright-cli/portal-card-tree.png' });
+  if (!box || box.y < 0 || box.y + box.height > 1000) throw new Error('Initial QR is outside the viewport');
+  await decode(first.url);
+  if (await portal.locator('img').evaluate(el => getComputedStyle(el).opacity) !== '0') throw new Error('Initial QR is the flat fallback, not the tree plot');
+  await page.getByRole('button', { name: 'QR을 눌러보세요', exact: true }).waitFor();
+  await portal.screenshot({ path: '.playwright-cli/portal-card-code.png' });
   await page.screenshot({ path: '.playwright-cli/portal-visible-on-create.png' });
+  await page.waitForTimeout(3000);
+  if (await portal.getAttribute('data-rendered') !== 'code') throw new Error('QR did not stay on screen');
+  await page.waitForFunction(() => window.__audio.at(-1)?.state === 'running', null, { timeout: 5000 }).catch(() => { throw new Error('Tree sound did not start'); });
+  // Tapping the QR lifts the leaves into the tree, with a chord.
+  const oscBefore = await page.evaluate(() => window.__osc);
   await portal.click();
   await page.waitForFunction(before => window.__osc >= before + 4, oscBefore, { timeout: 2000 }).catch(() => { throw new Error('Reveal chord did not play'); });
-  await rendered('code'); await decode(first.url);
-  if (await portal.locator('img').evaluate(el => getComputedStyle(el).opacity) !== '0') throw new Error('Code view fell back to the flat image');
-  await portal.screenshot({ path: '.playwright-cli/portal-card-code.png' });
+  await page.waitForTimeout(450);
+  if (await portal.getAttribute('data-rendered') !== 'transition') throw new Error('QR did not animate into the tree');
+  await portal.screenshot({ path: '.playwright-cli/portal-card-morph.png' });
+  await rendered('tree'); await treeDrawn();
+  if (await guideOpacity() !== '0') throw new Error('Scan guide shows over the tree');
+  await page.getByRole('button', { name: 'QR 코드로 돌아가기', exact: true }).waitFor();
+  await page.waitForTimeout(2600);
+  if (await portal.getAttribute('data-rendered') !== 'tree') throw new Error('Tree reverted automatically');
+  await portal.screenshot({ path: '.playwright-cli/portal-card-tree.png' });
+  await portal.click(); await rendered('code'); await decode(first.url);
+  await portal.focus(); await page.keyboard.press('Enter'); await rendered('tree');
+  await portal.press('Space'); await rendered('code'); await decode(first.url);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: 'QR을 눌러보세요', exact: true }).click(); await rendered('tree');
   // Staff can mute the booth, and the choice is remembered for the next QR.
   await page.getByRole('button', { name: '소리 끄기', exact: true }).first().click();
   await page.waitForFunction(() => window.__audio.at(-1)?.state === 'closed' && localStorage.getItem('ai-hancut:qr-tree-sound') === 'off', null, { timeout: 5000 }).catch(() => { throw new Error('Mute did not stop the sound'); });
   const audioCount = await page.evaluate(() => window.__audio.length);
   await page.getByRole('button', { name: '소리 켜기', exact: true }).first().click();
   await page.waitForFunction(count => window.__audio.length === count + 1 && window.__audio.at(-1).state === 'running', audioCount, { timeout: 5000 }).catch(() => { throw new Error('Unmute did not restart the sound'); });
-  await portal.click(); await rendered('tree'); await treeDrawn();
-  await portal.focus(); await page.keyboard.press('Enter'); await rendered('code'); await decode(first.url);
-  await portal.press('Space'); await rendered('tree');
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.getByRole('button', { name: 'QR 코드 보기', exact: true }).last().click();
-  await page.waitForTimeout(450);
-  if (await portal.getAttribute('data-rendered') !== 'transition') throw new Error('Leaves did not animate into the code');
-  await portal.screenshot({ path: '.playwright-cli/portal-card-morph.png' });
-  await rendered('code');
-  await page.getByRole('button', { name: '나무 다시 보기', exact: true }).last().click(); await rendered('tree');
-  await page.waitForTimeout(2600);
-  if (await portal.getAttribute('data-rendered') !== 'tree') throw new Error('Tree reverted automatically');
-  // The optional full-screen view behaves like the original page.
+  // Opening full screen on the tree grows it in from the plot.
   await page.getByRole('button', { name: 'QR 나무 크게 보기', exact: true }).click();
   await dialog.waitFor(); await view('full');
-  // Asking for the code mid-growth skips straight to it.
-  await rendered('growing'); await portal.click(); await rendered('code'); await decode(first.url);
-  await portal.click(); await rendered('tree');
+  await rendered('growing'); await page.waitForTimeout(500);
+  const early = await greenShare();
+  await page.screenshot({ path: '.playwright-cli/portal-full-growing.png' });
+  await rendered('tree');
+  const grown = await greenShare();
+  if (!(early < grown * 0.6)) throw new Error('Tree did not grow in (' + early.toFixed(3) + ' -> ' + grown.toFixed(3) + ')');
   if (!(await portal.evaluate(el => document.activeElement === el))) throw new Error('Tree stage did not receive focus');
   const fullBox = await portal.boundingBox();
   if (!fullBox || fullBox.width < 1300 || fullBox.height < 650) throw new Error('Full-screen tree is too small: ' + JSON.stringify(fullBox));
   await treeDrawn(0.02);
   await page.screenshot({ path: '.playwright-cli/portal-full-tree.png' });
-  await page.getByRole('button', { name: '나무를 누르면 QR 코드가 나와요', exact: true }).click(); await rendered('code'); await decode(first.url);
+  await page.getByRole('button', { name: '나무를 누르면 다시 QR 코드가 돼요', exact: true }).click(); await rendered('code'); await decode(first.url);
   await page.screenshot({ path: '.playwright-cli/portal-full-code.png' });
-  await page.getByRole('button', { name: '휴대폰 카메라로 비춰 주세요 · 누르면 나무로 돌아가요', exact: true }).click(); await rendered('tree');
-  await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'detached' }); await view('card'); await rendered('tree');
-  await page.getByRole('button', { name: 'QR 나무 크게 보기', exact: true }).click(); await dialog.waitFor(); await rendered('tree');
+  await page.getByRole('button', { name: 'QR을 눌러보세요', exact: true }).last().click(); await rendered('tree');
+  // Closing re-creates the panel tree on the tree view; tapping mid-growth skips straight to the QR.
+  await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'detached' }); await view('card');
+  await rendered('growing'); await portal.click(); await rendered('code'); await decode(first.url);
+  await page.getByRole('button', { name: 'QR 나무 크게 보기', exact: true }).click(); await dialog.waitFor(); await rendered('code'); await decode(first.url);
   await page.getByRole('button', { name: '닫기', exact: true }).click(); await dialog.waitFor({ state: 'detached' }); await view('card');
   await page.setViewportSize({ width: 390, height: 844 });
-  await portal.scrollIntoViewIfNeeded(); await rendered('tree'); await page.waitForTimeout(300); await treeDrawn();
-  await portal.screenshot({ path: '.playwright-cli/portal-mobile-tree.png' });
-  await portal.click(); await rendered('code'); await decode(first.url);
+  await portal.scrollIntoViewIfNeeded(); await rendered('code'); await page.waitForTimeout(300); await decode(first.url);
   await portal.screenshot({ path: '.playwright-cli/portal-mobile-code.png' });
+  await portal.click(); await rendered('tree'); await treeDrawn();
+  await portal.screenshot({ path: '.playwright-cli/portal-mobile-tree.png' });
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) throw new Error('Mobile layout overflows');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.evaluate(() => { window.__disablePortalWebGL = true; });
   const fallback = await create(); await view('card'); await rendered('fallback'); await decode(fallback.url);
   await page.evaluate(() => { window.__disablePortalWebGL = false; });
-  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('tree');
+  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('code'); await decode(fallback.url);
   await portal.locator('canvas').evaluate(el => el.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
   await rendered('fallback'); await decode(fallback.url);
-  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('tree');
-  // Repeated reversals must neither freeze the tree nor replace the QR room.
-  for (let i = 0; i < 4; i++) { await portal.click(); await rendered(i % 2 === 0 ? 'code' : 'tree'); }
+  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('code');
+  // Repeated reversals must neither freeze the scene nor replace the QR room.
+  for (let i = 0; i < 4; i++) { await portal.click(); await rendered(i % 2 === 0 ? 'tree' : 'code'); }
   // Reversing mid-flight must still come to rest.
-  await portal.click(); await page.waitForTimeout(200); await portal.click(); await rendered('tree');
-  await portal.click(); await rendered('code'); await decode(fallback.url);
+  await portal.click(); await page.waitForTimeout(200); await portal.click(); await rendered('code'); await decode(fallback.url);
   const phoneContext = await context.browser().newContext({ viewport: { width: 390, height: 844 } });
   const phone = await phoneContext.newPage(); phone.on('pageerror', e => errors.push(e.message));
   await phone.goto(fallback.url);
@@ -198,5 +196,5 @@ async page => {
   await dialog.getByText('휴대폰에 사진을 전달했어요!', { exact: true }).waitFor();
   await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'detached' });
   if (errors.length) throw new Error(errors.join('; '));
-  return { cardTreeOnCreate: 'passed', growthIntro: 'passed', growthSkipOnTap: 'passed', scanGuideOnlyOnCode: 'passed', soundAndRevealChord: 'passed', muteRemembered: 'passed', noAutoFullScreen: 'passed', reducedMotionTree: 'passed', leafMorph: 'passed', bidirectionalToggle: 'passed', keyboard: 'passed', cardCodeDecode: 'passed', degradedCameraDecode: 'passed', optionalFullScreen: 'passed', fullCodeDecode: 'passed', closeAndEscape: 'passed', mobileCard: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', midFlightReverse: 'passed', photoTransferAndDownload: 'passed', afterReceiveTree: 'passed', pageErrors: errors };
+  return { qrFirstAndScannable: 'passed', tapCue: 'passed', noAutoFullScreen: 'passed', qrToTreeMorph: 'passed', revealChord: 'passed', scanGuideOnlyOnCode: 'passed', treeToQr: 'passed', keyboard: 'passed', muteRemembered: 'passed', growthIntroOnTreeOpen: 'passed', growthSkipOnTap: 'passed', optionalFullScreen: 'passed', degradedCameraDecode: 'passed', mobileCard: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', midFlightReverse: 'passed', photoTransferAndDownload: 'passed', afterReceiveTree: 'passed', pageErrors: errors };
 }
