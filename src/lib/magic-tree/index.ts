@@ -32,6 +32,14 @@ export interface MagicTreeOptions {
 
 /** Seconds for a full canopy <-> code transition. */
 const MORPH_SECONDS = 0.95;
+/**
+ * Photo booth change: modules of the hedge ring kept in the settled code view.
+ * The original frames the whole ring; in a ~320-400px panel that shrinks the
+ * modules enough that blurred, downscaled captures of 144-character receive
+ * links decoded noticeably less often than the flat QR. One module keeps the
+ * grass visible while bringing the module size level with the flat image.
+ */
+const CODE_VIEW_RIM = 1;
 
 export class MagicTreeScene {
   private renderer?: THREE.WebGLRenderer;
@@ -65,7 +73,7 @@ export class MagicTreeScene {
   private isoHalfW = 20;
   private isoHalfV = 20;
   private isoCenter = new THREE.Vector3();
-  private rimUnits = 40;
+  private codeUnits = 40;
 
   private resizeObserver?: ResizeObserver;
   private intersectionObserver?: IntersectionObserver;
@@ -124,7 +132,7 @@ export class MagicTreeScene {
     this.world.add(this.plot.group, this.canopy.group, this.motes.points);
 
     const rim = (this.qr.plot + HEDGE_RING * 2) * CELL;
-    this.rimUnits = rim;
+    this.codeUnits = (this.qr.plot + CODE_VIEW_RIM * 2) * CELL;
     this.measureIsoFraming(rim);
 
     const shadowExtent = rim * 0.8;
@@ -298,7 +306,7 @@ export class MagicTreeScene {
 
   // -------------------------------------------------------------- camera
 
-  /** Frames the crown in the iso view and the whole plot in the top-down view. */
+  /** Frames the crown in the iso view and the plot plus a strip of grass in the top-down view. */
   private updateCamera() {
     // The camera runs on an eased copy of the morph so the swing eases in and
     // out instead of starting and stopping dead.
@@ -309,8 +317,8 @@ export class MagicTreeScene {
 
     const margin = 1.05;
     const fit = (halfW: number, halfV: number) => Math.max(halfV, halfW / aspect) * margin;
-    const halfRim = this.rimUnits / 2;
-    const half = lerp(fit(this.isoHalfW, this.isoHalfV), fit(halfRim, halfRim), t);
+    const halfCode = this.codeUnits / 2;
+    const half = lerp(fit(this.isoHalfW, this.isoHalfV), fit(halfCode, halfCode), t);
 
     this.camera.left = -half * aspect;
     this.camera.right = half * aspect;

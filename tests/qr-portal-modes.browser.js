@@ -45,7 +45,7 @@ async page => {
     const png = await portal.screenshot();
     const decoded = await page.evaluate(async base64 => {
       const img = new Image(); img.src = 'data:image/png;base64,' + base64; await img.decode();
-      return [[1, 'none'], [0.6, 'blur(1px)']].map(([scale, filter]) => {
+      return [[1, 'none'], [0.75, 'blur(1px)'], [0.6, 'blur(1px)']].map(([scale, filter]) => {
         const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
         const ctx = c.getContext('2d'); ctx.filter = filter; ctx.drawImage(img, 0, 0, c.width, c.height);
         const pixels = ctx.getImageData(0, 0, c.width, c.height);
