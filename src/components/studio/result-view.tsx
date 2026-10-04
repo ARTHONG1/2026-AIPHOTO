@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } from 'lucide-react';
 import { PhotoSender, type TransferState } from '@/lib/transfer/client';
 import { PhotoZoom } from '@/components/photo-zoom';
+import { PhotoPrivacyNotice } from '@/components/photo-privacy-notice';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
 import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
 import { cn } from '@/lib/utils';
@@ -199,6 +200,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
         </button>
         {qr.status === 'ready' && (
           <div className="panel flex flex-col items-center gap-2 p-4 animate-rise text-center">
+            <PhotoPrivacyNotice />
             <img src={qr.dataUrl} alt="AR 라이브 포토 QR 코드" className="size-48 rounded-xl bg-white p-2" />
             <p className="text-sm font-semibold text-primary" role="status" aria-live="polite">{transfer.status === 'received' ? '휴대폰에 사진을 전달했어요!' : transfer.status === 'sending' ? `사진 전달 중 (${transfer.progress ?? 0}%)` : transfer.status === 'connecting' ? '휴대폰과 연결 중이에요' : transfer.status === 'error' ? transfer.message : '스마트폰 카메라로 비춰보세요'}</p>
             <p className="text-xs text-muted-foreground">받을 때까지 이 화면을 유지해 주세요. 처음으로 돌아가면 사진과 QR 연결이 지워집니다.</p>

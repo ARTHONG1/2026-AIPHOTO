@@ -6,6 +6,7 @@ import LivePhotoView from './live-photo-view';
 import type { LivePhotoMeta } from '@/lib/live-photo';
 import { receivePhoto, type TransferState } from '@/lib/transfer/client';
 import { MAX_IMAGE_BYTES } from '@/lib/transfer/protocol';
+import { PhotoPrivacyNotice } from '@/components/photo-privacy-notice';
 
 export function ReceivePhoto({ id }: { id?: string }) {
   const [ready, setReady] = useState(false);
@@ -53,7 +54,9 @@ export function ReceivePhoto({ id }: { id?: string }) {
     finally { URL.revokeObjectURL(url); }
   };
   if (meta) return <>
-    <p className="bg-cyan-950 px-4 pt-4 text-center text-xs text-cyan-100">사진은 이 휴대폰에서만 열려 있어요. 새로고침하기 전에 사진을 저장해 주세요.</p>
+    <div className="flex justify-center bg-[#070b16] px-4 pt-4">
+      <PhotoPrivacyNotice source={id && meta.id === id ? 'qr' : 'local'} className="max-w-md" />
+    </div>
     <LivePhotoView key={meta.id} meta={meta} />
   </>;
   const busy = state.status === 'connecting' || state.status === 'sending';
@@ -65,6 +68,7 @@ export function ReceivePhoto({ id }: { id?: string }) {
       {state.status === 'error' && <button className="btn-primary" onClick={() => { setState({ status: 'waiting' }); setAttempt((n) => n + 1); }}><RotateCcw className="size-5" /> 다시 연결하기</button>}
       <p className="text-sm text-slate-400">사진을 받을 때까지 부스의 결과 화면을 유지해 주세요.</p>
     </div>}
+    <PhotoPrivacyNotice source={id ? 'qr' : 'local'} className="max-w-sm" />
     <div className="panel flex max-w-sm flex-col gap-3 p-5">
       <p className="text-sm">이미 받은 사진이 있나요?<br />휴대폰에 저장한 사진으로 스티커·라이브 효과·AR을 사용할 수 있어요.</p>
       <label className={ready ? 'btn-accent cursor-pointer' : 'btn-accent cursor-wait opacity-60'}><Upload className="size-5" /> 저장한 사진 선택<input type="file" accept="image/jpeg,image/png,image/webp" onChange={openFile} disabled={!ready} className="sr-only" aria-label="저장한 사진 선택" /></label>

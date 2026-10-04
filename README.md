@@ -60,6 +60,8 @@ PHOTOBOOTH_MOCK_AI=1로 실행하면 Vertex AI를 호출하지 않고 원본 사
 
 PC와 휴대폰 모두 외부에서 접속할 수 있는 HTTPS 주소를 사용합니다. Wi-Fi와 LTE 등 다른 네트워크 사이의 전달에는 TURN 설정과 실제 기기 검증이 필요합니다. 연결 정보는 단일 Node 프로세스의 RAM에 있으므로 여러 인스턴스·worker를 사용하지 않습니다. 재시작이나 배포 시 기존 QR이 만료될 수 있습니다. 자세한 운영 조건과 검증 방법은 [docs/PHOTO-TRANSFER.md](docs/PHOTO-TRANSFER.md)를 참고하세요.
 
+PC에서 QR을 만들 때와 휴대폰에서 사진을 받기 전·후에 사진 미보관 안내를 보여 줍니다. QR에는 연결 정보만 들어 있고 사진은 암호화해 전달된다는 설명, 직접 저장해야 사진이 남는다는 안내를 제공합니다. 펼쳐 보는 설명에는 WebRTC·임시 메모리·중계 서버의 역할과 AI 합성 시 Google AI에 사진이 전송된다는 점을 구분해 적었습니다. 공통 문구는 [src/components/photo-privacy-notice.tsx](src/components/photo-privacy-notice.tsx)에서 관리합니다.
+
 ## 프리셋 에셋 다시 만들기
 
 node scripts/build-assets.mjs 를 실행하면 public/의 원본 이미지와 [scripts/pose-geometry.mjs](scripts/pose-geometry.mjs)의 포즈 정의로 public/presets/와 public/brand/를 새로 만듭니다. 동작 50개는 모두 같은 좌표 정의에서 그립니다. 카드는 연필 스케치 화풍의 데생 인형 SVG([scripts/sketch.mjs](scripts/sketch.mjs))이고, AI에는 팔다리 방향만 담은 흑백 PNG를 보냅니다. --sheet 옵션을 주면 포즈 전체 미리보기 이미지를 임시 폴더에 저장합니다. 구도 카드는 같은 데생 인형을 콘티처럼 그린 연필 스케치 SVG이며 [scripts/composition-geometry.mjs](scripts/composition-geometry.mjs)에서 정의합니다. 동작·구도 카드만 다시 만들 때는 --cards 옵션을 씁니다. 배경·소품 카드는 AVIF, AI에 보내는 참조 이미지는 WebP로 저장합니다(Gemini는 AVIF 참조를 받지 않습니다).
