@@ -36,7 +36,6 @@ export function PhotoPrivacyNotice({ source = 'qr', className }: Props) {
             </>
           )}
           <p><strong className="text-slate-100">자동으로 영구 저장하지 않아요.</strong> 브라우저 메모리에 잠시 열기 때문에 새로고침하거나 탭을 닫으면 이 화면의 사진이 사라져요. 직접 저장한 파일은 내 기기에 남아요.</p>
-          {!local && <p className="border-t border-cyan-400/15 pt-2 text-[11px] text-slate-400">AI 사진을 만드는 단계에서는 합성을 위해 촬영 사진을 Google AI에 전송해요. 이 안내는 완성된 사진의 QR 전달과 앱의 보관 방식에 대한 설명이에요.</p>}
         </div>
       </details>
     </aside>

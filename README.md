@@ -60,7 +60,7 @@ PHOTOBOOTH_MOCK_AI=1로 실행하면 Vertex AI를 호출하지 않고 원본 사
 
 PC와 휴대폰 모두 외부에서 접속할 수 있는 HTTPS 주소를 사용합니다. Wi-Fi와 LTE 등 다른 네트워크 사이의 전달에는 TURN 설정과 실제 기기 검증이 필요합니다. 연결 정보는 단일 Node 프로세스의 RAM에 있으므로 여러 인스턴스·worker를 사용하지 않습니다. 재시작이나 배포 시 기존 QR이 만료될 수 있습니다. 자세한 운영 조건과 검증 방법은 [docs/PHOTO-TRANSFER.md](docs/PHOTO-TRANSFER.md)를 참고하세요.
 
-PC에서 QR을 만들 때와 휴대폰에서 사진을 받기 전·후에 사진 미보관 안내를 보여 줍니다. QR에는 연결 정보만 들어 있고 사진은 암호화해 전달된다는 설명, 직접 저장해야 사진이 남는다는 안내를 제공합니다. 펼쳐 보는 설명에는 WebRTC·임시 메모리·중계 서버의 역할과 AI 합성 시 Google AI에 사진이 전송된다는 점을 구분해 적었습니다. 공통 문구는 [src/components/photo-privacy-notice.tsx](src/components/photo-privacy-notice.tsx)에서 관리합니다.
+PC에서 QR을 만들 때와 휴대폰에서 사진을 받기 전·후에 사진 미보관 안내를 보여 줍니다. QR에는 연결 정보만 들어 있고 사진은 암호화해 전달된다는 설명, 직접 저장해야 사진이 남는다는 안내를 제공합니다. 펼쳐 보는 설명에는 WebRTC·임시 메모리·중계 서버의 역할을 적었습니다. 공통 문구는 [src/components/photo-privacy-notice.tsx](src/components/photo-privacy-notice.tsx)에서 관리합니다.
 
 ## 프리셋 에셋 다시 만들기
 
