@@ -20,13 +20,13 @@ const statusText = (state: TransferState) =>
   : '스마트폰 카메라로 비춰보세요';
 
 /**
- * Magic Tree QR. Like the original page, the tree opens full screen with the QR
- * plot under it; tapping settles the leaves into the scannable code. Closing
- * leaves a smaller tree in the result panel. Only one WebGL scene runs at a time.
+ * Magic Tree QR. The tree starts in the result panel with the QR plot under it;
+ * tapping settles the leaves into the scannable code. "QR 나무 크게 보기" opens the
+ * same scene full screen like the original page. Only one WebGL scene runs at a time.
  */
 export function QrPortal({ url, dataUrl, state }: { url: string; dataUrl: string; state: TransferState }) {
   const [mode, setMode] = useState<ViewMode>('tree');
-  const [big, setBig] = useState(true);
+  const [big, setBig] = useState(false);
   return <div className="flex w-full flex-col items-center gap-2">
     {!big && <TreeStage url={url} dataUrl={dataUrl} status={state.status} mode={mode} setMode={setMode} />}
     {!big && <button type="button" className={styles.toggle} onClick={() => setBig(true)}><Maximize2 className="mr-1 inline size-3.5 align-[-2px]" aria-hidden />QR 나무 크게 보기</button>}

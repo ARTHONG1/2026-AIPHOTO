@@ -62,7 +62,7 @@ PC와 휴대폰 모두 외부에서 접속할 수 있는 HTTPS 주소를 사용�
 
 PC에서 QR을 만들 때와 휴대폰에서 사진을 받기 전·후에 사진 미보관 안내를 보여 줍니다. QR에는 연결 정보만 들어 있고 사진은 암호화해 전달된다는 설명, 직접 저장해야 사진이 남는다는 안내를 제공합니다. 펼쳐 보는 설명에는 WebRTC·임시 메모리·중계 서버의 역할을 적었습니다. 공통 문구는 [src/components/photo-privacy-notice.tsx](src/components/photo-privacy-notice.tsx)에서 관리합니다.
 
-QR을 만들면 [Magic Tree](https://github.com/Slifronic/magic-tree)처럼 QR 땅 위에 3D 나무가 서 있는 전체 화면이 열립니다. 나무를 누르면 잎이 내려앉아 스캔할 수 있는 큰 QR이 되고, 다시 누르면 나무로 돌아갑니다. 닫으면 결과 패널에 작은 나무가 남고 `QR 나무 크게 보기`로 다시 엽니다. 그래픽 장애에는 평면 QR과 재시도 버튼을 표시합니다. 휴대폰에는 실제 수신 진행률과 사진 도착 고리를 표시하며, 전송 방식은 기존 WebRTC를 유지합니다. 검증은 `npm run test:qr-portal`로 실행합니다.
+QR을 만들면 결과 패널에 [Magic Tree](https://github.com/Slifronic/magic-tree)처럼 QR 땅 위에 서 있는 3D 나무가 나옵니다. 나무를 누르면 잎이 내려앉아 스캔할 수 있는 QR이 되고, 다시 누르면 나무로 돌아갑니다. `QR 나무 크게 보기`를 누르면 원본 페이지처럼 전체 화면으로 볼 수 있습니다. 그래픽 장애에는 평면 QR과 재시도 버튼을 표시합니다. 휴대폰에는 실제 수신 진행률과 사진 도착 고리를 표시하며, 전송 방식은 기존 WebRTC를 유지합니다. 검증은 `npm run test:qr-portal`로 실행합니다.
 
 ## 프리셋 에셋 다시 만들기
 
