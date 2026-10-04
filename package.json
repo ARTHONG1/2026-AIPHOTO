@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:transfer": "node --import tsx --test tests/transfer.test.ts",
     "assets": "node scripts/build-assets.mjs"
   },
   "dependencies": {

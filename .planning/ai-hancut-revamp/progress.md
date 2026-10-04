@@ -66,3 +66,17 @@
 - 얼굴 복원이 일부 조명에서 mismatch 0.47~0.64로 생략됨. 안전 제한은 완화하지 않았으며 원본과 동일한 얼굴이나 모든 조합의 품질 개선을 보장하지 않음.
 - Playwright CLI: 가상 1920x1440 카메라로 요청 1회, 촬영본 960x1440, 촬영 -> studio 진입 확인. 실제 하드웨어는 미검증. 최종 클로즈업 4:5 결과로 프레임 10종 1200x1800 모두 확인, 모바일 가로 넘침 및 pageerror 없음.
 - 검증 사진/스크립트는 .planning/lens-verification-2026-10-03-identity 및 로컬 Temp/.playwright-cli에만 보관, 저장소/배포 자료에 포함하지 않음.
+
+## Session 2026-10-04 — 사진 미보관 QR 전달 마무리
+- 사용자 요청: 중단된 최신 QR 전송 작업을 이어서 검증·배포·Git 반영까지 마무리.
+- 기존 변경 검토: 사진은 탭 메모리/휴대폰 Blob URL에만 유지하고, 인증된 WebRTC signaling 정보만 서버 RAM에 둠. 기존 업로드 action·storage 모듈 제거, 구 /live 링크는 로컬 사진 선택 안내, 사진 프록시는 HTTP 410.
+- README의 구 저장소/QR 경로 설명을 수정하고 apphosting.yaml의 미사용 PHOTOBOOTH_STORAGE_BUCKET 설정 제거. TURN 설정·단일 Node 프로세스·새로고침 시 사진 소실 조건은 docs/PHOTO-TRANSFER.md에 명시.
+- 브라우저 검증 중 만료 QR이 일반 오류를 표시하는 문제 발견. Next API 번들 사이의 SignalError 생성자 차이로 instanceof 판별이 실패함. 독립 모듈 import로 테스트 실패(500 != 410)를 재현하고 Symbol.for 기반 브랜드로 수정. 단위 테스트 9개 및 typecheck 통과.
+- 프로덕션 빌드(.vibe/transfer-final-20261004) 통과. 기존 Genkit/OpenTelemetry 선택적 exporter-jaeger 경고는 유지. 메인 개발 서버는 빌드 메모리 확보를 위해 잠시 중지.
+- 격리 프로덕션 서버(3014)에서 실제 DataChannel 전송, 수신 확인, 다운로드, PC 초기화 후 휴대폰 AR 유지, 만료 QR, 스티커, 로컬 사진 재열기, AR 권한 거부, 전송 중 초기화 통과. signaling 사진 포함/구 저장소 요청 없음. 가상 사진·모의 AI만 사용.
+- Playwright CLI로 /receive 화면과 스크린샷 확인. Chrome DevTools의 수신 진입 화면 콘솔 오류·경고 없음. 실제 iPhone/Android 카메라 추적 및 Wi-Fi↔LTE는 현장 기기·TURN 설정 후 확인 필요.
+- 첫 배포 성공 후 실제 HTTPS 주소에서 사진 전달·수신 확인·저장 및 만료 응답 확인. 재열기 검증의 간헐적 실패를 조사해 스크립트 로딩을 보류했을 때 파일 선택 이벤트가 유실되는 문제를 재현. 화면 준비 전 파일 입력을 비활성화하고 회귀 검증 및 브라우저 실패 진단을 추가.
+- 최종 빌드와 Firebase App Hosting 배포 완료. 배포 주소: https://ai-hancut--project-1e3fbae0-3a3e-4723-ae1.asia-east1.hosted.app
+- 최종 HTTPS 배포본에서 느린 스크립트 로딩 조건의 파일 선택, 실제 DataChannel 전송·수신 확인·다운로드·PC 초기화·만료 QR·스티커·로컬 사진 재열기·AR 권한 거부·전송 중 초기화 모두 통과. 사진 업로드/구 저장소 요청 없음. API 방 생성·폐기는 200, 만료된 방은 410.
+- 배포 환경의 TURN 미설정(hasTurn=false) 확인. 실제 휴대폰 간 Wi-Fi↔LTE는 TURN 설정과 현장 기기 확인이 남음. 실제 카메라·프린터·AI API는 이번 검증에서 실행하지 않음.
+- 로컬 미리보기 3012 복구. 코드·운영 문서·검증 스크립트를 main에 반영하도록 정리 완료.

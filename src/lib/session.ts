@@ -1,5 +1,4 @@
-// Per-visitor session: kept in memory for speed, mirrored to sessionStorage so a
-// refresh does not lose the photo. Everything is cleared when a visitor restarts.
+// Photos and choices live ONLY in this tab's memory. Refresh/restart drops them.
 
 export type Selection = { backgroundId: string | null; poseId: string | null; propIds: string[]; compositionId: string | null };
 
@@ -15,6 +14,11 @@ const memory: { photo: string | null; selection: Selection | null; result: strin
   result: null,
 };
 
+const cleanups = new Set<() => void>();
+export function registerSessionCleanup(fn: () => void) {
+  cleanups.add(fn);
+  return () => { cleanups.delete(fn); };
+}
 function safe<T>(fn: () => T): T | null {
   try {
     return fn();
@@ -27,6 +31,7 @@ export function clearSession() {
   memory.photo = null;
   memory.selection = null;
   memory.result = null;
+  for (const cleanup of [...cleanups]) safe(cleanup);
   safe(() => {
     sessionStorage.removeItem(PHOTO_KEY);
     sessionStorage.removeItem(SELECTION_KEY);
@@ -37,25 +42,19 @@ export function clearSession() {
 export function setPhoto(photo: string) {
   clearSession();
   memory.photo = photo;
-  safe(() => sessionStorage.setItem(PHOTO_KEY, photo));
 }
 
 export function getPhoto(): string | null {
-  if (!memory.photo) memory.photo = safe(() => sessionStorage.getItem(PHOTO_KEY));
   return memory.photo;
 }
 
 export function saveSelection(selection: Selection) {
   memory.selection = selection;
-  safe(() => sessionStorage.setItem(SELECTION_KEY, JSON.stringify(selection)));
 }
 
 export function loadSelection(): Selection {
   if (!memory.selection) {
-    const raw = safe(() => sessionStorage.getItem(SELECTION_KEY));
-    const parsed = raw ? safe(() => JSON.parse(raw) as Selection) : null;
-    // Selections saved before the composition step have no compositionId.
-    memory.selection = parsed && Array.isArray(parsed.propIds) ? { ...parsed, compositionId: parsed.compositionId ?? null } : EMPTY_SELECTION;
+    memory.selection = EMPTY_SELECTION;
   }
   return memory.selection;
 }

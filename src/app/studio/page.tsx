@@ -141,9 +141,11 @@ export default function StudioPage() {
     preloadLensEffect(current.compositionId);
     try {
       const res = await generatePhotoAction({ photo, ...current });
+      if (getPhoto() !== photo) return;
       if (res.ok) {
         // Lens effects (bokeh, panning, tilt-shift, soft focus) are finished here in the browser.
         const image = await applyLensEffect(res.image, current.compositionId);
+        if (getPhoto() !== photo) return;
         setResult(image);
         setResultState(image);
       } else {
@@ -194,6 +196,8 @@ export default function StudioPage() {
 
   const restart = useCallback(() => {
     clearSession();
+    setPhotoState(null);
+    setResultState(null);
     router.push('/');
   }, [router]);
 

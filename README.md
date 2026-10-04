@@ -6,7 +6,7 @@
 
 구도는 실제 촬영 기법만 담았고 줌인·줌아웃, 카메라 각도, 자리 잡기, 렌즈, 빛과 노출, 셔터와 특수 기법으로 나뉩니다. 구도는 그림 없이 글 지시로만 AI에 전달되고, 고르지 않으면 기본 클로즈업(머리부터 가슴 위까지)를 씁니다. 더치앵글과 어안 렌즈는 AI가 정확히 그리지 못해서, 생성이 끝난 뒤 서버에서 사진을 12도 돌려 잘라 내거나 가운데를 볼록하게 왜곡합니다. 아웃포커스, 패닝, 틸트시프트, 소프트 포커스도 AI 결과만으로는 효과가 약해서, 결과를 받은 직후 브라우저에서 마무리합니다([src/lib/lens-effects.ts](src/lib/lens-effects.ts)). MediaPipe로 사람을 오려 내고 사람만 또렷하게 둔 채 배경만 흐리거나(아웃포커스, 빛망울 포함) 옆으로 흘리고(패닝), 사람 높이의 띠만 남기고 위아래를 흐립니다(틸트시프트). 롱샷처럼 얼굴이 작아지는 구도에서는 얼굴 닮은 정도가 기본 구도보다 낮을 수 있습니다.
 
-결과 화면과 QR로 여는 라이브 포토(/live/[id])에서는 사진을 누르면 크게 볼 수 있습니다([src/components/photo-zoom.tsx](src/components/photo-zoom.tsx)). 라이브 포토에는 스티커 꾸미기와 AR 카메라가 있습니다. 스티커는 과학 스티커 16종(SVG)과 이모지 16종이며([src/components/live/stickers.ts](src/components/live/stickers.ts)), 끌어서 옮기고 손잡이나 두 손가락으로 크기·방향을 바꿉니다. 꾸민 결과는 그 휴대폰의 localStorage에 사진별로 남고, 고화질 저장과 라이브 영상에 함께 들어갑니다. AR 카메라([src/components/live/ar-camera.tsx](src/components/live/ar-camera.tsx))의 기본 효과 '사진 속으로'는 MediaPipe Image Segmenter로 사람만 오려 내고, QR을 만들 때 저장한 배경의 원본(사람 없는 배경)을 뒤에 깝니다. 배경 빛에 맞춰 사람 색을 보정하고, 윤곽에 빛 테두리와 별가루를 더하며, 고개를 움직이면 배경이 따라 움직입니다. 배경은 화면에서 바꿀 수 있습니다. 그 밖에 MediaPipe Face Landmarker로 얼굴을 따라가는 우주 헬멧, 아인슈타인 머리, 실험 고글, 행성 왕관, 아이디어 전구, 내 사진 홀로그램이 있습니다. 모든 효과에서 표정 마법이 작동합니다(입 크게 벌리기는 로켓, 눈 꼭 감기는 번개, 눈썹 올리기는 별과 행성, 활짝 웃기는 반짝이와 하트). 사진과 5초 영상으로 저장하고 공유할 수 있습니다. MediaPipe wasm(jsDelivr)과 얼굴 모델(Google Storage)은 AR 카메라를 열 때 CDN에서 받습니다.
+결과 화면과 QR로 여는 라이브 포토(/receive/[id])에서는 사진을 누르면 크게 볼 수 있습니다([src/components/photo-zoom.tsx](src/components/photo-zoom.tsx)). 라이브 포토에는 스티커 꾸미기와 AR 카메라가 있습니다. 스티커는 과학 스티커 16종(SVG)과 이모지 16종이며([src/components/live/stickers.ts](src/components/live/stickers.ts)), 끌어서 옮기고 손잡이나 두 손가락으로 크기·방향을 바꿉니다. 스티커 위치·크기·방향만 그 휴대폰의 localStorage에 남고 사진 자체는 저장하지 않습니다. 꾸민 결과는 고화질 저장과 라이브 영상에 함께 들어갑니다. AR 카메라([src/components/live/ar-camera.tsx](src/components/live/ar-camera.tsx))의 기본 효과 '사진 속으로'는 MediaPipe Image Segmenter로 사람만 오려 내고, 사진과 함께 전달받은 배경 ID에 해당하는 원본(사람 없는 배경)을 뒤에 깝니다. 배경 빛에 맞춰 사람 색을 보정하고, 윤곽에 빛 테두리와 별가루를 더하며, 고개를 움직이면 배경이 따라 움직입니다. 배경은 화면에서 바꿀 수 있습니다. 그 밖에 MediaPipe Face Landmarker로 얼굴을 따라가는 우주 헬멧, 아인슈타인 머리, 실험 고글, 행성 왕관, 아이디어 전구, 내 사진 홀로그램이 있습니다. 모든 효과에서 표정 마법이 작동합니다(입 크게 벌리기는 로켓, 눈 꼭 감기는 번개, 눈썹 올리기는 별과 행성, 활짝 웃기는 반짝이와 하트). 사진과 5초 영상으로 저장하고 공유할 수 있습니다. MediaPipe wasm(jsDelivr)과 얼굴 모델(Google Storage)은 AR 카메라를 열 때 CDN에서 받습니다.
 
 ## 인쇄 프레임
 
@@ -41,19 +41,24 @@ PHOTOBOOTH_MOCK_AI=1로 실행하면 Vertex AI를 호출하지 않고 원본 사
 | PHOTOBOOTH_FALLBACK_MODEL | 기본 모델이 오류를 낼 때 한 번 다시 시도할 모델. 기본값은 비어 있음(Pro만 사용) |
 | PHOTOBOOTH_IMAGE_SIZE | 1K(기본) 또는 2K(선명하지만 Pro 약 60초로 1분 목표를 넘김) |
 | PHOTOBOOTH_FACE_TRANSFER | 0이면 얼굴 옮겨 붙이기를 끔 |
-| PHOTOBOOTH_STORAGE_BUCKET | AR 라이브 포토 및 인쇄본 저장용 Firebase/GCP 버킷 (기본값: ai-hancut-photos-699923719631) |
+| PHOTOBOOTH_TURN_URLS | WebRTC 중계 서버 주소. 여러 주소는 쉼표로 구분 |
+| PHOTOBOOTH_TURN_USERNAME | TURN 인증 사용자 이름 |
+| PHOTOBOOTH_TURN_CREDENTIAL | TURN 인증 비밀번호. 호스팅 시크릿으로 관리 |
 | PHOTOBOOTH_MOCK_AI | 1이면 AI 호출 생략 |
 
 키는 저장소에 넣지 말고 .env.local 또는 App Hosting 시크릿으로 관리합니다.
 
 ## AR 라이브 포토 (Live Photo)
 
-결과 화면에서 "AR 라이브 포토 받기 (QR)"를 누르면 고유 QR 코드가 생성됩니다. 스마트폰 카메라로 스캔하면 전용 웹 뷰어(`/live/[id]`)로 접속합니다.
+결과 화면에서 "AR 라이브 포토 받기 (QR)"를 누르면 고유 QR 코드가 생성됩니다. 스마트폰 카메라로 스캔하면 전용 웹 뷰어(`/receive/[id]`)로 접속하고, 부스 PC에서 휴대폰으로 암호화된 WebRTC DataChannel을 통해 사진을 직접 받습니다. 서버에는 사진을 업로드하지 않고 연결 정보만 잠시 메모리에 둡니다.
 
 - **인터랙티브 라이브 모션:** 사진을 터치하거나 재생 버튼을 누르면 부드러운 3D 패럴랙스 줌과 반짝이는 과학 파티클 효과, 미래지향적 사운드가 재생됩니다.
 - **AR 카메라 모드:** 스마트폰 후면 카메라를 켜서 인쇄된 종이 사진을 비추면, 증강현실(AR)로 종이 위에서 움직이는 홀로그램 사진이 재생됩니다.
 - **스마트폰 저장:** 1200×1800 300dpi 원본 인쇄 사진 다운로드와 3초짜리 움직이는 라이브 영상(MP4/WebM) 저장을 지원합니다.
-- **저장소:** 외부 서비스 없이 프로젝트의 Firebase / Google Cloud Storage 버킷(`ai-hancut-photos-699923719631`)에 안전하게 저장됩니다.
+- **사진 보관:** 부스와 휴대폰의 메모리에서만 엽니다. 받기 완료 전 부스가 처음 화면으로 돌아가면 연결과 사진이 폐기됩니다. 받은 휴대폰에서는 계속 사용할 수 있으며, 새로고침 전에 저장 버튼으로 사진을 저장해야 합니다.
+- **다시 열기·공유:** `/receive`에서 휴대폰에 저장한 사진을 골라 AR을 다시 열 수 있습니다. 공유 버튼은 링크 대신 사진 파일을 공유합니다. 예전 `/live/[id]` 링크는 로컬 사진 선택 안내로 대체됩니다.
+
+PC와 휴대폰 모두 외부에서 접속할 수 있는 HTTPS 주소를 사용합니다. Wi-Fi와 LTE 등 다른 네트워크 사이의 전달에는 TURN 설정과 실제 기기 검증이 필요합니다. 연결 정보는 단일 Node 프로세스의 RAM에 있으므로 여러 인스턴스·worker를 사용하지 않습니다. 재시작이나 배포 시 기존 QR이 만료될 수 있습니다. 자세한 운영 조건과 검증 방법은 [docs/PHOTO-TRANSFER.md](docs/PHOTO-TRANSFER.md)를 참고하세요.
 
 ## 프리셋 에셋 다시 만들기
 

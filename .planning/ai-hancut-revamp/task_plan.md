@@ -4,7 +4,7 @@
 Firebase Studio에서 가져온 포토부스를 로컬에서 개발·App Hosting 배포 가능한 상태로 복원하고, 렉 없는 새 디자인과 배경/포즈/소품 각 30개 이상으로 확장한다.
 
 ## Current Phase
-Complete (실제 Vertex AI 호출 검증만 남음)
+Complete (2026-10-04: 사진 미보관 QR 전달 구현·브라우저 검증·배포 완료. 실제 휴대폰 Wi-Fi↔LTE는 TURN 설정 후 현장 검증 필요)
 
 ## Phases
 - [x] Phase 1 현황 파악
@@ -13,6 +13,7 @@ Complete (실제 Vertex AI 호출 검증만 남음)
 - [x] Phase 4 UI 재작성: / → /booth → /studio(단계형 + 결과), /editor는 /studio로 리다이렉트, 세션은 메모리+sessionStorage, JPEG 1024px
 - [x] Phase 5 tsc 통과, next build 통과(임시 복사본), Playwright로 전체 흐름 확인(모의 AI, 가짜 카메라)
 - [x] Phase 6 README, .env.example, apphosting.yaml
+- [x] Phase 7 사진 미보관 QR 전달: 메모리 세션·WebRTC·휴대폰 로컬 재열기, 단위 테스트 9개·타입 검사·빌드·로컬 및 HTTPS 브라우저 검증, 운영 문서·배포
 
 ## Decisions Made
 | Decision | Rationale |

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { Camera, Check, Download, Eye, Pause, Play, Share2, Sparkles, Sticker, Trash2, Video, Volume2, VolumeX, ZoomIn } from 'lucide-react';
-import type { LivePhotoMeta } from '@/lib/storage';
+import type { LivePhotoMeta } from '@/lib/live-photo';
 import { PhotoZoom } from '@/components/photo-zoom';
 import { STICKER_GROUPS, drawSticker, loadStickerImage, svgDataUrl, type PlacedSticker } from '@/components/live/stickers';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,7 @@ export default function LivePhotoView({ meta }: Props) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareMessage, setShareMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [photoState, setPhotoState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [editing, setEditing] = useState(false);
@@ -48,8 +49,8 @@ export default function LivePhotoView({ meta }: Props) {
   const [trayGroup, setTrayGroup] = useState(STICKER_GROUPS[0].id);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [arSrc, setArSrc] = useState<string | null>(null);
-  // Same-origin copy of the photo (see /api/live/[id]/photo): the storage bucket has no CORS headers.
-  const photoSrc = '/api/live/' + encodeURIComponent(meta.id) + '/photo';
+  // A phone-local Blob URL, received over the encrypted channel or selected locally.
+  const photoSrc = meta.photoUrl;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -115,9 +116,7 @@ export default function LivePhotoView({ meta }: Props) {
       };
       img.src = src;
     };
-    // The direct storage URL still displays the photo if the app route fails; only the
-    // video recording and sticker saving need the same-origin copy.
-    load(photoSrc, () => load(meta.photoUrl, () => setPhotoState('error')));
+    load(photoSrc, () => setPhotoState('error'));
     return () => {
       cancelled = true;
     };
@@ -489,15 +488,19 @@ export default function LivePhotoView({ meta }: Props) {
   };
 
   const copyLink = async () => {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } else if (navigator.share) {
-      await navigator.share({
-        title: '인천과학대제전 AI한컷 라이브 포토',
-        url: window.location.href,
-      });
+    try {
+      const source = await stillOrPhoto();
+      const blob = await (await fetch(source)).blob();
+      const file = new File([blob], 'ai-hancut.jpg', { type: blob.type });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: 'AI한컷 라이브 포토', files: [file] });
+        setCopied(true); setTimeout(() => setCopied(false), 2000);
+      } else {
+        await downloadPhoto();
+        setShareMessage('저장한 사진을 사진 앱에서 공유해 주세요.');
+      }
+    } catch (error) {
+      if (!(error instanceof Error && error.name === 'AbortError')) setShareMessage('공유하지 못했어요. 사진 저장 버튼을 이용해 주세요.');
     }
   };
 
@@ -692,8 +695,9 @@ export default function LivePhotoView({ meta }: Props) {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
         >
           {copied ? <Check className="size-4 text-emerald-400" /> : <Share2 className="size-4" />}
-          <span>{copied ? '링크가 복사되었습니다!' : '친구들에게 링크 공유하기'}</span>
+          <span>{copied ? '사진을 공유했습니다!' : '친구들에게 사진 공유하기'}</span>
         </button>
+        {shareMessage && <p role="status" className="text-center text-xs text-cyan-200">{shareMessage}</p>}
       </section>
 
       <footer className="mt-8 flex w-full max-w-md flex-col gap-2 rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-4 text-xs text-slate-400">

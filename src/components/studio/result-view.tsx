@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } from 'lucide-react';
-import { uploadForQrAction } from '@/app/actions';
+import { PhotoSender, type TransferState } from '@/lib/transfer/client';
 import { PhotoZoom } from '@/components/photo-zoom';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
 import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
@@ -13,13 +13,13 @@ const AUTO_RESTART_SECONDS = 60;
 
 type Props = {
   image: string;
-  /** What the visitor chose; stored with the QR upload so the live page knows the scene. */
+  /** Preset ids are sent directly to the phone together with the photograph. */
   choices?: { backgroundId?: string | null; poseId?: string | null; propIds?: string[]; compositionId?: string | null };
   onRestart: () => void;
   onRetry: () => void;
 };
 
-type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; dataUrl: string } | { status: 'error'; message: string };
+type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; dataUrl: string; localOnly: boolean; hasTurn: boolean } | { status: 'error'; message: string };
 
 export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
@@ -28,6 +28,15 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const [qr, setQr] = useState<QrState>({ status: 'idle' });
   const [left, setLeft] = useState(AUTO_RESTART_SECONDS);
   const [zoomed, setZoomed] = useState(false);
+  const [transfer, setTransfer] = useState<TransferState>({ status: 'waiting' });
+  const sender = useRef<PhotoSender | null>(null);
+  const requestVersion = useRef(0);
+  const transferring = transfer.status === 'connecting' || transfer.status === 'sending';
+  const disposeSender = () => {
+    requestVersion.current++;
+    sender.current?.close(); sender.current = null;
+  };
+  useEffect(() => () => { disposeSender(); }, []);
   const restartRef = useRef(onRestart);
   restartRef.current = onRestart;
 
@@ -52,13 +61,14 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   }, [image, frameId, prints]);
 
   useEffect(() => {
+    if (transferring) return;
     if (left <= 0) {
       restartRef.current();
       return;
     }
     const timer = setTimeout(() => setLeft((n) => n - 1), 1000);
     return () => clearTimeout(timer);
-  }, [left]);
+  }, [left, transferring]);
 
   // Any interaction gives the visitor more time before the booth resets.
   const keepAlive = () => setLeft(AUTO_RESTART_SECONDS);
@@ -66,7 +76,8 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const chooseFrame = (id: string) => {
     keepAlive();
     setFrameId(id);
-    // A QR code points at one uploaded print; a new frame needs a new upload.
+    disposeSender();
+    setTransfer({ status: 'waiting' });
     setQr({ status: 'idle' });
   };
 
@@ -82,15 +93,27 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
 
   const makeQr = async () => {
     keepAlive();
-    if (!framed || qr.status === 'loading' || qr.status === 'ready') return;
+    if (!framed || qr.status === 'loading' || transferring) return;
+    disposeSender();
+    const version = requestVersion.current;
     setQr({ status: 'loading' });
-    const uploaded = await uploadForQrAction(framed, { frameId, ...choices });
-    if (!uploaded.ok) {
-      setQr({ status: 'error', message: uploaded.error });
-      return;
+    setTransfer({ status: 'waiting' });
+    try {
+      const next = await PhotoSender.create(framed, { frameId, backgroundId: choices?.backgroundId ?? undefined, poseId: choices?.poseId ?? undefined, propIds: choices?.propIds, compositionId: choices?.compositionId ?? undefined }, (state) => {
+        if (requestVersion.current !== version) return;
+        setTransfer(state);
+        if (state.status === 'received' || state.status === 'error') keepAlive();
+      });
+      if (requestVersion.current !== version) { next.close(); return; }
+      sender.current = next;
+      const dataUrl = await QRCode.toDataURL(next.url, { width: 320, margin: 1, errorCorrectionLevel: 'M' });
+      if (requestVersion.current !== version) return;
+      setQr({ status: 'ready', dataUrl, localOnly: ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname), hasTurn: next.room.hasTurn });
+    } catch (error) {
+      if (requestVersion.current !== version) return;
+      disposeSender();
+      setQr({ status: 'error', message: error instanceof Error ? error.message : 'QR을 만들지 못했어요. 다시 시도해 주세요.' });
     }
-    const dataUrl = await QRCode.toDataURL(uploaded.url, { width: 320, margin: 1, errorCorrectionLevel: 'M' });
-    setQr({ status: 'ready', dataUrl });
   };
 
   return (
@@ -124,7 +147,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
         )}
       </div>
 
-      <div className="flex w-full max-w-md flex-col justify-center gap-4">
+      <div className="flex w-full max-w-md flex-col justify-center gap-4 lg:min-h-0 lg:justify-start lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
         <h2 className="text-center font-display text-5xl text-primary">완성!</h2>
 
         <section aria-labelledby="frame-title" className="flex flex-col gap-2">
@@ -141,6 +164,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
                   role="radio"
                   aria-checked={active}
                   onClick={() => chooseFrame(f.id)}
+                  disabled={transferring}
                   className={cn(
                     'flex flex-col items-center gap-1 rounded-xl p-1 transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/60 active:scale-95',
                     active ? 'bg-primary/15' : 'hover:bg-white/5'
@@ -169,15 +193,17 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
             <Download className="size-6" aria-hidden /> 저장
           </button>
         </div>
-        <button type="button" className="btn-accent w-full flex items-center justify-center gap-2" onClick={makeQr} disabled={!framed || qr.status === 'loading'}>
+        <button type="button" className="btn-accent w-full flex items-center justify-center gap-2" onClick={makeQr} disabled={!framed || qr.status === 'loading' || transferring}>
           {qr.status === 'loading' ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Sparkles className="size-5 text-amber-300" aria-hidden />}
-          AR 라이브 포토 받기 (QR)
+          {qr.status === 'ready' ? 'QR 다시 만들기' : 'AR 라이브 포토 받기 (QR)'}
         </button>
         {qr.status === 'ready' && (
           <div className="panel flex flex-col items-center gap-2 p-4 animate-rise text-center">
             <img src={qr.dataUrl} alt="AR 라이브 포토 QR 코드" className="size-48 rounded-xl bg-white p-2" />
-            <p className="text-sm font-semibold text-primary">스마트폰 카메라로 비춰보세요</p>
-            <p className="text-xs text-muted-foreground">사진이 살아서 움직이는 AR 라이브 포토가 열립니다</p>
+            <p className="text-sm font-semibold text-primary" role="status" aria-live="polite">{transfer.status === 'received' ? '휴대폰에 사진을 전달했어요!' : transfer.status === 'sending' ? `사진 전달 중 (${transfer.progress ?? 0}%)` : transfer.status === 'connecting' ? '휴대폰과 연결 중이에요' : transfer.status === 'error' ? transfer.message : '스마트폰 카메라로 비춰보세요'}</p>
+            <p className="text-xs text-muted-foreground">받을 때까지 이 화면을 유지해 주세요. 처음으로 돌아가면 사진과 QR 연결이 지워집니다.</p>
+            {qr.localOnly && <p className="text-xs text-amber-300">현재 주소는 PC 전용 미리보기입니다. 휴대폰 전달은 외부에서 접속 가능한 HTTPS 주소에서 사용해 주세요.</p>}
+            {!qr.localOnly && !qr.hasTurn && <p className="text-xs text-amber-300">연결되지 않으면 같은 Wi-Fi에서 시도해 주세요.</p>}
           </div>
         )}
         {qr.status === 'error' && (
@@ -186,10 +212,10 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
           </p>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <button type="button" className="btn-ghost text-lg" onClick={onRetry}>
+          <button type="button" className="btn-ghost text-lg" onClick={() => { if (!transferring || window.confirm('사진 전달을 중단하고 다시 고를까요?')) { disposeSender(); onRetry(); } }}>
             <RotateCcw className="size-5" aria-hidden /> 다시 고르기
           </button>
-          <button type="button" className="btn-ghost text-lg" onClick={onRestart}>
+          <button type="button" className="btn-ghost text-lg" onClick={() => { if (!transferring || window.confirm('사진 전달을 중단하고 사진을 지울까요?')) { disposeSender(); onRestart(); } }}>
             <Home className="size-5" aria-hidden /> 처음으로
           </button>
         </div>
@@ -200,7 +226,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
               style={{ transform: 'scaleX(' + left / AUTO_RESTART_SECONDS + ')' }}
             />
           </div>
-          <p className="text-center text-xs text-muted-foreground">{left}초 뒤 처음 화면으로 돌아가요</p>
+          <p className="text-center text-xs text-muted-foreground">{transferring ? '사진 전달 중에는 자동으로 돌아가지 않아요' : `${left}초 뒤 처음 화면으로 돌아가요`}</p>
         </div>
       </div>
       {zoomed && framed && <PhotoZoom src={framed} alt="완성된 AI 사진 크게 보기" onClose={() => setZoomed(false)} />}

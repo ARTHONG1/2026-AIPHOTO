@@ -15,6 +15,3 @@ env:
     value: gemini-3-pro-image
   - variable: PHOTOBOOTH_IMAGE_SIZE
     value: 1K
-  - variable: PHOTOBOOTH_STORAGE_BUCKET
-    value: ai-hancut-photos-699923719631
-
