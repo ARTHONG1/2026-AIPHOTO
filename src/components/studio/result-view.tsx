@@ -6,6 +6,7 @@ import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } 
 import { PhotoSender, type TransferState } from '@/lib/transfer/client';
 import { PhotoZoom } from '@/components/photo-zoom';
 import { PhotoPrivacyNotice } from '@/components/photo-privacy-notice';
+import { QrPortal, warmQrPortal } from '@/components/qr-portal';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
 import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
 import { cn } from '@/lib/utils';
@@ -20,7 +21,7 @@ type Props = {
   onRetry: () => void;
 };
 
-type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; dataUrl: string; localOnly: boolean; hasTurn: boolean } | { status: 'error'; message: string };
+type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; url: string; dataUrl: string; localOnly: boolean; hasTurn: boolean } | { status: 'error'; message: string };
 
 export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
@@ -31,6 +32,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
   const [zoomed, setZoomed] = useState(false);
   const [transfer, setTransfer] = useState<TransferState>({ status: 'waiting' });
   const sender = useRef<PhotoSender | null>(null);
+  useEffect(warmQrPortal, []);
   const requestVersion = useRef(0);
   const transferring = transfer.status === 'connecting' || transfer.status === 'sending';
   const disposeSender = () => {
@@ -107,9 +109,9 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
       });
       if (requestVersion.current !== version) { next.close(); return; }
       sender.current = next;
-      const dataUrl = await QRCode.toDataURL(next.url, { width: 320, margin: 1, errorCorrectionLevel: 'M' });
+      const dataUrl = await QRCode.toDataURL(next.url, { width: 512, margin: 4, errorCorrectionLevel: 'M' });
       if (requestVersion.current !== version) return;
-      setQr({ status: 'ready', dataUrl, localOnly: ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname), hasTurn: next.room.hasTurn });
+      setQr({ status: 'ready', url: next.url, dataUrl, localOnly: ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname), hasTurn: next.room.hasTurn });
     } catch (error) {
       if (requestVersion.current !== version) return;
       disposeSender();
@@ -201,7 +203,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
         {qr.status === 'ready' && (
           <div className="panel flex flex-col items-center gap-2 p-4 animate-rise text-center">
             <PhotoPrivacyNotice />
-            <img src={qr.dataUrl} alt="AR 라이브 포토 QR 코드" className="size-48 rounded-xl bg-white p-2" />
+            <QrPortal key={qr.url} url={qr.url} dataUrl={qr.dataUrl} state={transfer} />
             <p className="text-sm font-semibold text-primary" role="status" aria-live="polite">{transfer.status === 'received' ? '휴대폰에 사진을 전달했어요!' : transfer.status === 'sending' ? `사진 전달 중 (${transfer.progress ?? 0}%)` : transfer.status === 'connecting' ? '휴대폰과 연결 중이에요' : transfer.status === 'error' ? transfer.message : '스마트폰 카메라로 비춰보세요'}</p>
             <p className="text-xs text-muted-foreground">받을 때까지 이 화면을 유지해 주세요. 처음으로 돌아가면 사진과 QR 연결이 지워집니다.</p>
             {qr.localOnly && <p className="text-xs text-amber-300">현재 주소는 PC 전용 미리보기입니다. 휴대폰 전달은 외부에서 접속 가능한 HTTPS 주소에서 사용해 주세요.</p>}

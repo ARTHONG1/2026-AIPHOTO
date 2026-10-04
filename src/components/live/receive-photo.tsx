@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
-import { Loader2, RotateCcw, Upload } from 'lucide-react';
+import { RotateCcw, Upload } from 'lucide-react';
 import LivePhotoView from './live-photo-view';
 import type { LivePhotoMeta } from '@/lib/live-photo';
 import { receivePhoto, type TransferState } from '@/lib/transfer/client';
 import { MAX_IMAGE_BYTES } from '@/lib/transfer/protocol';
 import { PhotoPrivacyNotice } from '@/components/photo-privacy-notice';
+import { TransferPortalProgress } from '@/components/qr-portal';
 
 export function ReceivePhoto({ id }: { id?: string }) {
   const [ready, setReady] = useState(false);
@@ -54,16 +55,16 @@ export function ReceivePhoto({ id }: { id?: string }) {
     finally { URL.revokeObjectURL(url); }
   };
   if (meta) return <>
-    <div className="flex justify-center bg-[#070b16] px-4 pt-4">
+    <div className="flex flex-col items-center justify-center gap-3 bg-[#070b16] px-4 pt-4">
+      {id && meta.id === id && <TransferPortalProgress state={{ status: 'received', progress: 100 }} compact />}
       <PhotoPrivacyNotice source={id && meta.id === id ? 'qr' : 'local'} className="max-w-md" />
     </div>
     <LivePhotoView key={meta.id} meta={meta} />
   </>;
-  const busy = state.status === 'connecting' || state.status === 'sending';
   return <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-[#070b16] px-6 py-8 text-center text-slate-100">
     <h1 className="font-display text-4xl text-cyan-300">AI한컷 라이브 포토</h1>
     {id && <div className="flex max-w-sm flex-col items-center gap-3" role="status" aria-live="polite">
-      {busy && <Loader2 className="size-10 animate-spin text-cyan-300" />}
+      <TransferPortalProgress state={state} />
       <p>{state.status === 'sending' ? `사진을 받는 중이에요 (${state.progress ?? 0}%)` : state.status === 'error' ? state.message : '부스 PC와 연결하는 중이에요.'}</p>
       {state.status === 'error' && <button className="btn-primary" onClick={() => { setState({ status: 'waiting' }); setAttempt((n) => n + 1); }}><RotateCcw className="size-5" /> 다시 연결하기</button>}
       <p className="text-sm text-slate-400">사진을 받을 때까지 부스의 결과 화면을 유지해 주세요.</p>
