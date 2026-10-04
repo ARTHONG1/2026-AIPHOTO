@@ -17,6 +17,8 @@ export interface Canopy {
   leafCount: number;
   /** 0 = grown tree, 1 = settled into the code. */
   setMorph: (t: number, time: number) => void;
+  /** Photo booth intro: 0 = bare plot, 1 = the grown tree that setMorph(0) shows. */
+  setGrowth: (g: number, time: number) => void;
   applyPalette: (p: Palette) => void;
   dispose: () => void;
 }
@@ -242,5 +244,59 @@ export function buildCanopy(qr: QrMatrix, palette: Palette, species: Species): C
 
   applyPalette(palette);
 
-  return { group, leaves, branches, model, leafCount, setMorph, applyPalette, dispose };
+  // ---- growth intro (photo booth addition) -------------------------------
+  // The trunk rises first, then each ring of branches extends from the tip of
+  // its parent, and leaves pop out once the branch they hang from is grown.
+  // The final frame matches setMorph(0) exactly, so the idle sway takes over
+  // without a jump.
+  const BRANCH_START = 0.15;
+  const BRANCH_END = 0.62;
+  const LEAF_SPREAD = 0.14;
+  const LEAF_TIME = 0.2;
+  const maxDepth = model.branches.reduce((m, b) => Math.max(m, b.depth), 0);
+  const levelTime = (BRANCH_END - BRANCH_START) / (maxDepth + 1);
+  const rngG = makeRng(seed ^ 0x51ed7a11);
+  const sprout = new Float32Array(leafCount);
+  for (let i = 0; i < leafCount; i++) {
+    const grownAt = BRANCH_START + levelTime * (model.leafDepths[i] + 1);
+    sprout[i] = Math.min(grownAt + rngG() * LEAF_SPREAD, 1 - LEAF_TIME);
+  }
+  const easeOutBack = (x: number) => 1 + 2.70158 * (x - 1) ** 3 + 1.70158 * (x - 1) ** 2;
+
+  const setGrowth = (g: number, time: number) => {
+    for (let i = 0; i < model.branches.length; i++) {
+      const b = model.branches[i];
+      const local = clamp01((g - BRANCH_START - levelTime * b.depth) / levelTime);
+      const e = 1 - (1 - local) ** 2;
+      pos.set(
+        b.start.x + (b.end.x - b.start.x) * e * 0.5,
+        b.start.y + (b.end.y - b.start.y) * e * 0.5,
+        b.start.z + (b.end.z - b.start.z) * e * 0.5,
+      );
+      quat.set(bQuat[i * 4], bQuat[i * 4 + 1], bQuat[i * 4 + 2], bQuat[i * 4 + 3]);
+      const r = local > 0 ? bRad[i] * (0.35 + 0.65 * e) : 0;
+      scl.set(r, bLen[i] * e, r);
+      mat4.compose(pos, quat, scl);
+      branches.setMatrixAt(i, mat4);
+    }
+    branches.instanceMatrix.needsUpdate = true;
+    branches.visible = g > BRANCH_START;
+    branches.castShadow = true;
+    branchesAt = -1; // setMorph must rewrite the skeleton afterwards
+
+    for (let i = 0; i < leafCount; i++) {
+      const local = clamp01((g - sprout[i]) / LEAF_TIME);
+      const sway = 0.09 * Math.sin(time * 0.9 + phase[i]);
+      pos.set(treePos[i * 3] + sway, treePos[i * 3 + 1], treePos[i * 3 + 2] + sway * 0.6);
+      euler.set(spin[i * 3], spin[i * 3 + 1], spin[i * 3 + 2]);
+      quat.setFromEuler(euler);
+      scl.setScalar(local > 0 ? treeScale[i] * easeOutBack(local) : 0);
+      mat4.compose(pos, quat, scl);
+      leaves.setMatrixAt(i, mat4);
+    }
+    leaves.instanceMatrix.needsUpdate = true;
+    leaves.castShadow = true;
+  };
+
+  return { group, leaves, branches, model, leafCount, setMorph, setGrowth, applyPalette, dispose };
 }

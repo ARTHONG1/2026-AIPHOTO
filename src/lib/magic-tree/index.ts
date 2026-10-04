@@ -24,7 +24,11 @@ export interface MagicTreeOptions {
   errorCorrectionLevel?: QRCodeErrorCorrectionLevel;
   palette?: Palette;
   species?: Species;
-  /** Called whenever the morph comes to rest, including the first frame. */
+  /** Photo booth: grow the tree from a bare plot when the scene opens on the tree. */
+  intro?: boolean;
+  /** Called once the first frame is on the canvas. */
+  onReady?: () => void;
+  /** Called whenever the morph comes to rest (after any growth intro). */
   onSettled?: (mode: ViewMode) => void;
   /** Called after WebGL fails mid-run; the scene has already released itself. */
   onFailed?: () => void;
@@ -32,6 +36,8 @@ export interface MagicTreeOptions {
 
 /** Seconds for a full canopy <-> code transition. */
 const MORPH_SECONDS = 0.95;
+/** Photo booth: seconds for the plot -> trunk -> branches -> leaves intro. */
+const GROW_SECONDS = 2.6;
 /**
  * Photo booth change: modules of the hedge ring kept in the settled code view.
  * The original frames the whole ring; in a ~320-400px panel that shrinks the
@@ -62,6 +68,9 @@ export class MagicTreeScene {
   private level: QRCodeErrorCorrectionLevel;
   private morph: number;
   private morphTarget: number;
+  /** Growth intro progress; 1 means fully grown (or no intro). */
+  private grow: number;
+  private drawn = false;
   private lastTime = 0;
   private elapsed = 0;
   private raf = 0;
@@ -83,6 +92,7 @@ export class MagicTreeScene {
     this.species = options.species ?? SPECIES.oak;
     this.level = options.errorCorrectionLevel ?? 'H';
     this.morph = this.morphTarget = options.mode === 'code' ? 1 : 0;
+    this.grow = options.intro && options.mode === 'tree' ? 0 : 1;
 
     const context = canvas.getContext('webgl2', { antialias: true, alpha: false, powerPreference: 'high-performance' });
     if (!context) throw new Error('WebGL2 unavailable');
@@ -222,6 +232,8 @@ export class MagicTreeScene {
     if (next !== this.morphTarget) {
       this.morphTarget = next;
       this.announced = null;
+      // Asking for the code mid-growth skips straight to the grown tree.
+      if (this.grow < 1) this.finishGrowth();
     }
     this.announce();
     this.schedule();
@@ -287,7 +299,7 @@ export class MagicTreeScene {
 
   /** The settled code is perfectly still, so it is drawn once and left alone. */
   private needsFrames() {
-    return this.morph !== this.morphTarget || this.morph < 0.999 || this.frame < 2;
+    return this.grow < 1 || this.morph !== this.morphTarget || this.morph < 0.999 || this.frame < 2;
   }
 
   private schedule() {
@@ -297,7 +309,7 @@ export class MagicTreeScene {
   }
 
   private announce() {
-    if (this.morph !== this.morphTarget) return;
+    if (this.grow < 1 || this.morph !== this.morphTarget) return;
     const mode = this.mode;
     if (this.announced === mode) return;
     this.announced = mode;
@@ -359,13 +371,38 @@ export class MagicTreeScene {
 
   // ---------------------------------------------------------------- loop
 
+  /** Plot rises into place and the grass sprouts at the start of the intro. */
+  private applyGroundIntro(g: number) {
+    const plot = this.plot!;
+    const k = easeInOutCubic(clamp01(g / 0.2));
+    plot.group.position.y = (1 - k) * -3;
+    plot.group.scale.set(0.9 + 0.1 * k, 1, 0.9 + 0.1 * k);
+    plot.hedge.scale.y = Math.max(0.001, easeInOutCubic(clamp01((g - 0.08) / 0.27)));
+  }
+
+  private finishGrowth() {
+    this.grow = 1;
+    this.applyGroundIntro(1);
+    this.canopy!.setGrowth(1, this.elapsed);
+  }
+
   private draw(dt: number, changed: boolean) {
-    // Idle sway only matters while the canopy is up; skip work once settled.
-    const idle = this.morph < 0.999;
-    if (idle || changed || this.frame < 2) this.canopy!.setMorph(this.morph, this.elapsed);
-    this.motes!.update(dt, this.elapsed, 1 - this.morph);
+    if (this.grow < 1) {
+      this.applyGroundIntro(this.grow);
+      this.canopy!.setGrowth(this.grow, this.elapsed);
+      this.motes!.update(dt, this.elapsed, clamp01((this.grow - 0.85) / 0.15));
+    } else {
+      // Idle sway only matters while the canopy is up; skip work once settled.
+      const idle = this.morph < 0.999;
+      if (idle || changed || this.frame < 2) this.canopy!.setMorph(this.morph, this.elapsed);
+      this.motes!.update(dt, this.elapsed, 1 - this.morph);
+    }
     this.updateCamera();
     this.renderer!.render(this.scene, this.camera);
+    if (!this.drawn) {
+      this.drawn = true;
+      this.options.onReady?.();
+    }
   }
 
   private loop = (now: number) => {
@@ -375,6 +412,11 @@ export class MagicTreeScene {
     const dt = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.05) : 0;
     this.lastTime = now;
     this.elapsed += dt;
+
+    if (this.grow < 1) {
+      this.grow = Math.min(1, this.grow + dt / GROW_SECONDS);
+      if (this.grow >= 1) this.finishGrowth();
+    }
 
     let changed = false;
     if (this.morph !== this.morphTarget) {

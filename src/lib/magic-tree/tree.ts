@@ -17,6 +17,8 @@ export interface TreeModel {
   leaves: THREE.Vector3[];
   /** Per-leaf size, so each species keeps its own foliage texture. */
   leafScales: number[];
+  /** Depth of the branch each leaf hangs from (photo booth: drives the growth intro). */
+  leafDepths: number[];
   /** Height of the woody skeleton. */
   height: number;
   /** Top of the foliage, which sits above the branch tips. */
@@ -99,9 +101,9 @@ export function growTree(seed: number, opts: GrowOptions): TreeModel {
   );
 
   const height = branches.reduce((m, b) => Math.max(m, b.end.y), 0);
-  const { leaves, leafScales } = scatterLeaves(branches, opts.leafCount, height, sp, rng);
+  const { leaves, leafScales, leafDepths } = scatterLeaves(branches, opts.leafCount, height, sp, rng);
 
-  return { branches, leaves, leafScales, height, ...canopyBounds(leaves, leafScales, height) };
+  return { branches, leaves, leafScales, leafDepths, height, ...canopyBounds(leaves, leafScales, height) };
 }
 
 /**
@@ -166,11 +168,12 @@ function growConifer(seed: number, opts: GrowOptions): TreeModel {
   }
 
   const treeHeight = branches.reduce((m, b) => Math.max(m, b.end.y), 0);
-  const { leaves, leafScales } = scatterLeaves(branches, opts.leafCount, treeHeight, sp, rng);
+  const { leaves, leafScales, leafDepths } = scatterLeaves(branches, opts.leafCount, treeHeight, sp, rng);
   return {
     branches,
     leaves,
     leafScales,
+    leafDepths,
     height: treeHeight,
     ...canopyBounds(leaves, leafScales, treeHeight),
   };
@@ -197,6 +200,7 @@ function scatterLeaves(
 
   const leaves: THREE.Vector3[] = [];
   const leafScales: number[] = [];
+  const leafDepths: number[] = [];
 
   for (let i = 0; i < count; i++) {
     const branch = pool[Math.floor(rng() * pool.length)];
@@ -224,10 +228,11 @@ function scatterLeaves(
       ),
     );
     leafScales.push(lerp(sp.leafSize[0], sp.leafSize[1], rng()));
+    leafDepths.push(branch.depth);
   }
 
   applyTaper(leaves, sp.taper, height);
-  return { leaves, leafScales };
+  return { leaves, leafScales, leafDepths };
 }
 
 /**

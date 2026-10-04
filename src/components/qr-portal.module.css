@@ -95,3 +95,39 @@
 .stage.full:focus-visible { outline: 3px solid #0e7490; outline-offset: -3px; }
 @keyframes overlay-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .overlay { animation: none; } }
+
+/*
+ * Scan guide. The settled code fills the stage's shorter side with the plot edge
+ * 4% in from it, so corners drawn in the outer ~3% sit on the grass rim and
+ * never touch the code or its quiet zone.
+ */
+.stage { container-type: size; }
+.guide {
+  --t: clamp(4px, 1.1cqmin, 8px);
+  --r: clamp(8px, 3cqmin, 18px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+.stage[data-rendered='code'] .guide { opacity: 1; }
+.guide i {
+  position: absolute;
+  width: 15%;
+  height: 15%;
+  border: 0 solid #22d3ee;
+  animation: guide-glow 1.8s ease-in-out infinite;
+}
+.guide i:nth-child(1) { left: 1.2%; top: 1.2%; border-left-width: var(--t); border-top-width: var(--t); border-top-left-radius: var(--r); }
+.guide i:nth-child(2) { right: 1.2%; top: 1.2%; border-right-width: var(--t); border-top-width: var(--t); border-top-right-radius: var(--r); }
+.guide i:nth-child(3) { left: 1.2%; bottom: 1.2%; border-left-width: var(--t); border-bottom-width: var(--t); border-bottom-left-radius: var(--r); }
+.guide i:nth-child(4) { right: 1.2%; bottom: 1.2%; border-right-width: var(--t); border-bottom-width: var(--t); border-bottom-right-radius: var(--r); }
+@keyframes guide-glow {
+  0%, 100% { filter: drop-shadow(0 0 1px #22d3ee); }
+  50% { filter: drop-shadow(0 0 6px #22d3ee) drop-shadow(0 0 2px #a5f3fc); }
+}
