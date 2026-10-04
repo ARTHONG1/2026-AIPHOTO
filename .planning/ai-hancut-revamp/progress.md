@@ -110,3 +110,11 @@
 - 화면/버튼·Enter·Space 전환, GPU 장애 후 기본 QR과 새 캔버스 재시도 제공. QR 생성 때 영역을 자동으로 보여 주며 개인정보 안내는 QR 아래에 유지. 전송 URL/방/WebRTC/사진 미보관 구조 및 AI 별도 설명 미삽입 유지.
 - typecheck·전송 단위 테스트 9개·격리 프로덕션 빌드 통과. 로컬 headless, Playwright CLI, 격리 프로덕션에서 tests/qr-portal-modes.browser.js 통과: 일반/reduced-motion 지속 3D, 초기 화면 전체 노출, 클릭·키보드 왕복, PC/390px 실제 평면 QR 해독, resize, WebGL 불가와 재시도, 컨텍스트 손실과 복구, 반복 전환, 실제 DataChannel 수신·다운로드, 수신 완료 후 3D 복귀. pageerror 없음. 가상 사진/모의 AI만 사용.
 - Firebase App Hosting 배포 완료. 실제 HTTPS 배포본에서도 지속 3D, reduced-motion 3D, 초기 화면 전체 노출, 클릭·키보드 왕복 전환, QR 해독, 모바일 크기 변경, WebGL 장애·컨텍스트 상실 후 재시도, 실제 DataChannel 사진 수신·다운로드, 수신 후 3D 복귀 검증 모두 통과. pageerror 없음. 실제 휴대폰 카메라 및 행사장 네트워크는 미검증, TURN 미설정 조건 유지.
+
+## Session 2026-10-04 — 원본 Magic Tree 나무 QR 이식
+- 사용자 피드백: 큐브 3D QR 모양이 아쉬움. 새로 디자인하지 말고 원본 Magic Tree처럼 나무로 만들 것. 구현·배포 승인.
+- Slifronic/magic-tree(MIT)의 src/scene 코드를 src/lib/magic-tree/로 이식하고 LICENSE와 출처 주석을 포함. 나무 성장·잎 이동(0.95초)·카메라 회전·조명·잔디·떨어지는 잎은 원본 유지. 기본은 여름 참나무.
+- 원본과 다른 점: 결과 패널용으로 하단 조작판 여백 제거, 수신 주소가 길어 오류 정정 H 대신 평면 QR과 같은 M(49×49칸, 잎 약 7,650개), 화면 밖·백그라운드·정지 QR에서 그리기 중단, WebGL 실패·컨텍스트 손실 시 평면 QR과 재시도.
+- QR 카드: 나무 기본 → 클릭·Enter·Space·QR 코드 보기 버튼으로 렌더링된 나무 QR → 다시 누르면 나무. 결과 패널 폭(최대 420px)으로 확대. 상태 테두리 색 유지. 기존 큐브 렌더러 삭제.
+- 앱 저작권 안내에 Magic Tree MIT 전문 추가(빌드 압축에서 주석이 제거됨을 확인). 홈 화면 장식 lobby-rays가 하단 링크·저작권 안내 클릭을 가로막던 기존 문제를 pointer-events: none으로 수정.
+- typecheck, 전송 단위 테스트 9개, 격리 프로덕션 빌드 통과. 로컬 개발 서버와 격리 프로덕션(3014)에서 tests/qr-portal-modes.browser.js 통과: 나무 기본 표시(동작 줄이기 포함), 잎 전환 중간 상태, 왕복·키보드·전환 도중 되돌리기, PC/390px 렌더링 나무 QR의 jsQR 해독(원본과 60% 축소+흐림), WebGL 불가·컨텍스트 손실 후 재시도, 실제 DataChannel 수신·다운로드, 수신 후 나무 복귀. pageerror 없음. 저작권 안내 열림 확인. 가상 사진/모의 AI만 사용.

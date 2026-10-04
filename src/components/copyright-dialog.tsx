@@ -223,6 +223,28 @@ const apacheLicenseText = `
    limitations under the License.
 `;
 
+const mitLicenseText = `MIT License
+
+Copyright (c) 2026 Magic Tree contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`;
+
 export function CopyrightDialog({ isOpen, onOpenChange }: CopyrightDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -240,7 +262,7 @@ export function CopyrightDialog({ isOpen, onOpenChange }: CopyrightDialogProps) 
             2차 창작물 저작권: Copyright 인천봉수초 교사 홍찬우
           </p>
           <p>
-            모든 코드는 Apache License, Version 2.0에 따라 사용됩니다.
+            Magic Markup 코드는 Apache License, Version 2.0에 따라 사용됩니다.
           </p>
           <p>
             라이선스 전문은 아래와 같습니다.
@@ -249,6 +271,15 @@ export function CopyrightDialog({ isOpen, onOpenChange }: CopyrightDialogProps) 
           <ScrollArea className="h-60 w-full rounded-md border p-4">
             <pre className="text-xs whitespace-pre-wrap font-mono">
                 {apacheLicenseText}
+            </pre>
+          </ScrollArea>
+          <Separator className="my-4" />
+          <p>
+            QR 나무 화면에는 MIT 라이선스가 적용된 Magic Tree 프로젝트(github.com/Slifronic/magic-tree)의 코드가 포함되어 있습니다.
+          </p>
+          <ScrollArea className="h-40 w-full rounded-md border p-4">
+            <pre className="text-xs whitespace-pre-wrap font-mono">
+                {mitLicenseText}
             </pre>
           </ScrollArea>
         </div>

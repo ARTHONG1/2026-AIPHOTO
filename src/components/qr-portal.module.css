@@ -2,66 +2,37 @@
   position: relative;
   isolation: isolate;
   width: 100%;
-  max-width: 360px;
+  max-width: 420px;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 24px;
-  background: radial-gradient(circle, #153d58 0%, #0d1c35 52%, #070e20 76%);
-  border: 1px solid #67e8f930;
+  border-radius: 20px;
+  /* Magic Tree summer ground, so the scene and its frame read as one plot. */
+  background: #f6f1e7;
+  border: 2px solid #e7dfcf;
   padding: 0;
   cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
 }
 .stage:focus-visible { outline: 3px solid #67e8f9; outline-offset: 4px; }
-.ring {
-  position: absolute;
-  inset: 4%;
-  border: 1px solid #67e8f96b;
-  border-radius: 50%;
-  box-shadow: 0 0 18px #22d3ee33, inset 0 0 12px #22d3ee1a;
-  pointer-events: none;
-}
-.orbit {
-  position: absolute;
-  inset: 1.5%;
-  border: 1px dashed #a5b4fc45;
-  border-radius: 50%;
-  animation: orbit 24s linear infinite;
-  pointer-events: none;
-}
-.orbit::before, .orbit::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #a5f3fc;
-  box-shadow: 0 0 12px #67e8f9;
-}
-.orbit::after { top: auto; bottom: -3px; background: #fde68a; }
+.stage[data-status='connecting'],
+.stage[data-status='sending'] { border-color: #fde68a; box-shadow: 0 0 0 3px #facc1533, 0 0 24px #facc1544; }
+.stage[data-status='received'] { border-color: #6ee7b7; box-shadow: 0 0 0 3px #34d39933, 0 0 28px #34d39966; }
 .qr {
   position: absolute;
-  width: 76%;
-  height: 76%;
-  left: 12%;
-  top: 12%;
+  width: 92%;
+  height: 92%;
+  left: 4%;
+  top: 4%;
   display: block;
   background: white;
-  box-shadow: 0 14px 28px #0008, 0 0 24px #22d3ee28;
   /* Exact integer-sized source with a full four-module quiet zone. */
   image-rendering: pixelated;
+  transition: opacity 0.25s;
 }
-.canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
-.sculpture .canvas { opacity: 1; }
-.sculpture .qr { opacity: 0; }
-.stage[data-status='connecting'] .ring,
-.stage[data-status='sending'] .ring { border-color: #fde68a; box-shadow: 0 0 24px #facc1544; }
-.stage[data-status='received'] .ring { border-color: #6ee7b7; box-shadow: 0 0 28px #34d39966; }
-.stage[data-status='received'] .orbit { animation-play-state: paused; }
-.plain { background: white; border-radius: 12px; border-color: #fff; }
-.plain .ring, .plain .orbit { display: none; }
-.plain .qr { box-shadow: none; width: 92%; height: 92%; top: 4%; left: 4%; }
+.canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
+.tree .canvas { opacity: 1; }
+.tree .qr { opacity: 0; }
+.plain { background: white; }
 .toggle { padding: 8px 14px; border-radius: 999px; color: #bae6fd; font-size: 12px; background: #ffffff0a; border: 1px solid #67e8f933; }
 .toggle:focus-visible { outline: 2px solid #67e8f9; outline-offset: 3px; }
 .progress { display: grid; place-items: center; position: relative; width: 144px; height: 144px; }
@@ -72,5 +43,3 @@
 .compact { width: 80px; height: 80px; }
 .compact .value strong { font-size: 24px; color: #6ee7b7; }
 .compact .value span { font-size: 10px; }
-@keyframes orbit { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .orbit { animation: none; } }

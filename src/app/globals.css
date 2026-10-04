@@ -103,6 +103,8 @@
     -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 62%);
     mask-image: radial-gradient(circle, #000 8%, transparent 62%);
     z-index: -1;
+    /* Decorative and wider than the viewport; it must never swallow footer clicks. */
+    pointer-events: none;
     animation: rays-in 1.2s ease-out 0.9s both, spin 50s linear infinite;
   }
   .lobby-halo {

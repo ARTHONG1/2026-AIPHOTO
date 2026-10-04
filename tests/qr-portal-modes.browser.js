@@ -39,65 +39,92 @@ async page => {
     const room = await (await response).json(); await portal.waitFor();
     return { room, url: origin + '/receive/' + room.id + '#' + room.receiverToken };
   };
+  // Decodes the on-screen QR as captured, then again shrunk and blurred like a phone camera frame.
   const decode = async expected => {
     await page.addScriptTag({ path: 'node_modules/jsqr/dist/jsQR.js' });
     const png = await portal.screenshot();
     const decoded = await page.evaluate(async base64 => {
       const img = new Image(); img.src = 'data:image/png;base64,' + base64; await img.decode();
-      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-      const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0); const pixels = ctx.getImageData(0, 0, c.width, c.height);
-      return window.jsQR(pixels.data, c.width, c.height)?.data;
+      return [[1, 'none'], [0.6, 'blur(1px)']].map(([scale, filter]) => {
+        const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+        const ctx = c.getContext('2d'); ctx.filter = filter; ctx.drawImage(img, 0, 0, c.width, c.height);
+        const pixels = ctx.getImageData(0, 0, c.width, c.height);
+        return window.jsQR(pixels.data, c.width, c.height)?.data;
+      });
     }, png.toString('base64'));
-    if (decoded !== expected) throw new Error('Screen QR failed to decode to its receive link');
+    if (decoded.some(value => value !== expected)) throw new Error('Screen QR failed to decode to its receive link: ' + JSON.stringify(decoded));
+  };
+  // The tree view must actually show foliage and grass, not an empty plot or the flat image.
+  const treeDrawn = async () => {
+    if (await portal.locator('canvas').evaluate(el => getComputedStyle(el).opacity) !== '1') throw new Error('Tree canvas is hidden');
+    if (await portal.locator('img').evaluate(el => getComputedStyle(el).opacity) !== '0') throw new Error('Flat QR image is covering the tree');
+    const png = await portal.screenshot();
+    const green = await page.evaluate(async base64 => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + base64; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0); const d = ctx.getImageData(0, 0, c.width, c.height).data;
+      let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 1] > d[i] + 25 && d[i + 1] > d[i + 2] + 25) n++;
+      return n / (d.length / 4);
+    }, png.toString('base64'));
+    if (green < 0.04) throw new Error('Tree foliage is missing (' + green.toFixed(3) + ')');
   };
   const first = await create();
-  await rendered('3d');
+  await rendered('tree');
   await page.waitForTimeout(3000);
-  if (await portal.getAttribute('data-rendered') !== '3d') throw new Error('3D did not persist with reduced motion');
+  if (await portal.getAttribute('data-rendered') !== 'tree') throw new Error('Tree did not persist with reduced motion');
   const box = await portal.boundingBox();
-  if (!box || box.y < 0 || box.y + box.height > 1000) throw new Error('Initial 3D QR is outside the viewport');
-  if (await portal.locator('canvas').evaluate(el => getComputedStyle(el).opacity) !== '1') throw new Error('3D canvas is hidden');
-  await portal.screenshot({ path: '.playwright-cli/portal-persistent-3d.png' });
+  if (!box || box.y < 0 || box.y + box.height > 1000) throw new Error('Initial tree is outside the viewport');
+  await treeDrawn();
+  await portal.screenshot({ path: '.playwright-cli/portal-tree.png' });
   await page.screenshot({ path: '.playwright-cli/portal-visible-on-create.png' });
-  await portal.click(); await rendered('flat'); await decode(first.url);
-  await portal.screenshot({ path: '.playwright-cli/portal-scan-flat.png' });
-  await portal.click(); await rendered('3d');
-  await portal.focus(); await page.keyboard.press('Enter'); await rendered('flat'); await decode(first.url);
-  await portal.press('Space'); await rendered('3d');
+  await portal.click(); await rendered('code'); await decode(first.url);
+  if (await portal.locator('img').evaluate(el => getComputedStyle(el).opacity) !== '0') throw new Error('Code view fell back to the flat image');
+  await portal.screenshot({ path: '.playwright-cli/portal-code.png' });
+  await portal.click(); await rendered('tree'); await treeDrawn();
+  await portal.focus(); await page.keyboard.press('Enter'); await rendered('code'); await decode(first.url);
+  await portal.press('Space'); await rendered('tree');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.getByRole('button', { name: '스캔용 QR 보기', exact: true }).last().click(); await rendered('flat');
-  await page.getByRole('button', { name: '3D QR로 돌아가기', exact: true }).last().click(); await rendered('3d');
+  await page.getByRole('button', { name: 'QR 코드 보기', exact: true }).last().click();
+  await page.waitForTimeout(450);
+  if (await portal.getAttribute('data-rendered') !== 'transition') throw new Error('Leaves did not animate into the code');
+  await portal.screenshot({ path: '.playwright-cli/portal-morph.png' });
+  await rendered('code');
+  await page.getByRole('button', { name: '나무 다시 보기', exact: true }).last().click(); await rendered('tree');
   await page.waitForTimeout(2600);
-  if (await portal.getAttribute('data-rendered') !== '3d') throw new Error('Normal 3D reverted automatically');
-  await portal.screenshot({ path: '.playwright-cli/portal-normal-3d.png' });
+  if (await portal.getAttribute('data-rendered') !== 'tree') throw new Error('Tree reverted automatically');
   await page.setViewportSize({ width: 390, height: 844 });
-  await portal.scrollIntoViewIfNeeded(); await portal.screenshot({ path: '.playwright-cli/portal-mobile-3d.png' });
-  await portal.click(); await rendered('flat'); await decode(first.url);
+  await portal.scrollIntoViewIfNeeded(); await page.waitForTimeout(300); await treeDrawn();
+  await portal.screenshot({ path: '.playwright-cli/portal-mobile-tree.png' });
+  await portal.click(); await rendered('code'); await decode(first.url);
+  await portal.screenshot({ path: '.playwright-cli/portal-mobile-code.png' });
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) throw new Error('Mobile layout overflows');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.evaluate(() => { window.__disablePortalWebGL = true; });
   const fallback = await create(); await rendered('fallback'); await decode(fallback.url);
   await page.evaluate(() => { window.__disablePortalWebGL = false; });
-  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('3d');
+  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('tree');
   await portal.locator('canvas').evaluate(el => el.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
   await rendered('fallback'); await decode(fallback.url);
-  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('3d');
-  // Repeated reversals must neither freeze the sculpture nor replace the QR room.
-  for (let i = 0; i < 4; i++) { await portal.click(); await rendered(i % 2 === 0 ? 'flat' : '3d'); }
-  await portal.click(); await rendered('flat'); await decode(fallback.url);
+  await page.getByRole('button', { name: '3D 다시 시도', exact: true }).last().click(); await rendered('tree');
+  // Repeated reversals must neither freeze the tree nor replace the QR room.
+  for (let i = 0; i < 4; i++) { await portal.click(); await rendered(i % 2 === 0 ? 'code' : 'tree'); }
+  // Reversing mid-flight must still come to rest.
+  await portal.click(); await page.waitForTimeout(200); await portal.click(); await rendered('tree');
+  await portal.click(); await rendered('code'); await decode(fallback.url);
   const phoneContext = await context.browser().newContext({ viewport: { width: 390, height: 844 } });
   const phone = await phoneContext.newPage(); phone.on('pageerror', e => errors.push(e.message));
   await phone.goto(fallback.url);
   await phone.getByRole('button', { name: '고화질 인쇄 사진 저장 (4×6)', exact: true }).waitFor({ timeout: 100000 });
   await page.getByText('휴대폰에 사진을 전달했어요!', { exact: true }).waitFor();
-  await portal.click(); await rendered('3d');
+  await portal.click(); await rendered('tree');
   if (await portal.getAttribute('data-status') !== 'received') throw new Error('Receipt status was lost');
-  await portal.screenshot({ path: '.playwright-cli/portal-received-3d.png' });
+  await treeDrawn();
+  await portal.screenshot({ path: '.playwright-cli/portal-received-tree.png' });
   await phone.screenshot({ path: '.playwright-cli/portal-phone-received.png', fullPage: true });
   const download = phone.waitForEvent('download');
   await phone.getByRole('button', { name: '고화질 인쇄 사진 저장 (4×6)', exact: true }).click();
   if (!(await (await download).path())) throw new Error('Photo download failed');
   await phoneContext.close();
   if (errors.length) throw new Error(errors.join('; '));
-  return { persistent3d: 'passed', reducedMotion3d: 'passed', initiallyVisible: 'passed', bidirectionalToggle: 'passed', keyboard: 'passed', renderedQrDecode: 'passed', mobileResize: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', photoTransferAndDownload: 'passed', afterReceive3d: 'passed', pageErrors: errors };
+  return { treeDefault: 'passed', reducedMotionTree: 'passed', initiallyVisible: 'passed', leafMorph: 'passed', bidirectionalToggle: 'passed', keyboard: 'passed', renderedTreeCodeDecode: 'passed', degradedCameraDecode: 'passed', mobileResize: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', midFlightReverse: 'passed', photoTransferAndDownload: 'passed', afterReceiveTree: 'passed', pageErrors: errors };
 }

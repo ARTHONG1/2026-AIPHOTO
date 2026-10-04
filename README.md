@@ -62,7 +62,7 @@ PC와 휴대폰 모두 외부에서 접속할 수 있는 HTTPS 주소를 사용�
 
 PC에서 QR을 만들 때와 휴대폰에서 사진을 받기 전·후에 사진 미보관 안내를 보여 줍니다. QR에는 연결 정보만 들어 있고 사진은 암호화해 전달된다는 설명, 직접 저장해야 사진이 남는다는 안내를 제공합니다. 펼쳐 보는 설명에는 WebRTC·임시 메모리·중계 서버의 역할을 적었습니다. 공통 문구는 [src/components/photo-privacy-notice.tsx](src/components/photo-privacy-notice.tsx)에서 관리합니다.
 
-QR 화면은 입체 큐브 QR을 기본으로 계속 표시합니다. 화면이나 `스캔용 QR 보기`를 누르면 평면 QR로 전환하고, 다시 누르면 3D로 돌아갑니다. 동작 줄이기 설정에서도 입체 모습은 유지하며 움직임만 줄입니다. 그래픽 장애에는 기본 QR과 재시도 버튼을 표시합니다. 휴대폰에는 실제 수신 진행률과 사진 도착 고리를 표시하며, 전송 방식은 기존 WebRTC를 유지합니다. 검증은 `npm run test:qr-portal`로 실행합니다.
+QR 화면은 [Magic Tree](https://github.com/Slifronic/magic-tree)의 3D 나무를 기본으로 보여 줍니다. 나무나 `QR 코드 보기`를 누르면 잎이 내려앉아 스캔할 수 있는 QR이 되고, 다시 누르면 나무로 돌아갑니다. 그래픽 장애에는 평면 QR과 재시도 버튼을 표시합니다. 휴대폰에는 실제 수신 진행률과 사진 도착 고리를 표시하며, 전송 방식은 기존 WebRTC를 유지합니다. 검증은 `npm run test:qr-portal`로 실행합니다.
 
 ## 프리셋 에셋 다시 만들기
 
@@ -77,3 +77,5 @@ apphosting.yaml에 런타임 설정이 있습니다. App Hosting 서비스 계�
 ## 라이선스
 
 Michael Bleigh의 Magic Markup(Apache License 2.0)을 바탕으로 인천봉수초 교사 홍찬우가 만든 2차 창작물입니다. 자세한 내용은 앱의 저작권 안내와 LICENSE를 참고하세요.
+
+QR 나무 화면은 Magic Tree(MIT License, Copyright (c) 2026 Magic Tree contributors)의 코드를 바탕으로 합니다. 라이선스 전문은 [src/lib/magic-tree/LICENSE](src/lib/magic-tree/LICENSE)와 앱의 저작권 안내에 있습니다.
