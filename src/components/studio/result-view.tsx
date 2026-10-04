@@ -202,8 +202,8 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
         </button>
         {qr.status === 'ready' && (
           <div className="panel flex flex-col items-center gap-2 p-4 animate-rise text-center">
-            <PhotoPrivacyNotice />
             <QrPortal key={qr.url} url={qr.url} dataUrl={qr.dataUrl} state={transfer} />
+            <PhotoPrivacyNotice />
             <p className="text-sm font-semibold text-primary" role="status" aria-live="polite">{transfer.status === 'received' ? '휴대폰에 사진을 전달했어요!' : transfer.status === 'sending' ? `사진 전달 중 (${transfer.progress ?? 0}%)` : transfer.status === 'connecting' ? '휴대폰과 연결 중이에요' : transfer.status === 'error' ? transfer.message : '스마트폰 카메라로 비춰보세요'}</p>
             <p className="text-xs text-muted-foreground">받을 때까지 이 화면을 유지해 주세요. 처음으로 돌아가면 사진과 QR 연결이 지워집니다.</p>
             {qr.localOnly && <p className="text-xs text-amber-300">현재 주소는 PC 전용 미리보기입니다. 휴대폰 전달은 외부에서 접속 가능한 HTTPS 주소에서 사용해 주세요.</p>}

@@ -101,3 +101,12 @@
 - typecheck, 전송 단위 테스트 9개, 격리 프로덕션 빌드 통과. Genkit/OpenTelemetry의 기존 선택적 exporter-jaeger 경고 유지. Playwright CLI에서 관련 UI·스크린샷 확인 및 스크린샷 직접 검토.
 - 동시 빌드/브라우저 검증 때 여유 메모리 약 214MB를 관측했고 기존 회귀 검증의 마지막 페이지 진입에서 30초 timeout 발생. 격리 프로덕션에서 순차 전체 검증은 전송·저장·PC 초기화·만료 QR·스티커·로컬 사진·AR 권한 거부·전송 중 취소 모두 통과. 초기 개발 컴파일/GPU 지연 시 정상적인 3D 생략도 확인하고, 브라우저 검증은 첫 QR 해독 후 캐시된 두 번째 QR의 연출까지 확인하도록 정리.
 - 최종 Firebase App Hosting 배포 완료. 실제 HTTPS 배포본에서도 3D 등장·스캔 화면 해독·기본 QR·연출 건너뛰기·모바일·동작 줄이기·WebGL 불가·컨텍스트 손실·수신·다운로드 통과, pageerror 없음. 가상 사진/모의 AI만 사용. 실제 휴대폰 카메라 및 행사장 Wi-Fi↔LTE는 미검증, TURN 미설정 조건 유지.
+
+## Session 2026-10-04 — 지속 3D와 양방향 QR 전환 수정
+- 사용자 피드백: 참고 Magic Tree처럼 3D를 기본으로 계속 표시하고 클릭하면 평면 QR, 다시 클릭하면 3D로 복귀해야 함. 짧은 등장 후 자동 평면 전환은 의도와 달랐으며 사용자가 수정·배포를 승인.
+- 원인 분석: 1.5초 후 renderer 종료, 600ms import 제한, reduced-motion 때 3D 전체 생략, 기본 QR 버튼의 단방향 전환. 실제 1440×1000 배포 화면에서는 연출 중 QR의 약 27%만 화면에 보임. 일반 Chrome에서는 reduced-motion=true/WebGL2=true 관측.
+- qr-portal-renderer.ts로 지속 3D 장면을 구현. 큐브 높이·기울기·조명으로 입체 표현, 클릭 시 0.85초 평면 변환 후 스캔 이미지 표시, 재클릭 시 3D 복귀. 자동 종료/짧은 로딩 제한 제거. 동작 줄이기는 3D 형태를 유지하며 흔들림·전환 움직임만 생략.
+- 화면 밖·백그라운드·평면 모드에서는 RAF를 중지. 일반 3D 흔들림은 30FPS 제한, morph가 변할 때만 instance buffer 갱신. ResizeObserver로 크기 변경 대응. 종료 시 observer/listener/GPU buffer/renderer/context 정리. 컨텍스트 손실 상태에 중복 forceContextLoss를 하지 않음.
+- 화면/버튼·Enter·Space 전환, GPU 장애 후 기본 QR과 새 캔버스 재시도 제공. QR 생성 때 영역을 자동으로 보여 주며 개인정보 안내는 QR 아래에 유지. 전송 URL/방/WebRTC/사진 미보관 구조 및 AI 별도 설명 미삽입 유지.
+- typecheck·전송 단위 테스트 9개·격리 프로덕션 빌드 통과. 로컬 headless, Playwright CLI, 격리 프로덕션에서 tests/qr-portal-modes.browser.js 통과: 일반/reduced-motion 지속 3D, 초기 화면 전체 노출, 클릭·키보드 왕복, PC/390px 실제 평면 QR 해독, resize, WebGL 불가와 재시도, 컨텍스트 손실과 복구, 반복 전환, 실제 DataChannel 수신·다운로드, 수신 완료 후 3D 복귀. pageerror 없음. 가상 사진/모의 AI만 사용.
+- Firebase App Hosting 배포 완료. 실제 HTTPS 배포본에서도 지속 3D, reduced-motion 3D, 초기 화면 전체 노출, 클릭·키보드 왕복 전환, QR 해독, 모바일 크기 변경, WebGL 장애·컨텍스트 상실 후 재시도, 실제 DataChannel 사진 수신·다운로드, 수신 후 3D 복귀 검증 모두 통과. pageerror 없음. 실제 휴대폰 카메라 및 행사장 네트워크는 미검증, TURN 미설정 조건 유지.

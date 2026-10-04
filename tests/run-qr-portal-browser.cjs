@@ -9,7 +9,7 @@ const { chromium } = require(driver);
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const run = eval('(' + fs.readFileSync(path.join(__dirname, 'qr-portal.browser.js'), 'utf8') + ')');
+    const run = eval('(' + fs.readFileSync(path.join(__dirname, 'qr-portal-modes.browser.js'), 'utf8') + ')');
     console.log(JSON.stringify(await run(page)));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error.stack || error.message); process.exitCode = 1; });

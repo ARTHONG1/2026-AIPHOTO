@@ -2,39 +2,62 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { TransferState } from '@/lib/transfer/client';
+import type { PortalMode, PortalScene } from '@/lib/qr-portal-renderer';
 import styles from './qr-portal.module.css';
 
 export function warmQrPortal() {
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) void import('@/lib/qr-portal-scene').catch(() => {});
+  void import('@/lib/qr-portal-renderer').catch(() => {});
 }
 
 export function QrPortal({ url, dataUrl, state }: { url: string; dataUrl: string; state: TransferState }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [intro, setIntro] = useState(false);
-  const [plain, setPlain] = useState(false);
+  const stage = useRef<HTMLButtonElement>(null);
+  const scene = useRef<PortalScene | null>(null);
+  const [mode, setMode] = useState<PortalMode>('3d');
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  const [settled, setSettled] = useState<PortalMode>('3d');
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    setIntro(false);
-    if (plain || state.status !== 'waiting' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduced(media.matches);
+    update(); media.addEventListener('change', update);
+    const scroll = requestAnimationFrame(() => stage.current?.scrollIntoView({ block: 'center', behavior: 'auto' }));
+    return () => { media.removeEventListener('change', update); cancelAnimationFrame(scroll); };
+  }, []);
+  useEffect(() => {
     let cancelled = false;
-    let stop: (() => void) | undefined;
-    const start = performance.now();
-    const finish = () => { if (!cancelled) setIntro(false); };
-    // Module loading or GPU delays can never keep the real QR covered.
-    const deadline = setTimeout(() => { cancelled = true; stop?.(); setIntro(false); }, 2200);
-    import('@/lib/qr-portal-scene').then(({ startQrPortalIntro }) => {
-      if (cancelled || !canvas.current || performance.now() - start > 600) return;
-      stop = startQrPortalIntro(canvas.current, url, () => { if (!cancelled) setIntro(true); }, finish);
-    }).catch(finish);
-    return () => { cancelled = true; clearTimeout(deadline); stop?.(); };
-  }, [url, plain, state.status]);
+    setReady(false); setFailed(false);
+    const fail = () => { if (!cancelled) { setFailed(true); setReady(false); } };
+    import('@/lib/qr-portal-renderer').then(({ createQrPortalScene }) => {
+      if (cancelled || !canvas.current) return;
+      scene.current = createQrPortalScene(canvas.current, url, {
+        mode: modeRef.current, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        settled: value => { if (!cancelled) { setSettled(value); setReady(true); } }, failed: fail,
+      });
+    }).catch(fail);
+    return () => { cancelled = true; scene.current?.dispose(); scene.current = null; };
+  }, [url, attempt]);
+  useEffect(() => { scene.current?.setMode(mode, reduced); }, [mode, reduced]);
+  const flat = failed || (mode === 'flat' && (!ready || settled === 'flat'));
+  const showCanvas = ready && !flat;
+  const toggle = () => {
+    if (failed) { setMode('3d'); setAttempt(n => n + 1); }
+    else setMode(value => value === '3d' ? 'flat' : '3d');
+  };
+  const label = failed ? '3D 다시 시도' : mode === '3d' ? '스캔용 QR 보기' : '3D QR로 돌아가기';
   return <div className="flex w-full flex-col items-center gap-2">
-    <div className={`${styles.stage} ${intro ? styles.intro : ''} ${plain ? styles.plain : ''}`} data-status={state.status} data-testid="qr-portal" data-intro={intro}>
+    <button ref={stage} type="button" onClick={toggle} aria-label={label} className={`${styles.stage} ${showCanvas ? styles.sculpture : ''} ${flat ? styles.plain : ''}`} data-status={state.status} data-testid="qr-portal" data-mode={failed ? 'fallback' : mode} data-rendered={failed ? 'fallback' : !ready ? 'loading' : mode !== settled ? 'transition' : settled}>
       <div className={styles.ring} aria-hidden />
       <div className={styles.orbit} aria-hidden />
       <img src={dataUrl} alt="AR 라이브 포토 QR 코드" className={styles.qr} width={512} height={512} />
-      <canvas ref={canvas} className={styles.canvas} aria-hidden />
-    </div>
-    <button type="button" className={styles.toggle} onClick={() => setPlain(true)} disabled={plain}>{plain ? '기본 QR 표시 중' : '기본 QR 보기'}</button>
+      <canvas key={attempt} ref={canvas} className={styles.canvas} aria-hidden />
+    </button>
+    <button type="button" className={styles.toggle} onClick={toggle}>{label}</button>
+    <p className="text-xs text-cyan-100/80">{failed ? '3D를 표시할 수 없어 기본 QR을 보여 드려요.' : !ready && mode === '3d' ? '3D QR을 준비하고 있어요. 스캔용 QR은 바로 열 수 있어요.' : mode === '3d' ? '입체 QR을 누르면 스캔하기 쉬운 QR로 바뀌어요.' : '휴대폰 카메라로 비춰 주세요. 다시 누르면 입체 QR로 돌아가요.'}</p>
   </div>;
 }
 
