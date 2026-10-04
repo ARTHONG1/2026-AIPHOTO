@@ -1,9 +1,11 @@
 'use client';
 import type { LivePhotoMeta } from '../live-photo';
-import { CHUNK_SIZE, MAX_IMAGE_BYTES, PhotoAssembler, hashBytes, parseHeader, type PhotoHeader } from './protocol';
+import { CHUNK_SIZE, CompareAssembler, MAX_IMAGE_BYTES, PhotoAssembler, hashBytes, parseCompareHeader, parseHeader, type CompareHeader, type PhotoHeader } from './protocol';
 import { registerSessionCleanup } from '../session';
 
 export type TransferState = { status: 'waiting' | 'connecting' | 'sending' | 'received' | 'error'; progress?: number; message?: string };
+/** Display-only images for the phone's before/after slider; never offered for download. */
+export type ComparePair = { before: string; after: string };
 type Room = { id: string; ownerToken: string; receiverToken: string; iceServers: RTCIceServer[]; hasTurn: boolean };
 type Signal = { receiverId: string | null; offer: RTCSessionDescriptionInit | null; answer: RTCSessionDescriptionInit | null; iceServers?: RTCIceServer[] };
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -30,11 +32,11 @@ async function gather(peer: RTCPeerConnection, description: RTCSessionDescriptio
   if (!peer.localDescription) throw new Error(connectionError);
   return { type: peer.localDescription.type, sdp: peer.localDescription.sdp };
 }
-async function sendPhoto(channel: RTCDataChannel, image: string, meta: Omit<LivePhotoMeta, 'photoUrl'>, active: () => boolean, update: (value: TransferState) => void) {
+async function sendPhoto(channel: RTCDataChannel, image: string, meta: Omit<LivePhotoMeta, 'photoUrl'>, active: () => boolean, update: (value: TransferState) => void, compare: boolean) {
   const blob = await (await fetch(image)).blob();
   if (!blob.size || blob.size > MAX_IMAGE_BYTES) throw new Error('사진이 너무 커서 전달하지 못했어요. 저장 버튼을 이용해 주세요.');
   const bytes = await blob.arrayBuffer();
-  const header: PhotoHeader = { kind: 'photo', size: bytes.byteLength, mime: blob.type, sha256: await hashBytes(bytes), meta };
+  const header: PhotoHeader = { kind: 'photo', size: bytes.byteLength, mime: blob.type, sha256: await hashBytes(bytes), meta, ...(compare ? { compare: true as const } : {}) };
   parseHeader(header);
   if (!active()) return;
   channel.send(JSON.stringify(header));
@@ -50,11 +52,37 @@ async function sendPhoto(channel: RTCDataChannel, image: string, meta: Omit<Live
     update({ status: 'sending', progress: Math.min(99, Math.round((offset + CHUNK_SIZE) / bytes.byteLength * 100)) });
   }
   channel.send(JSON.stringify({ kind: 'end' }));
+  return true;
+}
+/**
+ * Sends the before/after pair after the photo. It never touches the booth's status: the
+ * photo is already delivered, and a lost pair only hides the phone's comparison button.
+ */
+async function sendCompare(channel: RTCDataChannel, pair: ComparePair, active: () => boolean) {
+  for (const role of ['before', 'after'] as const) {
+    const blob = await (await fetch(pair[role])).blob();
+    const bytes = await blob.arrayBuffer();
+    const header: CompareHeader = { kind: 'compare', role, size: bytes.byteLength, mime: blob.type, sha256: await hashBytes(bytes) };
+    parseCompareHeader(header);
+    if (!active() || channel.readyState !== 'open') return;
+    channel.send(JSON.stringify(header));
+    for (let offset = 0; offset < bytes.byteLength; offset += CHUNK_SIZE) {
+      const deadline = Date.now() + 10_000;
+      while (channel.bufferedAmount > 256_000) {
+        if (!active() || channel.readyState !== 'open' || Date.now() > deadline) return;
+        await wait(25);
+      }
+      if (!active() || channel.readyState !== 'open') return;
+      channel.send(bytes.slice(offset, offset + CHUNK_SIZE));
+    }
+    channel.send(JSON.stringify({ kind: 'end' }));
+  }
 }
 
 export class PhotoSender {
   private peer: RTCPeerConnection | null = null;
   private image: string | null;
+  private compare: ComparePair | null;
   private disposed = false;
   private clientId: string | null = null;
   private acceptedAnswer = false;
@@ -62,23 +90,24 @@ export class PhotoSender {
   private unregister = () => {};
   private completed = false;
   private started = 0;
-  private constructor(public room: Room, image: string, private meta: Omit<LivePhotoMeta, 'photoUrl'>, private update: (value: TransferState) => void) {
+  private constructor(public room: Room, image: string, private meta: Omit<LivePhotoMeta, 'photoUrl'>, private update: (value: TransferState) => void, compare?: ComparePair) {
     this.image = image;
+    this.compare = compare ?? null;
     this.unregister = registerSessionCleanup(() => this.close());
     window.addEventListener('pagehide', this.pagehide);
     void this.poll();
   }
-  static async create(image: string, meta: Omit<LivePhotoMeta, 'id' | 'createdAt' | 'photoUrl'>, update: (value: TransferState) => void) {
+  static async create(image: string, meta: Omit<LivePhotoMeta, 'id' | 'createdAt' | 'photoUrl'>, update: (value: TransferState) => void, compare?: ComparePair) {
     checkSupport();
     const room = await post<Room>('/api/transfer', {});
-    return new PhotoSender(room, image, { ...meta, id: room.id, createdAt: new Date().toISOString() }, update);
+    return new PhotoSender(room, image, { ...meta, id: room.id, createdAt: new Date().toISOString() }, update, compare);
   }
   get url() { return window.location.origin + '/receive/' + this.room.id + '#' + this.room.receiverToken; }
   private signal(body: unknown, keepalive = false) { return post<Signal>('/api/transfer/' + this.room.id, body, this.room.ownerToken, keepalive); }
   private pagehide = () => this.close();
   close() {
     if (this.disposed) return;
-    this.disposed = true; this.generation++; this.image = null;
+    this.disposed = true; this.generation++; this.image = null; this.compare = null;
     this.peer?.close(); this.peer = null;
     this.unregister(); window.removeEventListener('pagehide', this.pagehide);
     void this.signal({ op: 'close' }, true).catch(() => {});
@@ -95,7 +124,10 @@ export class PhotoSender {
     channel.onopen = () => {
       if (!active() || !this.image) return;
       update({ status: 'sending', progress: 0 });
-      void sendPhoto(channel, this.image, this.meta, active, update).catch((e) => update({ status: 'error', message: e.message }));
+      const compare = this.compare;
+      void sendPhoto(channel, this.image, this.meta, active, update, !!compare)
+        .then((sent) => { if (sent && compare) void sendCompare(channel, compare, active).catch(() => {}); })
+        .catch((e) => update({ status: 'error', message: e.message }));
     };
     channel.onmessage = (event) => {
       if (!active() || typeof event.data !== 'string') return;
@@ -131,15 +163,21 @@ export class PhotoSender {
   }
 }
 
-export function receivePhoto(id: string, token: string, update: (value: TransferState) => void, received: (blob: Blob, meta: Omit<LivePhotoMeta, 'photoUrl'>) => void) {
+export function receivePhoto(id: string, token: string, update: (value: TransferState) => void, received: (blob: Blob, meta: Omit<LivePhotoMeta, 'photoUrl'>) => void, compared?: (pair: { before: Blob; after: Blob }) => void) {
   let disposed = false, done = false;
   let peer: RTCPeerConnection | null = null;
   let assembler: PhotoAssembler | null = null;
+  // After the photo is acknowledged, the optional before/after pair is collected here.
+  let awaitingCompare = false;
+  let compareAssembler: CompareAssembler | null = null;
+  let compareTimer: ReturnType<typeof setTimeout> | undefined;
+  const pair: { before?: Blob; after?: Blob } = {};
   const clientId = crypto.randomUUID();
   const signal = (body: unknown, keepalive = false) => post<Signal>('/api/transfer/' + id, { ...body as object, clientId }, token, keepalive);
   const close = () => {
     if (disposed) return;
     disposed = true; assembler?.clear(); assembler = null; peer?.close(); peer = null;
+    awaitingCompare = false; compareAssembler?.clear(); compareAssembler = null; clearTimeout(compareTimer);
     window.removeEventListener('pagehide', close);
     void signal({ op: 'release' }, true).catch(() => {});
   };
@@ -166,13 +204,41 @@ export function receivePhoto(id: string, token: string, update: (value: Transfer
     let offerAccepted = false;
     // A single ordered promise chain prevents async digest/Blob conversions racing packets.
     let packets = Promise.resolve();
+    // Comparison images are optional: any problem just closes the finished connection.
+    const takeCompare = async (data: unknown) => {
+      try {
+        if (typeof data === 'string') {
+          if (data.length > 4_000) throw new Error('compare header too long');
+          const message = JSON.parse(data);
+          if (message.kind === 'compare' && !compareAssembler) compareAssembler = new CompareAssembler(message);
+          else if (message.kind === 'end' && compareAssembler) {
+            const role = compareAssembler.header.role;
+            const blob = await compareAssembler.finish();
+            compareAssembler = null;
+            const url = URL.createObjectURL(blob);
+            try { const img = new Image(); img.src = url; await img.decode(); } finally { URL.revokeObjectURL(url); }
+            if (disposed) return;
+            pair[role] = blob;
+            if (pair.before && pair.after) {
+              awaitingCompare = false; clearTimeout(compareTimer);
+              compared?.({ before: pair.before, after: pair.after });
+              setTimeout(close, 300);
+            }
+          } else throw new Error('compare order');
+        } else if (data instanceof ArrayBuffer && compareAssembler) compareAssembler.add(data);
+        else throw new Error('compare data');
+      } catch {
+        close();
+      }
+    };
     peer.ondatachannel = ({ channel }) => {
       channel.binaryType = 'arraybuffer';
       channel.onclose = () => { if (!done) fail(new Error('전송이 중단됐어요. 부스 화면을 확인하고 다시 받아 주세요.')); };
       channel.onerror = () => fail(new Error(connectionError));
       channel.onmessage = ({ data }) => {
         packets = packets.then(async () => {
-          if (disposed || done) return;
+          if (disposed) return;
+          if (done) { if (awaitingCompare) await takeCompare(data); return; }
           if (typeof data === 'string') {
             if (data.length > 4_000) throw new Error('사진 전달 정보가 올바르지 않아요.');
             const message = JSON.parse(data);
@@ -182,6 +248,7 @@ export function receivePhoto(id: string, token: string, update: (value: Transfer
               update({ status: 'sending', progress: 0 });
             } else if (message.kind === 'end' && assembler) {
               const meta = assembler.header.meta;
+              const expectCompare = assembler.header.compare === true && !!compared;
               const blob = await assembler.finish();
               assembler = null;
               if (disposed) return;
@@ -191,8 +258,14 @@ export function receivePhoto(id: string, token: string, update: (value: Transfer
               if (disposed) return;
               channel.send(JSON.stringify({ kind: 'received' }));
               done = true; received(blob, meta); update({ status: 'received', progress: 100 });
-              // Allow the acknowledgment to drain before releasing the encrypted channel.
-              setTimeout(close, 1_000);
+              if (expectCompare) {
+                // The comparison pair follows; give up quietly if it does not arrive.
+                awaitingCompare = true;
+                compareTimer = setTimeout(close, 20_000);
+              } else {
+                // Allow the acknowledgment to drain before releasing the encrypted channel.
+                setTimeout(close, 1_000);
+              }
             } else throw new Error('사진 전달 순서가 올바르지 않아요.');
           } else if (data instanceof ArrayBuffer && assembler) update({ status: 'sending', progress: assembler.add(data) });
           else throw new Error('사진 전달 정보가 올바르지 않아요.');

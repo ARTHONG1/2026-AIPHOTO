@@ -235,6 +235,7 @@ export default function StudioPage() {
       {result ? (
         <ResultView
           image={result}
+          original={photo ?? undefined}
           choices={selection}
           onRestart={restart}
           onRetry={() => {

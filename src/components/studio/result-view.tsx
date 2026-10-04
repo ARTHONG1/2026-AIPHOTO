@@ -2,19 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Check, Download, Home, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } from 'lucide-react';
+import { ArrowLeftRight, Check, Download, Home, Image as ImageIcon, Loader2, Printer, RotateCcw, Sparkles, ZoomIn } from 'lucide-react';
 import { PhotoSender, type TransferState } from '@/lib/transfer/client';
 import { PhotoZoom } from '@/components/photo-zoom';
+import { BeforeAfter } from '@/components/before-after';
 import { PhotoPrivacyNotice } from '@/components/photo-privacy-notice';
 import { QrPortal, warmQrPortal } from '@/components/qr-portal';
 import { DEFAULT_FRAME_ID, FRAMES, findFrame, frameThumbUrl } from '@/lib/frames';
-import { composePrint, downloadDataUrl, printPhoto } from '@/lib/image';
+import { composePrint, downloadDataUrl, makeComparePair, printPhoto } from '@/lib/image';
 import { cn } from '@/lib/utils';
 
 const AUTO_RESTART_SECONDS = 60;
 
 type Props = {
   image: string;
+  /** The visitor's original shot, shown only in the before/after comparison. */
+  original?: string;
   /** Preset ids are sent directly to the phone together with the photograph. */
   choices?: { backgroundId?: string | null; poseId?: string | null; propIds?: string[]; compositionId?: string | null };
   onRestart: () => void;
@@ -23,13 +26,16 @@ type Props = {
 
 type QrState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; url: string; dataUrl: string; localOnly: boolean; hasTurn: boolean } | { status: 'error'; message: string };
 
-export function ResultView({ image, choices, onRestart, onRetry }: Props) {
+export function ResultView({ image, original, choices, onRestart, onRetry }: Props) {
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
   // Finished prints per frame, so switching back and forth is instant.
   const [prints, setPrints] = useState<Record<string, string>>({});
   const [qr, setQr] = useState<QrState>({ status: 'idle' });
   const [left, setLeft] = useState(AUTO_RESTART_SECONDS);
   const [zoomed, setZoomed] = useState(false);
+  // Comparison is view-only; saving, printing and the QR always use the framed print.
+  const [view, setView] = useState<'final' | 'compare'>('final');
+  const comparing = view === 'compare' && !!original;
   const [transfer, setTransfer] = useState<TransferState>({ status: 'waiting' });
   const sender = useRef<PhotoSender | null>(null);
   useEffect(warmQrPortal, []);
@@ -78,6 +84,7 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
 
   const chooseFrame = (id: string) => {
     keepAlive();
+    setView('final');
     setFrameId(id);
     disposeSender();
     setTransfer({ status: 'waiting' });
@@ -102,11 +109,13 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
     setQr({ status: 'loading' });
     setTransfer({ status: 'waiting' });
     try {
+      // The phone gets a small before/after pair for its comparison slider only.
+      const compare = original ? await makeComparePair(original, image).catch(() => undefined) : undefined;
       const next = await PhotoSender.create(framed, { frameId, backgroundId: choices?.backgroundId ?? undefined, poseId: choices?.poseId ?? undefined, propIds: choices?.propIds, compositionId: choices?.compositionId ?? undefined }, (state) => {
         if (requestVersion.current !== version) return;
         setTransfer(state);
         if (state.status === 'received' || state.status === 'error') keepAlive();
-      });
+      }, compare);
       if (requestVersion.current !== version) { next.close(); return; }
       sender.current = next;
       const dataUrl = await QRCode.toDataURL(next.url, { width: 512, margin: 4, errorCorrectionLevel: 'M' });
@@ -126,7 +135,9 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
     >
       {/* Phones scroll this column; the photo keeps its own height instead of shrinking under the picker. */}
       <div className="relative flex shrink-0 items-center justify-center lg:min-h-0 lg:shrink">
-        {framed ? (
+        {comparing ? (
+          <BeforeAfter before={original!} after={image} className="w-[min(calc((100dvh-14rem)*2/3),calc(100vw-2rem))] animate-rise lg:w-[min(1200px,calc((100dvh-8rem)*2/3))]" />
+        ) : framed ? (
           <button
             type="button"
             onClick={() => setZoomed(true)}
@@ -152,6 +163,22 @@ export function ResultView({ image, choices, onRestart, onRetry }: Props) {
 
       <div className="flex w-full max-w-md flex-col justify-center gap-4 lg:min-h-0 lg:justify-start lg:overflow-y-auto lg:overscroll-contain lg:pr-2">
         <h2 className="text-center font-display text-5xl text-primary">완성!</h2>
+
+        {original && (
+          <div role="group" aria-label="사진 보기 방식" className="grid grid-cols-2 gap-1 rounded-2xl bg-white/5 p-1">
+            {([['final', '완성 사진', ImageIcon], ['compare', '전후 비교', ArrowLeftRight]] as const).map(([id, label, Icon]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={view === id}
+                onClick={() => { keepAlive(); setView(id); }}
+                className={cn('flex items-center justify-center gap-2 rounded-xl py-2.5 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/60', view === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-white/5')}
+              >
+                <Icon className="size-5" aria-hidden /> {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <section aria-labelledby="frame-title" className="flex flex-col gap-2">
           <h3 id="frame-title" className="font-display text-xl text-foreground">

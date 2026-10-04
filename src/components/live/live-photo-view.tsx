@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import dynamic from 'next/dynamic';
-import { Camera, Check, Download, Eye, Pause, Play, Share2, Sparkles, Sticker, Trash2, Video, Volume2, VolumeX, ZoomIn } from 'lucide-react';
+import { ArrowLeftRight, Camera, Check, Download, Eye, Pause, Play, Share2, Sparkles, Sticker, Trash2, Video, Volume2, VolumeX, ZoomIn } from 'lucide-react';
 import type { LivePhotoMeta } from '@/lib/live-photo';
 import { PhotoZoom } from '@/components/photo-zoom';
+import { BeforeAfter } from '@/components/before-after';
 import { STICKER_GROUPS, drawSticker, loadStickerImage, svgDataUrl, type PlacedSticker } from '@/components/live/stickers';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +13,8 @@ const ArCamera = dynamic(() => import('@/components/live/ar-camera'), { ssr: fal
 
 type Props = {
   meta: LivePhotoMeta;
+  /** Before/after pair for the comparison slider. View only: saving and sharing use the photo. */
+  compare?: { before: string; after: string } | null;
 };
 
 type Pt = { x: number; y: number };
@@ -36,8 +39,9 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 const phaseOf = (uid: string) => [...uid].reduce((n, ch) => n + ch.charCodeAt(0), 0) % 628 / 100;
 const centerOf = (s: PlacedSticker): Pt => ({ x: s.x * CANVAS_W, y: s.y * CANVAS_H });
 
-export default function LivePhotoView({ meta }: Props) {
+export default function LivePhotoView({ meta, compare }: Props) {
   const [isPlaying, setIsPlaying] = useState(true);
+  const [comparing, setComparing] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
@@ -665,6 +669,20 @@ export default function LivePhotoView({ meta }: Props) {
               <Camera className="size-5" />
               <span>AR 카메라</span>
             </button>
+          </div>
+        )}
+        {compare && !editing && (
+          <div className="mt-2 flex w-full max-w-[360px] flex-col gap-2 px-1">
+            <button
+              type="button"
+              aria-expanded={comparing}
+              onClick={() => setComparing((v) => !v)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/50 bg-emerald-500/15 py-2.5 text-sm font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/25"
+            >
+              <ArrowLeftRight className="size-4" aria-hidden />
+              {comparing ? '전후 비교 닫기' : '변신 전후 비교 보기'}
+            </button>
+            {comparing && <BeforeAfter before={compare.before} after={compare.after} className="w-full animate-rise" />}
           </div>
         )}
       </section>

@@ -35,6 +35,29 @@ export function cropToPhoto(source: CanvasImageSource, width: number, height: nu
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
+/**
+ * Display-only 4:5 pair for the before/after slider on the phone. The 2:3 original
+ * loses a quarter of its excess height from the top and the rest from the bottom, so
+ * a head near the top edge stays in view. Neither image is ever offered for download.
+ */
+export async function makeComparePair(original: string, result: string, width = 800): Promise<{ before: string; after: string }> {
+  const draw = async (src: string, focusY: number) => {
+    const img = await loadImage(src);
+    const target = 4 / 5;
+    let sw = img.naturalWidth;
+    let sh = img.naturalHeight;
+    if (sw / sh > target) sw = sh * target;
+    else sh = sw / target;
+    const scale = Math.min(1, width / sw);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(sw * scale);
+    canvas.height = Math.round(sh * scale);
+    canvas.getContext('2d')!.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) * focusY, sw, sh, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.86);
+  };
+  return { before: await draw(original, 0.25), after: await draw(result, 0.5) };
+}
+
 export async function fileToPhoto(file: File): Promise<string> {
   const url = URL.createObjectURL(file);
   try {

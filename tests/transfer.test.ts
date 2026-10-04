@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SignalStore } from '../src/lib/transfer/signaling-store';
-import { PhotoAssembler, parseHeader, hashBytes, CHUNK_SIZE } from '../src/lib/transfer/protocol';
+import { CompareAssembler, MAX_COMPARE_BYTES, PhotoAssembler, parseCompareHeader, parseHeader, hashBytes, CHUNK_SIZE } from '../src/lib/transfer/protocol';
 import { setPhoto, setResult, getPhoto, getResult, clearSession, registerSessionCleanup } from '../src/lib/session';
 import { failure, readBody } from '../src/lib/transfer/http';
 
@@ -92,4 +92,24 @@ test('expired-room errors keep their status across independently loaded route mo
   assert.equal(response.status, 410);
   assert.match((await response.json()).error, /연결이 만료됐어요/);
   assert.equal(failure(new Error('internal details')).status, 500);
+});
+
+test('the before/after pair is verified separately and only announced by a strict flag', async () => {
+  const bytes = new Uint8Array(40_000).map((_, i) => (i * 7) % 251).buffer;
+  const header = { kind: 'compare' as const, role: 'before' as const, mime: 'image/jpeg', size: bytes.byteLength, sha256: await hashBytes(bytes) };
+  const receiver = new CompareAssembler(header);
+  for (let i = 0; i < bytes.byteLength; i += CHUNK_SIZE) receiver.add(bytes.slice(i, i + CHUNK_SIZE));
+  assert.deepEqual(await (await receiver.finish()).arrayBuffer(), bytes);
+  const corrupt = new CompareAssembler({ ...header, sha256: 'f'.repeat(64) });
+  for (let i = 0; i < bytes.byteLength; i += CHUNK_SIZE) corrupt.add(bytes.slice(i, i + CHUNK_SIZE));
+  await assert.rejects(() => corrupt.finish(), /확인에 실패/);
+  assert.throws(() => parseCompareHeader({ ...header, role: 'original' }), /비교 사진/);
+  assert.throws(() => parseCompareHeader({ ...header, size: MAX_COMPARE_BYTES + 1 }), /비교 사진/);
+  assert.throws(() => parseCompareHeader({ ...header, mime: 'image/png' }), /비교 사진/);
+  assert.throws(() => parseCompareHeader({ ...header, kind: 'photo' }), /비교 사진/);
+  // The photo header itself is unchanged apart from an optional, strictly boolean flag.
+  const photo = { kind: 'photo' as const, mime: 'image/jpeg', size: 10, sha256: header.sha256, meta: { id: 'test-photo', frameId: 'festival', createdAt: new Date().toISOString() } };
+  assert.equal(parseHeader({ ...photo, compare: true }).compare, true);
+  assert.equal(parseHeader(photo).compare, undefined);
+  assert.throws(() => parseHeader({ ...photo, compare: 'yes' }), /올바르지/);
 });

@@ -39,6 +39,28 @@ async page => {
   await page.getByRole('button', { name: '과학 축제', exact: true }).click();
   await page.getByRole('button', { name: 'AI 사진 만들기', exact: true }).click();
   await page.getByRole('heading', { name: '완성!' }).waitFor();
+  // Before/after comparison: view only. Saving still downloads the framed final print.
+  await page.getByRole('button', { name: '전후 비교', exact: true }).click();
+  const slider = page.getByTestId('before-after');
+  await slider.waitFor();
+  if (!(await slider.locator('img').evaluateAll(imgs => imgs.length === 2 && imgs.every(img => img.complete && img.naturalWidth > 0)))) throw new Error('Comparison photos did not load');
+  const sliderBox = await slider.boundingBox();
+  if (!sliderBox || Math.abs(sliderBox.width / sliderBox.height - 0.8) > 0.02) throw new Error('Comparison is not 4:5: ' + JSON.stringify(sliderBox));
+  const handle = page.getByRole('slider', { name: '변신 전후 비교' });
+  if (await handle.getAttribute('aria-valuenow') !== '50') throw new Error('Comparison does not start in the middle');
+  await handle.focus(); await page.keyboard.press('ArrowRight');
+  if (await handle.getAttribute('aria-valuenow') !== '55') throw new Error('Arrow key did not move the comparison');
+  await page.mouse.move(sliderBox.x + sliderBox.width * 0.5, sliderBox.y + sliderBox.height * 0.5);
+  await page.mouse.down(); await page.mouse.move(sliderBox.x + sliderBox.width * 0.2, sliderBox.y + sliderBox.height * 0.5, { steps: 5 }); await page.mouse.up();
+  if (Math.abs(Number(await handle.getAttribute('aria-valuenow')) - 20) > 2) throw new Error('Dragging did not move the comparison');
+  await slider.screenshot({ path: '.playwright-cli/compare-booth.png' });
+  const boothSave = page.waitForEvent('download');
+  await page.getByRole('button', { name: '저장', exact: true }).click();
+  const boothFile = (await boothSave).suggestedFilename();
+  if (!/^ai-hancut-festival-\d+\.jpg$/.test(boothFile)) throw new Error('Booth save is not the framed final print: ' + boothFile);
+  await page.getByRole('radio').nth(1).click();
+  if (await slider.count()) throw new Error('Choosing a frame did not return to the final photo');
+  await page.getByRole('radio').first().click();
   const portal = page.getByTestId('qr-portal');
   const rendered = value => page.waitForFunction(value => document.querySelector('[data-testid="qr-portal"]')?.dataset.rendered === value, value, { timeout: 20000 });
   const create = async () => {
@@ -182,6 +204,13 @@ async page => {
   const phone = await phoneContext.newPage(); phone.on('pageerror', e => errors.push(e.message));
   await phone.goto(fallback.url);
   await phone.getByRole('button', { name: '고화질 인쇄 사진 저장 (4×6)', exact: true }).waitFor({ timeout: 100000 });
+  // The phone shows the same comparison from a small display-only pair; saving stays the final photo.
+  await phone.getByRole('button', { name: '변신 전후 비교 보기', exact: true }).click({ timeout: 15000 });
+  const phoneSlider = phone.getByTestId('before-after');
+  await phoneSlider.waitFor();
+  const pairShape = await phoneSlider.locator('img').evaluateAll(imgs => imgs.map(img => img.naturalWidth / img.naturalHeight));
+  if (pairShape.length !== 2 || pairShape.some(ratio => Math.abs(ratio - 0.8) > 0.01)) throw new Error('Phone comparison pair is not two 4:5 images: ' + JSON.stringify(pairShape));
+  await phoneSlider.screenshot({ path: '.playwright-cli/compare-phone.png' });
   await page.getByText('휴대폰에 사진을 전달했어요!', { exact: true }).waitFor();
   await portal.click(); await rendered('tree');
   if (await portal.getAttribute('data-status') !== 'received') throw new Error('Receipt status was lost');
@@ -190,11 +219,13 @@ async page => {
   await phone.screenshot({ path: '.playwright-cli/portal-phone-received.png', fullPage: true });
   const download = phone.waitForEvent('download');
   await phone.getByRole('button', { name: '고화질 인쇄 사진 저장 (4×6)', exact: true }).click();
-  if (!(await (await download).path())) throw new Error('Photo download failed');
+  const savedPhoto = await download;
+  if (!(await savedPhoto.path())) throw new Error('Photo download failed');
+  if (!/^ai-hancut-[A-Za-z0-9_-]+\.jpg$/.test(savedPhoto.suggestedFilename())) throw new Error('Phone saved something other than the final photo: ' + savedPhoto.suggestedFilename());
   await phoneContext.close();
   await page.getByRole('button', { name: 'QR 나무 크게 보기', exact: true }).click(); await dialog.waitFor();
   await dialog.getByText('휴대폰에 사진을 전달했어요!', { exact: true }).waitFor();
   await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'detached' });
   if (errors.length) throw new Error(errors.join('; '));
-  return { qrFirstAndScannable: 'passed', tapCue: 'passed', noAutoFullScreen: 'passed', qrToTreeMorph: 'passed', revealChord: 'passed', scanGuideOnlyOnCode: 'passed', treeToQr: 'passed', keyboard: 'passed', muteRemembered: 'passed', growthIntroOnTreeOpen: 'passed', growthSkipOnTap: 'passed', optionalFullScreen: 'passed', degradedCameraDecode: 'passed', mobileCard: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', midFlightReverse: 'passed', photoTransferAndDownload: 'passed', afterReceiveTree: 'passed', pageErrors: errors };
+  return { boothCompare: 'passed', boothSaveStaysFinal: 'passed', phoneCompare: 'passed', phoneSaveStaysFinal: 'passed', qrFirstAndScannable: 'passed', tapCue: 'passed', noAutoFullScreen: 'passed', qrToTreeMorph: 'passed', revealChord: 'passed', scanGuideOnlyOnCode: 'passed', treeToQr: 'passed', keyboard: 'passed', muteRemembered: 'passed', growthIntroOnTreeOpen: 'passed', growthSkipOnTap: 'passed', optionalFullScreen: 'passed', degradedCameraDecode: 'passed', mobileCard: 'passed', webglFallbackAndRetry: 'passed', contextLossAndRetry: 'passed', midFlightReverse: 'passed', photoTransferAndDownload: 'passed', afterReceiveTree: 'passed', pageErrors: errors };
 }

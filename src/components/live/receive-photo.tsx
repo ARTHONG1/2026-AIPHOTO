@@ -13,6 +13,10 @@ export function ReceivePhoto({ id }: { id?: string }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<TransferState>({ status: 'waiting' });
   const [meta, setMeta] = useState<LivePhotoMeta | null>(null);
+  // Before/after pair for the comparison slider only; never saved or shared.
+  const [compare, setCompare] = useState<{ before: string; after: string } | null>(null);
+  const compareUrls = useRef<string[]>([]);
+  const dropCompare = () => { compareUrls.current.forEach((url) => URL.revokeObjectURL(url)); compareUrls.current = []; setCompare(null); };
   const [attempt, setAttempt] = useState(0);
   const [fileError, setFileError] = useState('');
   const photoUrl = useRef<string | null>(null);
@@ -21,20 +25,28 @@ export function ReceivePhoto({ id }: { id?: string }) {
   const token = useRef('');
   const accept = (blob: Blob, info: Omit<LivePhotoMeta, 'photoUrl'>) => {
     if (!mounted.current) return;
+    dropCompare();
     if (photoUrl.current) URL.revokeObjectURL(photoUrl.current);
     photoUrl.current = URL.createObjectURL(blob);
     setMeta({ ...info, photoUrl: photoUrl.current });
     if (id) history.replaceState(null, '', '/receive/' + id);
   };
+  const acceptCompare = (pair: { before: Blob; after: Blob }) => {
+    if (!mounted.current) return;
+    dropCompare();
+    const urls = { before: URL.createObjectURL(pair.before), after: URL.createObjectURL(pair.after) };
+    compareUrls.current = [urls.before, urls.after];
+    setCompare(urls);
+  };
   useEffect(() => {
     mounted.current = true;
     setReady(true);
-    return () => { mounted.current = false; stop.current?.(); if (photoUrl.current) URL.revokeObjectURL(photoUrl.current); };
+    return () => { mounted.current = false; stop.current?.(); if (photoUrl.current) URL.revokeObjectURL(photoUrl.current); compareUrls.current.forEach((url) => URL.revokeObjectURL(url)); };
   }, []);
   useEffect(() => {
     if (!id) return;
     if (!token.current) token.current = location.hash.slice(1);
-    stop.current = receivePhoto(id, token.current, setState, accept);
+    stop.current = receivePhoto(id, token.current, setState, accept, acceptCompare);
     return () => { stop.current?.(); stop.current = null; };
     // id/attempt defines the receive session; accepting a blob must not restart it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,7 +71,7 @@ export function ReceivePhoto({ id }: { id?: string }) {
       {id && meta.id === id && <TransferPortalProgress state={{ status: 'received', progress: 100 }} compact />}
       <PhotoPrivacyNotice source={id && meta.id === id ? 'qr' : 'local'} className="max-w-md" />
     </div>
-    <LivePhotoView key={meta.id} meta={meta} />
+    <LivePhotoView key={meta.id} meta={meta} compare={id && meta.id === id ? compare : null} />
   </>;
   return <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-[#070b16] px-6 py-8 text-center text-slate-100">
     <h1 className="font-display text-4xl text-cyan-300">AI한컷 라이브 포토</h1>
